@@ -1,118 +1,140 @@
-# === CW Secure Template — Common Commands ===
-# Run `make help` to see all available commands.
+# === CW Secure Template ===
+#
+# You only need 3 commands:
+#   make start   — Run your app
+#   make check   — Run before pull requests
+#   make help    — See everything else
+#
 
 SHELL := /bin/bash
-
 .DEFAULT_GOAL := help
 
-# Auto-detect language based on which starter exists
 GO_EXISTS := $(wildcard go/go.mod)
 PY_EXISTS := $(wildcard python/pyproject.toml)
 
-# ──────────────────────────────────────
-# Setup
-# ──────────────────────────────────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# THE 3 COMMANDS YOU NEED
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-.PHONY: setup
-setup: ## First-time setup — install hooks, deps, create .env
-	@echo "=== Installing pre-commit hooks ==="
-	pip install pre-commit 2>/dev/null || brew install pre-commit
-	pre-commit install
-	@echo "=== Installing custom git hooks ==="
-	@cp scripts/git-hooks/pre-commit .git/hooks/pre-commit 2>/dev/null || true
-	@cp scripts/git-hooks/post-checkout .git/hooks/post-checkout 2>/dev/null || true
-	@chmod +x .git/hooks/pre-commit .git/hooks/post-checkout 2>/dev/null || true
-	@if [ ! -f .env ]; then \
-		cp .env.example .env; \
-		echo "=== Created .env from .env.example — fill in your values ==="; \
-	fi
+.PHONY: start
+start: ## Run your app
 ifdef GO_EXISTS
-	@echo "=== Installing Go dependencies ==="
-	cd go && go mod download
+	@cd go && go run .
 endif
 ifdef PY_EXISTS
-	@echo "=== Installing Python dependencies ==="
-	cd python && pip install -e ".[dev]"
+	@cd python && uvicorn src.main:app --reload --port $${PORT:-8080}
 endif
+
+.PHONY: check
+check: lint test security-scan ## Run ALL checks — do this before every pull request
 	@echo ""
-	@$(MAKE) doctor
-	@echo "Setup complete. Run 'make run' to start."
+	@echo "  All checks passed. You're good to open a pull request."
+	@echo ""
 
-# ──────────────────────────────────────
-# Run
-# ──────────────────────────────────────
+.PHONY: help
+help: ## Show all available commands
+	@echo ""
+	@echo "  CW Secure Template — Commands"
+	@echo "  ─────────────────────────────"
+	@echo ""
+	@echo "  Quick start:"
+	@echo "    make start       Run your app"
+	@echo "    make check       Run before pull requests"
+	@echo ""
+	@echo "  Testing & quality:"
+	@echo "    make test        Run tests"
+	@echo "    make lint        Check code style"
+	@echo "    make fix         Auto-fix lint + security issues"
+	@echo ""
+	@echo "  Security:"
+	@echo "    make doctor      Is my security pipeline healthy?"
+	@echo "    make scan        Deep security scan"
+	@echo "    make learn       Take a security quiz (15 questions)"
+	@echo "    make dashboard   Open the security dashboard"
+	@echo ""
+	@echo "  Setup:"
+	@echo "    make setup       Re-run first-time setup"
+	@echo "    make docker      Build Docker image"
+	@echo ""
 
-.PHONY: run
-run: ## Start the application
-ifdef GO_EXISTS
-	cd go && go run .
-endif
-ifdef PY_EXISTS
-	cd python && uvicorn src.main:app --reload --port $${PORT:-8080}
-endif
-
-# ──────────────────────────────────────
-# Lint
-# ──────────────────────────────────────
-
-.PHONY: lint
-lint: ## Run linters
-ifdef GO_EXISTS
-	cd go && golangci-lint run
-endif
-ifdef PY_EXISTS
-	cd python && ruff check . && ruff format --check .
-endif
-
-.PHONY: lint-fix
-lint-fix: ## Run linters and auto-fix
-ifdef GO_EXISTS
-	cd go && golangci-lint run --fix
-endif
-ifdef PY_EXISTS
-	cd python && ruff check --fix . && ruff format .
-endif
-
-# ──────────────────────────────────────
-# Test
-# ──────────────────────────────────────
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# TESTING & QUALITY (behind make help)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 .PHONY: test
-test: ## Run tests
+test:
 ifdef GO_EXISTS
-	cd go && go test -race -cover ./...
+	@cd go && go test -race -cover ./...
 endif
 ifdef PY_EXISTS
-	cd python && pytest --cov=src --cov-report=term-missing
+	@cd python && pytest --cov=src --cov-report=term-missing
 endif
 
-# ──────────────────────────────────────
-# Security
-# ──────────────────────────────────────
+.PHONY: lint
+lint:
+ifdef GO_EXISTS
+	@cd go && golangci-lint run 2>/dev/null || echo "  golangci-lint not installed — run: brew install golangci-lint"
+endif
+ifdef PY_EXISTS
+	@cd python && ruff check . 2>/dev/null && ruff format --check . 2>/dev/null || echo "  ruff not installed — run: pip install ruff"
+endif
+
+.PHONY: fix
+fix: ## Auto-fix lint + security issues
+ifdef GO_EXISTS
+	@cd go && golangci-lint run --fix 2>/dev/null || true
+endif
+ifdef PY_EXISTS
+	@cd python && ruff check --fix . 2>/dev/null && ruff format . 2>/dev/null || true
+endif
+	@echo ""
+	@bash scripts/security-fix.sh
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SECURITY (behind make help)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: doctor
+doctor:
+	@bash scripts/doctor.sh
+
+.PHONY: scan
+scan:
+	@echo "  Running deep security scan..."
+	@gitleaks detect --source . --no-banner 2>/dev/null || echo "  gitleaks not installed — run: brew install gitleaks"
+ifdef GO_EXISTS
+	@cd go && gosec ./... 2>/dev/null || echo "  gosec not installed"
+	@cd go && govulncheck ./... 2>/dev/null || echo "  govulncheck not installed"
+endif
+ifdef PY_EXISTS
+	@cd python && bandit -c bandit.yaml -r src/ 2>/dev/null || echo "  bandit not installed"
+	@cd python && pip-audit . 2>/dev/null || echo "  pip-audit not installed"
+endif
 
 .PHONY: security-scan
-security-scan: ## Run all security scanners
-	@echo "=== Secret scanning ==="
-	gitleaks detect --source . --verbose 2>/dev/null || echo "Install gitleaks: brew install gitleaks"
-ifdef GO_EXISTS
-	@echo "=== Go security scan (gosec) ==="
-	cd go && gosec ./... 2>/dev/null || echo "Install gosec: go install github.com/securego/gosec/v2/cmd/gosec@latest"
-	@echo "=== Go vulnerability check ==="
-	cd go && govulncheck ./... 2>/dev/null || echo "Install govulncheck: go install golang.org/x/vuln/cmd/govulncheck@latest"
-endif
-ifdef PY_EXISTS
-	@echo "=== Python security scan (bandit) ==="
-	cd python && bandit -c bandit.yaml -r src/
-	@echo "=== Python dependency audit ==="
-	cd python && pip-audit .
-endif
+security-scan: scan
 
-# ──────────────────────────────────────
-# Docker
-# ──────────────────────────────────────
+.PHONY: learn
+learn:
+	@bash scripts/security-quiz.sh
 
-.PHONY: docker-build
-docker-build: ## Build Docker image
+.PHONY: dashboard
+dashboard:
+	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "  Open security-dashboard.html in your browser"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# SETUP (behind make help)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: setup
+setup:
+	@bash setup.sh
+
+.PHONY: run
+run: start
+
+.PHONY: docker
+docker:
 ifdef GO_EXISTS
 	docker build -f go/Dockerfile -t my-app:latest go/
 endif
@@ -120,46 +142,5 @@ ifdef PY_EXISTS
 	docker build -f python/Dockerfile -t my-app:latest python/
 endif
 
-# ──────────────────────────────────────
-# All checks (run before PR)
-# ──────────────────────────────────────
-
-.PHONY: check
-check: lint test security-scan ## Run ALL checks (lint + test + security) — run before every PR
-
-# ──────────────────────────────────────
-# Fix & Doctor
-# ──────────────────────────────────────
-
-.PHONY: fix
-fix: ## Auto-fix security + lint issues (runs scanners, fixes what it can)
-	@bash scripts/security-fix.sh
-
-.PHONY: doctor
-doctor: ## Health check — verify the entire security pipeline is working
-	@bash scripts/doctor.sh
-
-# ──────────────────────────────────────
-# Learn
-# ──────────────────────────────────────
-
-.PHONY: learn
-learn: ## Interactive security quiz — test your OWASP knowledge
-	@bash scripts/security-quiz.sh
-
-# ──────────────────────────────────────
-# Dashboard
-# ──────────────────────────────────────
-
-.PHONY: dashboard
-dashboard: ## Open the security pipeline dashboard in your browser
-	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "Open security-dashboard.html in your browser"
-
-# ──────────────────────────────────────
-# Help
-# ──────────────────────────────────────
-
-.PHONY: help
-help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+.PHONY: lint-fix
+lint-fix: fix

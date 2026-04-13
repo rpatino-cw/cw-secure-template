@@ -1,42 +1,65 @@
 #!/usr/bin/env bash
 # === CW Secure Template — Pre-Commit Hook ===
-# This wraps the standard pre-commit framework and adds enforcement tracking.
-# CI verifies that this hook actually ran by checking the .last-hook-run timestamp.
-# Using --no-verify skips this hook, but CI will catch the missing timestamp.
-set -euo pipefail
+set -uo pipefail
 
-RED='\033[0;31m'
 GREEN='\033[0;32m'
+RED='\033[0;31m'
 YELLOW='\033[1;33m'
+BOLD='\033[1m'
+DIM='\033[2m'
 NC='\033[0m'
 
-echo -e "${GREEN}Running security checks...${NC}"
+echo ""
+echo -e "${DIM}  Checking your code before commit...${NC}"
 
-# Run pre-commit framework (gitleaks, linting, bandit, etc.)
 if command -v pre-commit &> /dev/null; then
-    pre-commit run --hook-stage commit || {
+    OUTPUT=$(pre-commit run --hook-stage commit 2>&1) || {
         echo ""
-        echo -e "${RED}========================================${NC}"
-        echo -e "${RED}  COMMIT BLOCKED — Security check failed${NC}"
-        echo -e "${RED}========================================${NC}"
+        echo -e "  ${RED}${BOLD}STOP — Your commit was blocked.${NC}"
         echo ""
-        echo -e "Run ${YELLOW}make fix${NC} to auto-fix what's possible."
-        echo -e "Run ${YELLOW}make doctor${NC} to check your setup."
+
+        # Parse what failed and explain in plain English
+        if echo "$OUTPUT" | grep -qi "gitleaks\|secret\|private.key\|detect-private-key"; then
+            echo -e "  ${BOLD}What happened:${NC}  A secret (password, API key, or token) was found in your code."
+            echo -e "  ${BOLD}Why it matters:${NC} If this reaches GitHub, anyone with access can see it — forever."
+            echo -e "  ${BOLD}How to fix it:${NC}"
+            echo "    1. Find the line with the secret in your code"
+            echo "    2. Replace the value with:  os.environ[\"YOUR_KEY_NAME\"]"
+            echo "    3. Add YOUR_KEY_NAME=the-real-value to your .env file"
+            echo "    4. Try committing again"
+        elif echo "$OUTPUT" | grep -qi "bandit\|security"; then
+            echo -e "  ${BOLD}What happened:${NC}  A security issue was found in your Python code."
+            echo -e "  ${BOLD}How to fix it:${NC}  Run ${GREEN}make fix${NC} to see the issue and how to resolve it."
+        elif echo "$OUTPUT" | grep -qi "golangci\|ruff\|lint\|format"; then
+            echo -e "  ${BOLD}What happened:${NC}  Your code has style or formatting issues."
+            echo -e "  ${BOLD}How to fix it:${NC}  Run ${GREEN}make fix${NC} — it will auto-fix most of these."
+        elif echo "$OUTPUT" | grep -qi "no-commit-to-branch"; then
+            echo -e "  ${BOLD}What happened:${NC}  You're trying to commit directly to the main branch."
+            echo -e "  ${BOLD}Why it matters:${NC} All changes should go through a pull request for review."
+            echo -e "  ${BOLD}How to fix it:${NC}"
+            echo "    1. Create a new branch:  git checkout -b feature/your-change"
+            echo "    2. Try committing again"
+        else
+            echo -e "  ${BOLD}Details:${NC}"
+            echo "$OUTPUT" | tail -20
+            echo ""
+            echo -e "  Run ${GREEN}make fix${NC} to auto-fix what's possible."
+        fi
+
         echo ""
-        echo -e "${RED}DO NOT use --no-verify to skip these checks.${NC}"
-        echo -e "CI will catch skipped hooks and block your PR."
+        echo -e "  ${DIM}Need help? Run: make help${NC}"
+        echo ""
         exit 1
     }
 else
-    echo -e "${YELLOW}WARNING: pre-commit not installed. Installing...${NC}"
-    pip install pre-commit 2>/dev/null || brew install pre-commit 2>/dev/null
-    pre-commit install
+    echo -e "  ${YELLOW}Pre-commit not installed. Running: make setup${NC}"
+    pip install pre-commit -q 2>/dev/null || true
+    pre-commit install -q 2>/dev/null || true
     pre-commit run --hook-stage commit || exit 1
 fi
 
-# Write timestamp so CI can verify hooks actually ran.
-# If someone uses --no-verify, this file won't be updated,
-# and the CI hook-integrity job will flag it.
-date -u +"%Y-%m-%dT%H:%M:%SZ" > "$(git rev-parse --show-toplevel)/.last-hook-run"
+# Track that hooks ran (CI verifies this)
+date -u +"%s" > "$(git rev-parse --show-toplevel)/.last-hook-run" 2>/dev/null || true
 
-echo -e "${GREEN}All security checks passed.${NC}"
+echo -e "  ${GREEN}All checks passed.${NC}"
+echo ""

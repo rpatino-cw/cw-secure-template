@@ -741,16 +741,29 @@ section + section {
 </div>
 </section>
 
+<!-- ====== MY STATUS ====== -->
+<section id="status">
+<div class="container">
+  <div class="section-header">
+    <h2>My Project Status</h2>
+    <p>Paste the output of <code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-sm);background:var(--bg-sunken);padding:2px 8px;border-radius:4px">make doctor</code> below to see your security health.</p>
+  </div>
+  <textarea id="doctor-input" placeholder="Run 'make doctor' in your terminal, then copy-paste the output here..." style="width:100%;min-height:120px;padding:var(--space-md);border:1px solid var(--border);border-radius:12px;font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--bg-elevated);color:var(--text-primary);resize:vertical;line-height:1.6"></textarea>
+  <div id="status-results" style="margin-top:var(--space-md)"></div>
+</div>
+</section>
+
 <!-- ====== COMMANDS ====== -->
 <section id="commands">
 <div class="container">
   <div class="section-header">
     <h2>Commands</h2>
-    <p>Everything you can run from the terminal.</p>
+    <p>The 3 you need, plus extras.</p>
   </div>
   <div class="commands-grid">
-    <div class="cmd"><span class="cmd-name">make setup</span><span class="cmd-desc">First-time setup</span></div>
-    <div class="cmd"><span class="cmd-name">make run</span><span class="cmd-desc">Start the app</span></div>
+    <div class="cmd" style="border-color:var(--pass);background:var(--pass-bg)"><span class="cmd-name">make start</span><span class="cmd-desc">Run your app</span></div>
+    <div class="cmd" style="border-color:var(--pass);background:var(--pass-bg)"><span class="cmd-name">make check</span><span class="cmd-desc">Before PRs</span></div>
+    <div class="cmd" style="border-color:var(--pass);background:var(--pass-bg)"><span class="cmd-name">make help</span><span class="cmd-desc">See all commands</span></div>
     <div class="cmd"><span class="cmd-name">make test</span><span class="cmd-desc">Run tests</span></div>
     <div class="cmd"><span class="cmd-name">make lint</span><span class="cmd-desc">Check code style</span></div>
     <div class="cmd"><span class="cmd-name">make fix</span><span class="cmd-desc">Auto-fix issues</span></div>
@@ -1104,6 +1117,65 @@ CONCEPTS.forEach(concept => {
     el.classList.toggle('expanded');
   });
   conceptsList.appendChild(el);
+});
+
+// ====== MY STATUS — parse doctor output ======
+
+const doctorInput = document.getElementById('doctor-input');
+const statusResults = document.getElementById('status-results');
+
+doctorInput.addEventListener('input', () => {
+  const raw = doctorInput.value;
+  if (!raw.trim()) { statusResults.innerHTML = ''; return; }
+
+  const lines = raw.split('\n');
+  let pass = 0, fail = 0, warn = 0;
+  const items = [];
+
+  lines.forEach(line => {
+    const passMatch = line.match(/\[PASS\]\s*(.*)/);
+    const failMatch = line.match(/\[FAIL\]\s*(.*)/);
+    const warnMatch = line.match(/\[WARN\]\s*(.*)/);
+
+    if (passMatch) { pass++; items.push({ status: 'pass', text: passMatch[1].trim() }); }
+    if (failMatch) { fail++; items.push({ status: 'fail', text: failMatch[1].trim() }); }
+    if (warnMatch) { warn++; items.push({ status: 'warn', text: warnMatch[1].trim() }); }
+  });
+
+  const total = pass + fail + warn;
+  if (total === 0) { statusResults.innerHTML = '<p style="color:var(--text-tertiary)">Paste the output of <code>make doctor</code> above.</p>'; return; }
+
+  const pct = Math.round((pass / total) * 100);
+  const grade = pct >= 90 ? 'Excellent' : pct >= 70 ? 'Good' : pct >= 50 ? 'Needs Work' : 'Critical';
+  const gradeColor = pct >= 90 ? 'var(--pass)' : pct >= 70 ? 'var(--info)' : pct >= 50 ? 'var(--warn)' : 'var(--critical)';
+
+  let html = `
+    <div style="display:flex;gap:var(--space-lg);align-items:baseline;margin-bottom:var(--space-md);flex-wrap:wrap">
+      <div>
+        <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:var(--text-2xl);color:${gradeColor}">${pct}%</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);color:var(--text-tertiary);margin-left:var(--space-xs)">${grade}</span>
+      </div>
+      <div style="display:flex;gap:var(--space-md)">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs)"><span style="color:var(--pass)">${pass} passed</span></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs)"><span style="color:var(--critical)">${fail} failed</span></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs)"><span style="color:var(--warn)">${warn} warnings</span></span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+  `;
+
+  items.forEach(item => {
+    const colors = { pass: 'var(--pass)', fail: 'var(--critical)', warn: 'var(--warn)' };
+    const bgs = { pass: 'var(--pass-bg)', fail: 'var(--critical-bg)', warn: 'var(--warn-bg)' };
+    const icons = { pass: '\u2713', fail: '\u2717', warn: '\u26A0' };
+    html += `<div style="display:flex;align-items:center;gap:var(--space-sm);padding:6px var(--space-sm);background:${bgs[item.status]};border-radius:6px">
+      <span style="color:${colors[item.status]};font-weight:600;width:1.2em;text-align:center">${icons[item.status]}</span>
+      <span style="font-size:var(--text-sm);color:var(--text-secondary)">${item.text}</span>
+    </div>`;
+  });
+
+  html += '</div>';
+  statusResults.innerHTML = html;
 });
 </script>
 </body>

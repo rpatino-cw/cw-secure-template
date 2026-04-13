@@ -49,18 +49,20 @@ Your code passes through 6 security checkpoints before it reaches production. Ea
 ## Quick Start
 
 ```bash
-# Clone it
 git clone https://github.com/rpatino-cw/cw-secure-template my-app
 cd my-app
-
-# Run setup (takes ~2 min)
 bash setup.sh
-
-# Start building
-make run
 ```
 
-That's it. Open Claude Code in the project folder and start prompting. Security is automatic.
+Setup asks one question (Python or Go — pick Python if unsure), installs everything, and opens the Security Dashboard. Then:
+
+```bash
+make start    # Run your app
+```
+
+Open Claude Code in the project folder and start prompting. Security is automatic.
+
+> **New to this?** Read the [step-by-step Getting Started guide](docs/getting-started.md) — it walks you through your first 10 minutes.
 
 ---
 
@@ -98,16 +100,15 @@ That's it. Open Claude Code in the project folder and start prompting. Security 
 
 ## Commands
 
+You only need 3:
+
 ```
-make setup          One-time setup (hooks, deps, health check)
-make run            Start the app
-make test           Run tests
-make check          Run everything — do this before PRs
-make fix            Auto-fix what it can, explain what it can't
-make doctor         Is my pipeline healthy?
-make learn          Security quiz
-make dashboard      Open the pipeline visual
+make start    Run your app
+make check    Run before pull requests
+make help     See everything else
 ```
+
+`make help` shows the full list: test, fix, doctor, scan, learn, dashboard, docker, setup.
 
 ---
 

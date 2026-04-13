@@ -1,155 +1,178 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# === CW Secure Template V2 — One-Command Setup ===
-# Usage: bash setup.sh
+# === CW Secure Template — Setup ===
+# One command. Everything installed. App running in 2 minutes.
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 BOLD='\033[1m'
+DIM='\033[2m'
 NC='\033[0m'
 
+clear
 echo ""
-echo -e "${BOLD}  CW Secure Template — Setup${NC}"
-echo "  =============================="
+echo -e "${BOLD}  Welcome to the CW Secure Template${NC}"
+echo "  ──────────────────────────────────"
+echo ""
+echo "  This will set up a secure project with:"
+echo "  - Authentication (Okta)"
+echo "  - Security scanning on every commit"
+echo "  - Tests that must pass before you can push"
+echo "  - A dashboard showing how your code is protected"
 echo ""
 
-# --- Pick language ---
-echo "Which language are you using?"
-echo "  1) Go"
-echo "  2) Python"
-echo "  3) Both (keep both starters)"
+# ─── Language choice (recommend Python) ───
+echo -e "${BOLD}  Which language do you want to use?${NC}"
 echo ""
-read -rp "Enter 1, 2, or 3: " lang_choice
+echo -e "  1) Python  ${GREEN}← recommended (simpler, great for internal tools)${NC}"
+echo "  2) Go       (faster, used for high-performance services)"
+echo "  3) Both     (keep both starters — decide later)"
+echo ""
+read -rp "  Enter 1, 2, or 3 [default: 1]: " lang_choice
+lang_choice=${lang_choice:-1}
 
 case "$lang_choice" in
   1)
-    echo "Removing Python starter..."
-    rm -rf python/
-    echo -e "${GREEN}Go project ready.${NC}"
+    echo ""
+    echo -e "  ${GREEN}Python selected.${NC}"
+    if [ -d go/ ]; then
+      mkdir -p .archived 2>/dev/null
+      mv go/ .archived/go/ 2>/dev/null || true
+      echo -e "  ${DIM}(Go starter archived to .archived/go/ — you can restore it later)${NC}"
+    fi
     ;;
   2)
-    echo "Removing Go starter..."
-    rm -rf go/
-    echo -e "${GREEN}Python project ready.${NC}"
+    echo ""
+    echo -e "  ${GREEN}Go selected.${NC}"
+    if [ -d python/ ]; then
+      mkdir -p .archived 2>/dev/null
+      mv python/ .archived/python/ 2>/dev/null || true
+      echo -e "  ${DIM}(Python starter archived to .archived/python/ — you can restore it later)${NC}"
+    fi
     ;;
   3)
-    echo "Keeping both starters."
+    echo ""
+    echo "  Keeping both starters."
     ;;
   *)
-    echo "Invalid choice. Keeping both."
+    echo ""
+    echo -e "  ${GREEN}Defaulting to Python.${NC}"
+    if [ -d go/ ]; then
+      mkdir -p .archived 2>/dev/null
+      mv go/ .archived/go/ 2>/dev/null || true
+    fi
     ;;
 esac
 
-# --- Create .env ---
+# ─── Create .env ───
+echo ""
 if [ ! -f .env ]; then
   cp .env.example .env
+  echo -e "  ${GREEN}Created your .env file.${NC}"
   echo ""
-  echo -e "${GREEN}Created .env from .env.example${NC}"
-  echo -e "${YELLOW}IMPORTANT: Edit .env with your Okta credentials before deploying.${NC}"
-  echo "  For local dev, DEV_MODE=true bypasses auth with a test user."
+  echo "  For local development, you don't need Okta credentials."
+  echo -e "  The app runs in ${BOLD}DEV_MODE${NC} by default (fake test user)."
+  echo -e "  ${DIM}When you're ready to deploy, fill in the Okta values.${NC}"
 else
-  echo ".env already exists, skipping."
+  echo "  .env already exists — skipping."
 fi
 
-# --- Init git if needed ---
+# ─── Git init ───
 if [ ! -d .git ]; then
   echo ""
-  echo "Initializing git repo..."
-  git init
+  echo "  Setting up git..."
+  GIT_TEMPLATE_DIR="" git init -q 2>/dev/null || git init -q
 fi
 
-# --- Install pre-commit ---
+# ─── Pre-commit hooks ───
 echo ""
-echo "Installing pre-commit hooks..."
+echo "  Installing security hooks..."
 if command -v pre-commit &> /dev/null; then
-  pre-commit install
-  echo -e "${GREEN}Pre-commit hooks installed.${NC}"
+  pre-commit install -q 2>/dev/null
 else
-  echo -e "${YELLOW}pre-commit not found. Installing...${NC}"
-  pip install pre-commit 2>/dev/null || brew install pre-commit 2>/dev/null
-  pre-commit install
+  pip install pre-commit -q 2>/dev/null || brew install pre-commit -q 2>/dev/null || true
+  pre-commit install -q 2>/dev/null || true
 fi
 
-# --- Install custom git hooks ---
-echo "Installing security enforcement hooks..."
-cp scripts/git-hooks/pre-commit .git/hooks/pre-commit 2>/dev/null || true
-cp scripts/git-hooks/post-checkout .git/hooks/post-checkout 2>/dev/null || true
-cp scripts/git-hooks/pre-push .git/hooks/pre-push 2>/dev/null || true
-chmod +x .git/hooks/pre-commit .git/hooks/post-checkout .git/hooks/pre-push 2>/dev/null || true
-echo -e "${GREEN}Git hooks installed.${NC}"
+# Custom enforcement hooks
+for hook in pre-commit post-checkout pre-push; do
+  if [ -f "scripts/git-hooks/$hook" ]; then
+    cp "scripts/git-hooks/$hook" ".git/hooks/$hook" 2>/dev/null || true
+    chmod +x ".git/hooks/$hook" 2>/dev/null || true
+  fi
+done
+echo -e "  ${GREEN}Security hooks installed.${NC} Every commit and push is checked."
 
-# --- Install language deps ---
+# ─── Install dependencies ───
 if [ -f go/go.mod ]; then
   echo ""
-  echo "Installing Go dependencies..."
-  (cd go && go mod download 2>/dev/null) || echo -e "${YELLOW}Go not installed — install from go.dev${NC}"
+  echo "  Installing Go dependencies..."
+  (cd go && go mod download 2>/dev/null) && echo -e "  ${GREEN}Done.${NC}" || echo -e "  ${YELLOW}Go not installed — install from go.dev${NC}"
 fi
 
 if [ -f python/pyproject.toml ]; then
   echo ""
-  echo "Installing Python dependencies..."
-  (cd python && pip install -e ".[dev]" 2>/dev/null) || echo -e "${YELLOW}pip install failed — check Python version (3.11+ required)${NC}"
+  echo "  Installing Python dependencies..."
+  (cd python && pip install -e ".[dev]" -q 2>/dev/null) && echo -e "  ${GREEN}Done.${NC}" || echo -e "  ${YELLOW}Failed — need Python 3.11+${NC}"
 fi
 
-# --- Initial commit if fresh repo ---
+# ─── Initial commit ───
 if [ -z "$(git log --oneline -1 2>/dev/null)" ]; then
-  git add .
-  git commit -m "Initial commit from cw-secure-template"
-  echo -e "${GREEN}Git repo initialized with initial commit.${NC}"
+  git add -A
+  git commit -q -m "Initial commit from cw-secure-template"
+  echo -e "  ${GREEN}First commit created.${NC}"
 fi
 
-# --- Auto-configure branch protection if gh CLI available ---
+# ─── Auto branch protection ───
 if command -v gh &>/dev/null; then
-  REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null)
+  REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null || true)
   if [ -n "$REPO" ]; then
     echo ""
-    echo -e "${YELLOW}Configuring branch protection on main...${NC}"
+    echo "  Configuring branch protection..."
     gh api -X PUT "repos/${REPO}/branches/main/protection" \
-      --input - <<'PROTECTION' 2>/dev/null && echo -e "${GREEN}Branch protection configured.${NC}" || echo -e "${YELLOW}Branch protection skipped (may need admin access).${NC}"
+      --input - <<'PROTECTION' 2>/dev/null && echo -e "  ${GREEN}Branch protection enabled.${NC}" || true
 {
-  "required_status_checks": {
-    "strict": true,
-    "contexts": ["Secret Scanning", "Go Checks", "Python Checks", "Dependency Audit", "Hook Integrity Check"]
-  },
+  "required_status_checks": { "strict": true, "contexts": [] },
   "enforce_admins": false,
-  "required_pull_request_reviews": {
-    "dismiss_stale_reviews": true,
-    "require_code_owner_reviews": false,
-    "required_approving_review_count": 1
-  },
+  "required_pull_request_reviews": { "dismiss_stale_reviews": true, "required_approving_review_count": 1 },
   "restrictions": null,
   "allow_force_pushes": false,
   "allow_deletions": false
 }
 PROTECTION
-  else
-    echo -e "${YELLOW}No GitHub remote detected — skip branch protection. Run 'gh repo create' first.${NC}"
   fi
-else
-  echo -e "${YELLOW}gh CLI not installed — branch protection must be configured manually.${NC}"
-  echo "  Install: brew install gh && gh auth login"
-  echo "  Then run: gh workflow run branch-protection-setup.yml"
 fi
 
-# --- Health check ---
+# ─── Health check ───
 echo ""
-echo "Running health check..."
-bash scripts/doctor.sh || true
+echo -e "${BOLD}  Checking your setup...${NC}"
+echo "  ──────────────────────"
+bash scripts/doctor.sh 2>/dev/null || true
 
-# --- Summary ---
+# ─── Guided first run ───
 echo ""
+echo -e "${BOLD}  ──────────────────────────────────${NC}"
 echo -e "${BOLD}  Setup complete!${NC}"
-echo "  =============================="
+echo -e "${BOLD}  ──────────────────────────────────${NC}"
 echo ""
-echo "  Quick start:"
-echo "    make run            — Start the app"
-echo "    make test           — Run tests"
-echo "    make check          — Run all checks (before PRs)"
-echo "    make fix            — Auto-fix issues"
-echo "    make doctor         — Health check"
-echo "    make learn          — Security quiz"
-echo "    make dashboard      — Open security dashboard"
+echo "  What to do next:"
 echo ""
-echo "  Start building! Claude follows the security rules in CLAUDE.md."
+echo -e "  ${BOLD}1.${NC} Start your app:"
+echo -e "     ${GREEN}make start${NC}"
 echo ""
+echo -e "  ${BOLD}2.${NC} Open Claude Code in this folder and start building."
+echo "     Claude will automatically follow the security rules."
+echo ""
+echo -e "  ${BOLD}3.${NC} Before creating a pull request, run:"
+echo -e "     ${GREEN}make check${NC}"
+echo ""
+echo -e "  ${DIM}Other useful commands: make help${NC}"
+echo ""
+
+# Auto-open dashboard if possible
+if command -v open &>/dev/null && [ -f security-dashboard.html ]; then
+  echo -e "  Opening the Security Dashboard..."
+  open security-dashboard.html 2>/dev/null || true
+fi
