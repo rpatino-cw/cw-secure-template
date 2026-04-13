@@ -282,7 +282,7 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 <div class="container">
   <h1>Plan it. Scaffold it.<br>Ship it secure.</h1>
   <p class="hero-stat">Architecture before code. Security by default.</p>
-  <p class="hero-sub">Answer six questions. Get a PLAN.md Claude can follow, a secure scaffold that passes CI from commit one, and CW policy compliance baked in.</p>
+  <p class="hero-sub">This tool generates a PLAN.md for your next project. Fill out the form below, copy the output, and drop it into your repo. Claude reads it every session so your whole team stays aligned.</p>
   <a href="#plan" class="hero-cta" onclick="document.getElementById('plan').scrollIntoView({behavior:'smooth'});return false;">Start Planning</a>
 </div>
 </section>
@@ -290,14 +290,14 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 <!-- ===== SECTION 1: PLAN ===== -->
 <section id="plan">
 <div class="container">
-  <h2>What Are We Building?</h2>
-  <p class="subtitle">Six steps. No skipping. Answer each one and your PLAN.md writes itself.</p>
+  <h2>Generate Your PLAN.md</h2>
+  <p class="subtitle">Describe the app you're about to build. At the end, you'll get a PLAN.md to copy into your project. This doesn't build anything — it creates the blueprint Claude follows.</p>
   <div class="step-track" id="stepTrack"></div>
 
   <!-- Step 1: Identity -->
   <div class="step-card active" data-step="1">
     <h3>1. Project Identity</h3>
-    <p>Name your app and describe it in one sentence.</p>
+    <p>What app are you planning? This goes into the generated PLAN.md header.</p>
     <div class="field-group"><label class="field-label" for="appName">App Name</label><input type="text" id="appName" placeholder="e.g. inventory-tracker" autocomplete="off"></div>
     <div class="field-group"><label class="field-label" for="appDesc">One-Sentence Description</label><input type="text" id="appDesc" placeholder="e.g. Tracks rack inventory for DCT ops"></div>
     <div class="field-group"><label class="field-label" for="teamName">Team / Slack Channel</label><input type="text" id="teamName" placeholder="e.g. dct-ops (#dct-eng)"></div>
