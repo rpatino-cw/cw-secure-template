@@ -4,6 +4,9 @@
     Build internal tools with AI. Ship them secure.<br>
     No security expertise needed.
   </p>
+  <p align="center">
+    <a href="https://rpatino-cw.github.io/cw-secure-guide/"><strong>See the Interactive Guide</strong></a>
+  </p>
 </p>
 
 <p align="center">
