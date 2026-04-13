@@ -1,8 +1,8 @@
 <p align="center">
   <h1 align="center">CW Secure Template</h1>
   <p align="center">
-    Build internal tools with AI. Ship them secure.<br>
-    No security expertise needed.
+    A complete Claude Code project framework.<br>
+    Memory, routing, security, deployment. All wired.
   </p>
   <p align="center">
     <a href="https://rpatino-cw.github.io/cw-secure-guide/"><img src="https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_INTERACTIVE_GUIDE-See_it_in_action-ffffff?style=for-the-badge&labelColor=ffffff&color=4f46e5&logoColor=4f46e5" alt="Interactive Guide"></a>
@@ -22,11 +22,11 @@
 git clone https://github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh
 ```
 
-That's it. Auth, secrets, scanning, rate limiting, security headers, tests, CI, deployment. All wired. Start building.
+That's it. Claude gets project memory, slash commands, security rules, auto-review skills, and subagent personas. Your app gets auth, secrets, scanning, rate limiting, CI, and deployment configs. All wired. Start building.
 
 ---
 
-You use AI to build an app. It works. But is it secure? Probably not, and that's okay. This template fixes that for you. You don't need to know anything about security. Just clone it, run setup, and start building. It handles everything behind the scenes. If you try to take a shortcut (hardcoding a key, skipping auth, pasting secrets into Claude), the template catches it and shows you the easy way to do it safely. Check out the **[interactive guide](https://rpatino-cw.github.io/cw-secure-guide/)** to see it all in action.
+This isn't just a security template. It's a full Claude Code project setup. When you clone this and run setup, Claude gets everything it needs to work in your project: memory that persists across sessions, slash commands for common tasks, rules that apply automatically based on file type, a security review skill that triggers on code changes, and subagent personas for audits and code review. Your app gets real Okta auth, rate limiting, secret management, CI with coverage gates, and Helm deployment configs. If you try to take a shortcut (hardcoding a key, skipping auth, pasting secrets), the template catches it and shows you the easy way. Check out the **[interactive guide](https://rpatino-cw.github.io/cw-secure-guide/)** to see it all in action.
 
 ---
 
