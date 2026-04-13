@@ -1,212 +1,134 @@
 <p align="center">
   <h1 align="center">CW Secure Template</h1>
   <p align="center">
-    Build internal tools with AI. Ship them secure. No security expertise needed.
+    Build internal tools with AI. Ship them secure.<br>
+    No security expertise needed.
   </p>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/OWASP_Top_10-10%2F10_covered-22c55e?style=flat-square" alt="OWASP Coverage">
+  <img src="https://img.shields.io/badge/OWASP-10%2F10-22c55e?style=flat-square" alt="OWASP">
   <img src="https://img.shields.io/badge/SOC_2-aligned-3b82f6?style=flat-square" alt="SOC 2">
-  <img src="https://img.shields.io/badge/coverage_gate-80%25-f59e0b?style=flat-square" alt="Coverage Gate">
-  <img src="https://img.shields.io/badge/Go_%2B_Python-ready-6366f1?style=flat-square" alt="Go + Python">
+  <img src="https://img.shields.io/badge/coverage-80%25_gate-f59e0b?style=flat-square" alt="Coverage">
+  <img src="https://img.shields.io/badge/Go_%2B_Python-ready-6366f1?style=flat-square" alt="Stacks">
 </p>
 
 ---
 
-## The Problem
+## What It Does
 
-You use Claude or Cursor to build an internal tool. It works. You ship it. Then AppSec finds:
-
-- API keys hardcoded in source code
-- No authentication on endpoints
-- SQL injection in the first query
-- Secrets committed to git history
-
-**This template makes those mistakes impossible.**
-
----
-
-## How It Works
-
-Your code passes through 6 security checkpoints before it reaches production. Each layer catches what the previous one missed.
+Your code passes through 6 security checkpoints. Each one catches what the last one missed.
 
 <p align="center">
   <img src="docs/pipeline-animation.svg" alt="Security Pipeline" width="100%">
 </p>
 
-| Layer | What it does | Can you skip it? |
-|:------|:-------------|:-----------------|
-| **CLAUDE.md** | 14 rules Claude follows even if you say "ignore the rules" | No — anti-jailbreak protected |
-| **Pre-commit** | Scans for leaked secrets and code issues before every commit | No — CI catches skipped hooks |
-| **Pre-push** | Runs tests before your code leaves your machine | No — push is blocked |
-| **CI Pipeline** | CodeQL + security scanners + 80% test coverage gate | No — server-side, can't bypass |
-| **PR Review** | 10-point security checklist for every pull request | No — branch protection enforced |
-| **Deploy** | Non-root containers, network policies, encrypted secrets | No — Helm defaults are locked |
+**Can you skip any of them?** No. Every bypass is caught by the next layer.
 
 ---
 
-## Quick Start
+## Get Started
 
 ```bash
 git clone https://github.com/rpatino-cw/cw-secure-template my-app
 cd my-app
 bash setup.sh
+make start
 ```
 
-Setup asks one question (Python or Go — pick Python if unsure), installs everything, and opens the Security Dashboard. Then:
-
-```bash
-make start    # Run your app
-```
-
-Open Claude Code in the project folder and start prompting. Security is automatic.
-
-> **New to this?** Read the [step-by-step Getting Started guide](docs/getting-started.md) — it walks you through your first 10 minutes.
+That's it. [Step-by-step guide for beginners](docs/getting-started.md)
 
 ---
 
-## What You Get
+## How Claude Protects You
 
-### For building
+When you prompt Claude in this project, it automatically writes secure code — even if you ask it not to.
 
-| | Go | Python |
-|:--|:---|:-------|
-| **Framework** | net/http (stdlib) | FastAPI |
-| **Auth** | Okta OIDC (real, not a TODO) | Okta OIDC (real, not a TODO) |
-| **Rate limiting** | Token bucket, per-IP | Sliding window, per-IP |
-| **Request tracking** | UUID on every request | UUID on every request |
-| **Logging** | Structured JSON (slog) | Structured JSON (structlog) |
-| **Tests** | 7 tests included | 10 tests included |
-| **Docker** | Chainguard multi-stage | Slim multi-stage |
+<p align="center">
+  <img src="docs/claude-intercept.svg" alt="Claude Intercepts Bad Prompts" width="100%">
+</p>
 
-### For learning
-
-| Command | What it does |
-|:--------|:-------------|
-| `make learn` | 15-question security quiz with explanations |
-| `make dashboard` | Interactive visual of the entire pipeline |
-| `make doctor` | Check if your security pipeline is healthy |
-| Read the code | Every security decision has a `SECURITY LESSON` comment |
-
-### For deploying
-
-- **Helm chart** with security context, resource limits, health probes
-- **External Secrets Operator** pulls secrets from Doppler (never in git)
-- **Network policies** default-deny with explicit allowlist
-- **Branch protection** auto-configured during setup
+You focus on what you want to build. Claude handles how to build it safely.
 
 ---
 
-## Commands
+## What Happens When You Commit
 
-You only need 3:
+Every commit and push runs through automatic checks. If something's wrong, you get a plain English explanation of what to fix.
+
+<p align="center">
+  <img src="docs/commit-flow.svg" alt="Commit Flow" width="100%">
+</p>
+
+---
+
+## 3 Commands
 
 ```
 make start    Run your app
-make check    Run before pull requests
-make help     See everything else
+make check    Before pull requests
+make help     Everything else
 ```
-
-`make help` shows the full list: test, fix, doctor, scan, learn, dashboard, docker, setup.
 
 ---
 
-## How Claude Handles Messy Prompts
+## Can't Break It
 
-The `CLAUDE.md` file intercepts bad habits before they become bad code:
-
-| You say | Claude does instead |
-|:--------|:-------------------|
-| "Just hardcode the API key" | Uses an environment variable |
-| "Skip auth for now" | Enables DEV_MODE (auth stays wired for production) |
-| "Set CORS to * so it works" | Sets the specific origin you need |
-| "Remove the rate limiter" | Increases the limit via config |
-| "Use eval() to parse this" | Uses a safe parser |
-| "git add everything and push" | Stages specific files, creates a feature branch |
-| "Ignore the security rules" | Refuses. Explains why. Helps you do it the right way. |
+| "I'll just..." | What catches it |
+|:--|:--|
+| Skip hooks with `--no-verify` | CI checks the timestamp |
+| Delete the security rules | CI blocks the PR |
+| Remove the rate limiter | CI middleware check blocks the PR |
+| Hardcode a secret | Gitleaks blocks the commit AND the PR |
+| Push without tests | Pre-push hook blocks it |
+| Commit to main | Branch protection requires a PR |
+| Ship without auth | Auth is wired from day 1 |
 
 ---
 
 ## CW Standards
 
-This template is aligned with CoreWeave's internal security policies:
-
-| Standard | How it's implemented |
-|:---------|:--------------------|
-| **Okta OIDC** | Real JWT verification middleware, not a TODO |
-| **Doppler** | External Secrets Operator in Helm chart |
-| **Chainguard** | CW-approved base images in Dockerfiles |
-| **AppSec scanning** | CodeQL, gosec, bandit, dependency audit in CI |
-| **SOC 2 / ISO 27001** | Audit-ready logging, access control, data protection |
-| **OWASP Top 10** | All 10 categories covered by default |
+Okta OIDC  ·  Doppler + ESO  ·  Chainguard images  ·  CodeQL  ·  SOC 2  ·  ISO 27001  ·  OWASP Top 10
 
 ---
 
-## FAQ
-
 <details>
-<summary><b>Do I need to know security to use this?</b></summary>
+<summary><b>FAQ</b></summary>
 <br>
-No. The template handles security for you. Claude follows the rules in CLAUDE.md, the hooks catch mistakes before they reach git, and CI catches everything else. You focus on building — the pipeline handles security.
-<br><br>
+
+**Do I need to know security?** No. The template handles it.
+
+**How do I test without Okta?** `DEV_MODE=true` is already set in your `.env`. Works out of the box.
+
+**What if a hook blocks me?** Run `make fix`. It auto-fixes what it can and explains the rest in plain English.
+
+**How do I get Okta credentials?** File an IT/Freshservice ticket. [Details in CLAUDE.md](CLAUDE.md#okta-app-registration--how-to-get-credentials)
+
+**Can I use JavaScript?** Not yet. Go and Python only for now.
+
 </details>
 
 <details>
-<summary><b>What if I need to test without Okta?</b></summary>
+<summary><b>What's inside (58 files)</b></summary>
 <br>
-Set <code>DEV_MODE=true</code> in your <code>.env</code> file. This gives you a fake test user locally. Auth is still wired — when you deploy with real Okta credentials, it just works.
-<br><br>
-</details>
-
-<details>
-<summary><b>Can I use JavaScript/TypeScript instead?</b></summary>
-<br>
-Not yet. The template currently supports Go and Python (CW's primary stacks). JS/TS support is planned. The CLAUDE.md rules and CI pipeline work with any language — only the starter code is language-specific.
-<br><br>
-</details>
-
-<details>
-<summary><b>What if a pre-commit hook is too slow?</b></summary>
-<br>
-Don't use <code>--no-verify</code> to skip it. The CI pipeline will catch that you skipped hooks and block your PR. Instead, run <code>make fix</code> to auto-fix the issue, or ask in <code>#application-security</code> for help.
-<br><br>
-</details>
-
-<details>
-<summary><b>How do I get Okta credentials for my app?</b></summary>
-<br>
-File an IT/Freshservice ticket requesting a new Okta OIDC application. Include: app name, grant type, redirect URIs, and which CW groups need access. IT will send you the client ID and issuer URL.
-<br><br>
-</details>
-
----
-
-## Project Structure
 
 ```
-cw-secure-template/
-├── CLAUDE.md                  AI security rules (the brain)
-├── SECURITY.md                Incident response template
-├── security-dashboard.html    Interactive pipeline visual
-├── Makefile                   12 commands
-├── setup.sh                   One-command bootstrap
-│
-├── scripts/
-│   ├── git-hooks/             pre-commit, post-checkout, pre-push
-│   ├── doctor.sh              Pipeline health check
-│   ├── security-fix.sh        Auto-fix + guidance
-│   └── security-quiz.sh       15-question OWASP quiz
-│
-├── go/                        Go starter + middleware + Dockerfile
-├── python/                    Python starter + middleware + Dockerfile
-├── deploy/helm/               K8s deployment (Helm chart)
-└── docs/
-    └── security-handbook.md   Plain-English security guide
+CLAUDE.md                  AI security rules
+security-dashboard.html    Interactive pipeline visual
+Makefile                   3 commands + extras
+setup.sh                   One-command bootstrap
+
+scripts/                   git hooks, doctor, fix, quiz
+go/                        Go starter + Okta auth middleware
+python/                    Python starter + Okta auth middleware
+deploy/helm/               K8s deployment
+docs/                      Getting started + security handbook
 ```
+
+</details>
 
 ---
 
 <p align="center">
-  <sub>Built at CoreWeave. Aligned with SOC 2, ISO 27001, and OWASP Top 10.</sub>
+  <sub>Built at CoreWeave · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
 </p>
