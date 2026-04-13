@@ -18,7 +18,15 @@
   <img src="https://img.shields.io/badge/.claude-full_structure-a855f7?style=flat-square" alt=".claude/">
 </p>
 
-`git clone https://github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh` and you're done. Auth, secrets, scanning, rate limiting, security headers, tests, CI, deployment configs. All wired. You just build your app and the template keeps it secure. Don't know security? Don't need to. **[See how it works](https://rpatino-cw.github.io/cw-secure-guide/)**
+```
+git clone https://github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh
+```
+
+That's it. Auth, secrets, scanning, rate limiting, security headers, tests, CI, deployment. All wired. Start building.
+
+---
+
+You use AI to build an app. It works. But is it secure? Probably not, and that's okay. This template fixes that for you. You don't need to know anything about security. Just clone it, run setup, and start building. It handles everything behind the scenes. If you try to take a shortcut (hardcoding a key, skipping auth, pasting secrets into Claude), the template catches it and shows you the easy way to do it safely. Check out the **[interactive guide](https://rpatino-cw.github.io/cw-secure-guide/)** to see it all in action.
 
 ---
 
