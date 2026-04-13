@@ -1,0 +1,58 @@
+skips: []
+tests:
+  - B101  # assert used
+  - B102  # exec used
+  - B103  # set_bad_file_permissions
+  - B104  # hardcoded bind all
+  - B105  # hardcoded password string
+  - B106  # hardcoded password func arg
+  - B107  # hardcoded password default
+  - B108  # hardcoded tmp directory
+  - B110  # try-except-pass
+  - B112  # try-except-continue
+  - B201  # flask debug
+  - B301  # pickle
+  - B302  # marshal
+  - B303  # insecure hash (md5/sha1)
+  - B304  # insecure cipher
+  - B305  # insecure cipher mode
+  - B306  # mktemp
+  - B307  # eval
+  - B308  # mark_safe
+  - B310  # urllib_urlopen
+  - B311  # random (not for crypto)
+  - B312  # telnet
+  - B313  # xml bad
+  - B314  # xml bad
+  - B315  # xml bad
+  - B316  # xml bad
+  - B317  # xml bad
+  - B318  # xml bad
+  - B319  # xml bad
+  - B320  # xml bad
+  - B321  # ftp
+  - B323  # unverified HTTPS
+  - B324  # insecure hash
+  - B501  # request with no cert validation
+  - B502  # ssl with bad version
+  - B503  # ssl with bad defaults
+  - B504  # ssl with no version
+  - B505  # weak crypto key
+  - B506  # yaml_load
+  - B507  # ssh no host key verification
+  - B508  # snmp insecure
+  - B509  # snmp weak
+  - B601  # paramiko
+  - B602  # subprocess_popen_with_shell
+  - B603  # subprocess_without_shell_equals_true
+  - B604  # any_other_function_with_shell
+  - B605  # start_process_with_a_shell
+  - B606  # start_process_with_no_shell
+  - B607  # start_process_with_partial_path
+  - B608  # hardcoded_sql_expressions
+  - B609  # linux_commands_wildcard_injection
+  - B610  # django_extra_used
+  - B611  # django_rawsql_used
+  - B612  # logging_config_insecure_listen
+  - B701  # jinja2_autoescape_false
+  - B702  # use_of_mako_templates

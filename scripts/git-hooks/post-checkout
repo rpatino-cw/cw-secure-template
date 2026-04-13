@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# === CW Secure Template — Post-Checkout Hook ===
+# Verifies pre-commit hooks are installed after every branch checkout.
+# If someone accidentally runs `pre-commit uninstall`, this reinstalls on next checkout.
+
+HOOK_FILE="$(git rev-parse --show-toplevel)/.git/hooks/pre-commit"
+
+if [ ! -f "$HOOK_FILE" ] || ! grep -q "pre-commit" "$HOOK_FILE" 2>/dev/null; then
+    echo ""
+    echo -e "\033[1;33mWARNING: Pre-commit hooks are not installed.\033[0m"
+    echo "Reinstalling security hooks..."
+    if command -v pre-commit &> /dev/null; then
+        pre-commit install
+        echo -e "\033[0;32mHooks reinstalled.\033[0m"
+    else
+        echo -e "\033[0;31mERROR: pre-commit not found. Run: make setup\033[0m"
+    fi
+fi

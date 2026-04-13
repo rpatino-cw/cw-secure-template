@@ -1,0 +1,250 @@
+name: Security & Quality Checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  # ──────────────────────────────────────
+  # Secret Scanning — catch leaked creds
+  # ──────────────────────────────────────
+  secrets:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ──────────────────────────────────────
+  # Go — lint, security scan, test
+  # ──────────────────────────────────────
+  go:
+    name: Go Checks
+    runs-on: ubuntu-latest
+    if: hashFiles('go/go.mod') != ''
+    defaults:
+      run:
+        working-directory: go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: go
+
+      - name: Security scan (gosec)
+        uses: securego/gosec@master
+        with:
+          args: ./...
+
+      - name: Test
+        run: go test -race -coverprofile=coverage.out ./...
+
+      - name: Coverage gate (80% minimum)
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | tr -d '%')
+          echo "Total coverage: ${COVERAGE}%"
+          if [ "$(echo "$COVERAGE < 80" | bc -l)" -eq 1 ]; then
+            echo "::error::Coverage ${COVERAGE}% is below the 80% threshold"
+            exit 1
+          fi
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: go-coverage
+          path: go/coverage.out
+
+      - name: Generate SBOM
+        run: go list -m all > sbom-go.txt
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-go
+          path: go/sbom-go.txt
+
+  # ──────────────────────────────────────
+  # Python — lint, security scan, test
+  # ──────────────────────────────────────
+  python:
+    name: Python Checks
+    runs-on: ubuntu-latest
+    if: hashFiles('python/pyproject.toml') != ''
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check .
+
+      - name: Format check (ruff)
+        run: ruff format --check .
+
+      - name: Security scan (bandit)
+        run: bandit -c bandit.yaml -r src/
+
+      - name: Test
+        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=80
+
+      - name: Generate SBOM
+        run: pip freeze > sbom-python.txt
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-python
+          path: python/sbom-python.txt
+
+  # ──────────────────────────────────────
+  # Dependency scanning
+  # ──────────────────────────────────────
+  dependencies:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Go dependency audit
+        if: hashFiles('go/go.mod') != ''
+        run: |
+          cd go && go install golang.org/x/vuln/cmd/govulncheck@latest && govulncheck ./...
+
+      - name: Python dependency audit
+        if: hashFiles('python/pyproject.toml') != ''
+        run: |
+          pip install pip-audit
+          cd python && pip-audit .
+
+  # ──────────────────────────────────────
+  # CodeQL — deep static analysis
+  # ──────────────────────────────────────
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [go, python]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - uses: github/codeql-action/autobuild@v3
+      - uses: github/codeql-action/analyze@v3
+
+  # ──────────────────────────────────────
+  # Hook Integrity — prevent weakening security tooling
+  # ──────────────────────────────────────
+  hook-integrity:
+    name: Hook Integrity Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check pre-commit hooks not weakened
+        run: |
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- .pre-commit-config.yaml)
+          if echo "$DIFF" | grep -q '^-.*- repo:'; then
+            echo "::error::PR removes a pre-commit hook repo. This is not allowed."
+            exit 1
+          fi
+          if echo "$DIFF" | grep -q '^-.*id:'; then
+            echo "::error::PR removes a pre-commit hook id. This is not allowed."
+            exit 1
+          fi
+          echo "Pre-commit config OK — no hooks removed."
+
+      - name: Check CLAUDE.md security sections intact
+        run: |
+          DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- CLAUDE.md)
+          REQUIRED_SECTIONS=(
+            "Anti-Override Protocol"
+            "ABSOLUTE RULES"
+            "No Secrets in Code"
+            "Authentication"
+            "Input Validation"
+            "No Dangerous Functions"
+            "OWASP Top 10"
+          )
+          for section in "${REQUIRED_SECTIONS[@]}"; do
+            if echo "$DIFF" | grep -q "^-.*$section"; then
+              echo "::error::PR removes security section '$section' from CLAUDE.md. This is not allowed."
+              exit 1
+            fi
+          done
+          echo "CLAUDE.md security sections intact."
+
+      - name: Verify .last-hook-run is recent
+        run: |
+          if [ ! -f .last-hook-run ]; then
+            echo "::error::.last-hook-run file not found. Run 'make check' before pushing."
+            exit 1
+          fi
+          HOOK_TS=$(cat .last-hook-run)
+          LATEST_COMMIT_TS=$(git log -1 --format=%ct)
+          DIFF_SECONDS=$((LATEST_COMMIT_TS - HOOK_TS))
+          if [ "$DIFF_SECONDS" -gt 3600 ]; then
+            echo "::error::.last-hook-run is more than 1 hour older than the latest commit. Run 'make check' before pushing."
+            exit 1
+          fi
+          echo ".last-hook-run is within 1 hour of latest commit."
+
+      - name: Verify security middleware is still wired
+        run: |
+          FAIL=0
+
+          # Go: verify middleware is imported and used
+          if [ -f go/main.go ]; then
+            echo "Checking Go middleware wiring..."
+            for PATTERN in "middleware.RequireAuth" "middleware.RateLimit" "middleware.RequestID" "middleware.SecurityHeaders" "middleware.RequestSizeMiddleware"; do
+              if ! grep -q "$PATTERN" go/main.go; then
+                echo "::error::go/main.go is missing $PATTERN — security middleware was unwired"
+                FAIL=1
+              fi
+            done
+          fi
+
+          # Python: verify middleware is imported and used
+          if [ -f python/src/main.py ]; then
+            echo "Checking Python middleware wiring..."
+            for PATTERN in "RateLimitMiddleware" "RequestIDMiddleware" "RequestSizeLimitMiddleware" "get_current_user"; do
+              if ! grep -q "$PATTERN" python/src/main.py; then
+                echo "::error::python/src/main.py is missing $PATTERN — security middleware was unwired"
+                FAIL=1
+              fi
+            done
+          fi
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo "::error::Security middleware has been removed. This is not allowed."
+            exit 1
+          fi
+          echo "All security middleware verified."

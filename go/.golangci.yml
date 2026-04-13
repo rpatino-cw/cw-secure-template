@@ -1,0 +1,25 @@
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck        # Check errors are handled
+    - gosec           # Security scanner
+    - govet           # Suspicious constructs
+    - ineffassign     # Unused assignments
+    - staticcheck     # Advanced static analysis
+    - unused          # Unused code
+    - bodyclose       # HTTP response body closed
+    - noctx           # HTTP requests without context
+    - sqlclosecheck   # SQL rows/stmt closed
+    - gosimple        # Simplifications
+
+linters-settings:
+  gosec:
+    severity: medium
+    confidence: medium
+  errcheck:
+    check-type-assertions: true
+
+issues:
+  exclude-use-default: false

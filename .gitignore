@@ -1,0 +1,200 @@
+# ╔══════════════════════════════════════════════════════════════════╗
+# ║  CW SECURE TEMPLATE — .gitignore                               ║
+# ║  This file is AGGRESSIVE by design. It blocks every known       ║
+# ║  secret, credential, and key pattern. If a legitimate file      ║
+# ║  gets blocked, add a specific !exception — never weaken the     ║
+# ║  rules.                                                         ║
+# ╚══════════════════════════════════════════════════════════════════╝
+
+# ══════════════════════════════════════
+# SECRETS & CREDENTIALS — NEVER COMMIT
+# ══════════════════════════════════════
+
+# Environment files (the #1 source of leaked secrets)
+.env
+.env.*
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.test
+!.env.example
+
+# Certificates and keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*.jks
+*.keystore
+*.truststore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+id_dsa
+*.pub
+!deploy/  # Don't block deploy/ directory
+
+# Credential files
+credentials.json
+service-account*.json
+token.json
+token.txt
+secrets/
+config.py
+settings_local.py
+**/secret.yaml
+**/secret.yml
+*secrets.json
+*secrets.yaml
+*secrets.yml
+
+# ══════════════════════════════════════
+# API KEYS / TOKENS — EVERY PATTERN
+# ══════════════════════════════════════
+
+**/apikey*
+**/api_key*
+**/api-key*
+**/*token*.json
+**/*credentials*
+**/*password*
+**/.htpasswd
+**/.netrc
+**/.npmrc
+**/.pypirc
+
+# Cloud provider credentials
+.aws/
+.azure/
+.gcp/
+gcloud-*.json
+application_default_credentials.json
+kubeconfig
+kubeconfig.*
+.kube/config
+
+# Terraform (contains secrets in state)
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+terraform.tfvars
+
+# Vault / Doppler
+.doppler.yaml
+.vault-token
+vault-token
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+
+# SSH
+.ssh/
+
+# GPG
+.gnupg/
+
+# ══════════════════════════════════════
+# DATABASES
+# ══════════════════════════════════════
+
+*.db
+*.sqlite
+*.sqlite3
+state.db
+*.sql.bak
+*.dump
+*.sql.gz
+
+# ══════════════════════════════════════
+# GO
+# ══════════════════════════════════════
+
+bin/
+vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+__debug_bin*
+coverage.out
+coverage.html
+sbom-go.txt
+
+# ══════════════════════════════════════
+# PYTHON
+# ══════════════════════════════════════
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+.eggs/
+*.egg-info/
+**/egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+sbom-python.txt
+
+# ══════════════════════════════════════
+# HOOK TRACKING
+# ══════════════════════════════════════
+
+.last-hook-run
+
+# ══════════════════════════════════════
+# IDE / EDITOR
+# ══════════════════════════════════════
+
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+*.orig
+
+# ══════════════════════════════════════
+# REPORTS / ARTIFACTS / LOGS
+# ══════════════════════════════════════
+
+reports/
+data/
+*.log
+tmp/
+*.pid
+*.seed
+*.pid.lock
+
+# ══════════════════════════════════════
+# NODE (if JS/TS added later)
+# ══════════════════════════════════════
+
+node_modules/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock

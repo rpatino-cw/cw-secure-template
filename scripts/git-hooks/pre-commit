@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# === CW Secure Template — Pre-Commit Hook ===
+# This wraps the standard pre-commit framework and adds enforcement tracking.
+# CI verifies that this hook actually ran by checking the .last-hook-run timestamp.
+# Using --no-verify skips this hook, but CI will catch the missing timestamp.
+set -euo pipefail
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${GREEN}Running security checks...${NC}"
+
+# Run pre-commit framework (gitleaks, linting, bandit, etc.)
+if command -v pre-commit &> /dev/null; then
+    pre-commit run --hook-stage commit || {
+        echo ""
+        echo -e "${RED}========================================${NC}"
+        echo -e "${RED}  COMMIT BLOCKED — Security check failed${NC}"
+        echo -e "${RED}========================================${NC}"
+        echo ""
+        echo -e "Run ${YELLOW}make fix${NC} to auto-fix what's possible."
+        echo -e "Run ${YELLOW}make doctor${NC} to check your setup."
+        echo ""
+        echo -e "${RED}DO NOT use --no-verify to skip these checks.${NC}"
+        echo -e "CI will catch skipped hooks and block your PR."
+        exit 1
+    }
+else
+    echo -e "${YELLOW}WARNING: pre-commit not installed. Installing...${NC}"
+    pip install pre-commit 2>/dev/null || brew install pre-commit 2>/dev/null
+    pre-commit install
+    pre-commit run --hook-stage commit || exit 1
+fi
+
+# Write timestamp so CI can verify hooks actually ran.
+# If someone uses --no-verify, this file won't be updated,
+# and the CI hook-integrity job will flag it.
+date -u +"%Y-%m-%dT%H:%M:%SZ" > "$(git rev-parse --show-toplevel)/.last-hook-run"
+
+echo -e "${GREEN}All security checks passed.${NC}"

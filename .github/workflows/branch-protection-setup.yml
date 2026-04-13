@@ -1,0 +1,54 @@
+name: Configure Branch Protection
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    name: Set Branch Protection on main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure branch protection
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REPO="${{ github.repository }}"
+
+          gh api -X PUT "repos/${REPO}/branches/main/protection" \
+            --input - <<'EOF'
+          {
+            "required_status_checks": {
+              "strict": true,
+              "contexts": [
+                "Secret Scanning",
+                "Go Checks",
+                "Python Checks",
+                "Dependency Audit",
+                "CodeQL Analysis",
+                "Hook Integrity Check"
+              ]
+            },
+            "enforce_admins": false,
+            "required_pull_request_reviews": {
+              "dismiss_stale_reviews": true,
+              "require_code_owner_reviews": false,
+              "required_approving_review_count": 1
+            },
+            "restrictions": null,
+            "allow_force_pushes": false,
+            "allow_deletions": false
+          }
+          EOF
+
+          echo "## Branch Protection Configured" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Applied to **main** on \`${REPO}\`:" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **PR reviews:** 1 required, stale reviews dismissed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Status checks:** secrets, go, python, dependencies, codeql, hook-integrity" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Up-to-date branches:** required" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Force pushes:** blocked" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Branch deletion:** blocked" >> "$GITHUB_STEP_SUMMARY"

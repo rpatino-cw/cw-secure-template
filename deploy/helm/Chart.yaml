@@ -1,0 +1,16 @@
+apiVersion: v2
+name: cw-secure-app
+description: Helm chart for a secure internal CoreWeave application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Your Team
+    email: your-team@coreweave.com
+keywords:
+  - coreweave
+  - internal
+  - microservice
+home: https://github.com/coreweave/cw-secure-app
+sources:
+  - https://github.com/coreweave/cw-secure-app
