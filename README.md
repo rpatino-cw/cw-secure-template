@@ -120,6 +120,22 @@ Setup asks for your **app name, team, and data classification** — then Claude 
 
 ---
 
+## Personalize It
+
+`make init` turns the generic template into YOUR project. 5 questions, 6 files updated:
+
+| It asks | It updates |
+|:--------|:-----------|
+| App name | Helm chart, go.mod / pyproject.toml |
+| What it does | `.claude/MEMORY.md` (Claude reads this every session) |
+| Team name | CODEOWNERS (required PR reviewers) |
+| Slack channel | SECURITY.md (incident contacts) |
+| Data classification | `.claude/MEMORY.md` (Claude adjusts access controls) |
+
+After init, Claude doesn't generate generic code — it uses your app name for logging, your team for RBAC, and your data sensitivity for access decisions.
+
+---
+
 ## 3 Commands
 
 ```
