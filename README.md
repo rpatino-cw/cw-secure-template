@@ -15,19 +15,51 @@
 
 ---
 
-## What It Does
+## Your Code Goes Through 6 Checkpoints
 
-Your code passes through 6 security checkpoints. Each one catches what the last one missed.
+Each one catches what the last one missed. None of them can be skipped.
 
 <p align="center">
   <img src="docs/pipeline-animation.svg" alt="Security Pipeline" width="100%">
 </p>
 
-**Can you skip any of them?** No. Every bypass is caught by the next layer.
+---
+
+## Claude Writes Secure Code For You
+
+Even if you ask it not to.
+
+<p align="center">
+  <img src="docs/claude-intercept.svg" alt="Claude Intercepts Bad Prompts" width="100%">
+</p>
+
+---
+
+## Every Commit Is Checked Automatically
+
+You just write code. The pipeline handles the rest.
+
+<p align="center">
+  <img src="docs/commit-flow.svg" alt="Commit Flow" width="100%">
+</p>
+
+---
+
+## If Something's Wrong, You'll Know Exactly What To Fix
+
+No cryptic error codes. Plain English.
+
+<p align="center">
+  <img src="docs/error-caught.svg" alt="Error Caught — Plain English" width="100%">
+</p>
 
 ---
 
 ## Get Started
+
+> **First time?** Follow the [step-by-step Getting Started guide](docs/getting-started.md) — it walks you through everything from opening Terminal to running your first app.
+
+Already comfortable with the terminal:
 
 ```bash
 git clone https://github.com/rpatino-cw/cw-secure-template my-app
@@ -35,30 +67,6 @@ cd my-app
 bash setup.sh
 make start
 ```
-
-That's it. [Step-by-step guide for beginners](docs/getting-started.md)
-
----
-
-## How Claude Protects You
-
-When you prompt Claude in this project, it automatically writes secure code — even if you ask it not to.
-
-<p align="center">
-  <img src="docs/claude-intercept.svg" alt="Claude Intercepts Bad Prompts" width="100%">
-</p>
-
-You focus on what you want to build. Claude handles how to build it safely.
-
----
-
-## What Happens When You Commit
-
-Every commit and push runs through automatic checks. If something's wrong, you get a plain English explanation of what to fix.
-
-<p align="center">
-  <img src="docs/commit-flow.svg" alt="Commit Flow" width="100%">
-</p>
 
 ---
 
@@ -86,9 +94,7 @@ make help     Everything else
 
 ---
 
-## CW Standards
-
-Okta OIDC  ·  Doppler + ESO  ·  Chainguard images  ·  CodeQL  ·  SOC 2  ·  ISO 27001  ·  OWASP Top 10
+Okta OIDC · Doppler + ESO · Chainguard images · CodeQL · SOC 2 · ISO 27001 · OWASP Top 10
 
 ---
 
@@ -98,27 +104,22 @@ Okta OIDC  ·  Doppler + ESO  ·  Chainguard images  ·  CodeQL  ·  SOC 2  ·  
 
 **Do I need to know security?** No. The template handles it.
 
-**How do I test without Okta?** `DEV_MODE=true` is already set in your `.env`. Works out of the box.
+**How do I test without Okta?** `DEV_MODE=true` is already set. Works out of the box.
 
-**What if a hook blocks me?** Run `make fix`. It auto-fixes what it can and explains the rest in plain English.
+**What if a hook blocks me?** Run `make fix`. It explains everything in plain English.
 
-**How do I get Okta credentials?** File an IT/Freshservice ticket. [Details in CLAUDE.md](CLAUDE.md#okta-app-registration--how-to-get-credentials)
-
-**Can I use JavaScript?** Not yet. Go and Python only for now.
+**How do I get Okta credentials?** File an IT/Freshservice ticket. [Details](CLAUDE.md#okta-app-registration--how-to-get-credentials)
 
 </details>
 
 <details>
-<summary><b>What's inside (58 files)</b></summary>
+<summary><b>What's inside</b></summary>
 <br>
 
 ```
 CLAUDE.md                  AI security rules
 security-dashboard.html    Interactive pipeline visual
-Makefile                   3 commands + extras
-setup.sh                   One-command bootstrap
-
-scripts/                   git hooks, doctor, fix, quiz
+scripts/                   Git hooks, doctor, fix, quiz
 go/                        Go starter + Okta auth middleware
 python/                    Python starter + Okta auth middleware
 deploy/helm/               K8s deployment
