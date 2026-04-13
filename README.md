@@ -115,6 +115,8 @@ bash setup.sh
 make start
 ```
 
+Setup asks for your **app name, team, and data classification** — then Claude knows your project context in every session. No more generic code.
+
 ---
 
 ## 3 Commands
