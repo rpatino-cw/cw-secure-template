@@ -71,14 +71,14 @@ header "2. Secret Scanning"
 if command -v gitleaks &>/dev/null; then
     LEAKS=$(gitleaks detect --source . --no-banner 2>&1)
     if [ $? -ne 0 ]; then
-        echo "$LEAKS" | while IFS= read -r line; do
+        while IFS= read -r line; do
             if echo "$line" | grep -q "File:"; then
-                FILE=$(echo "$line" | grep -oP 'File:\s*\K.*')
+                FILE=$(echo "$line" | grep -o 'File: .*' | sed 's/File: //')
                 manual "Secret detected in $FILE" \
                     "Hardcoded secrets can be extracted from git history even after deletion" \
                     "Remove the secret, use an env var instead, add to .env.example"
             fi
-        done
+        done <<< "$LEAKS"
     else
         echo -e "  ${GREEN}[CLEAN]${NC} No secrets detected"
     fi
@@ -189,9 +189,9 @@ for entry in "${PATTERNS[@]}"; do
     IFS=':' read -r pattern ext why fix <<< "$entry"
     HITS=$(grep -rn --include="*$ext" "$pattern" go/ python/ 2>/dev/null | grep -v "_test\." | grep -v "# SECURITY" | grep -v "// SECURITY")
     if [ -n "$HITS" ]; then
-        echo "$HITS" | while IFS= read -r line; do
+        while IFS= read -r line; do
             manual "$line" "$why" "$fix"
-        done
+        done <<< "$HITS"
         ((FOUND_DANGEROUS++))
     fi
 done

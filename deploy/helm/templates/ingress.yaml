@@ -1,0 +1,48 @@
+# =============================================================================
+# Ingress — Internal-Only Traffic Entry Point
+# =============================================================================
+#
+# SECURITY LESSON: Why internal-only ingress matters.
+#
+# Public ingress exposes your app to the entire internet — every scanner,
+# bot, and attacker. Internal ingress (nginx-internal or traefik-internal)
+# restricts access to traffic originating within the corporate network or
+# VPN. This is defense in depth: even if auth has a bug, attackers can't
+# reach the endpoint from outside.
+#
+# At CoreWeave, internal apps use nginx-internal or traefik-internal ingress
+# classes. Public exposure requires explicit AppSec review. Never change
+# the ingress class to a public one without security team approval.
+# =============================================================================
+
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "cw-secure-app.fullname" . }}
+  labels:
+    {{- include "cw-secure-app.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className | quote }}
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | quote }}
+      secretName: {{ .Values.ingress.tls.secretName | quote }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "cw-secure-app.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

@@ -111,14 +111,25 @@ MEMEOF
 # ─── Update Helm values ───
 if [ -f deploy/helm/values.yaml ]; then
   echo -e "  ${DIM}Updating Helm values...${NC}"
+  # Replace in values, Chart.yaml, helpers, AND all templates that reference
+  # the helper functions (deployment, service, configmap, ingress, etc.)
+  HELM_FILES=(
+    deploy/helm/values.yaml
+    deploy/helm/Chart.yaml
+    deploy/helm/templates/_helpers.tpl
+  )
+  # Include all template files that call {{ include "cw-secure-app.*" }}
+  for f in deploy/helm/templates/*.yaml; do
+    [ -f "$f" ] && HELM_FILES+=("$f")
+  done
   if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s|cw-secure-app|${APP_NAME}|g" deploy/helm/values.yaml
-    sed -i '' "s|cw-secure-app|${APP_NAME}|g" deploy/helm/Chart.yaml
-    sed -i '' "s|cw-secure-app|${APP_NAME}|g" deploy/helm/templates/_helpers.tpl
+    for f in "${HELM_FILES[@]}"; do
+      sed -i '' "s|cw-secure-app|${APP_NAME}|g" "$f"
+    done
   else
-    sed -i "s|cw-secure-app|${APP_NAME}|g" deploy/helm/values.yaml
-    sed -i "s|cw-secure-app|${APP_NAME}|g" deploy/helm/Chart.yaml
-    sed -i "s|cw-secure-app|${APP_NAME}|g" deploy/helm/templates/_helpers.tpl
+    for f in "${HELM_FILES[@]}"; do
+      sed -i "s|cw-secure-app|${APP_NAME}|g" "$f"
+    done
   fi
 fi
 

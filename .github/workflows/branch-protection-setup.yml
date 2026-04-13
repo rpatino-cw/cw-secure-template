@@ -3,6 +3,19 @@ name: Configure Branch Protection
 on:
   workflow_dispatch:
 
+# NOTE: The default GITHUB_TOKEN does NOT have permission to manage branch
+# protection rules. You must create a Personal Access Token (classic) with
+# the "repo" scope (or a fine-grained PAT with "Administration: write")
+# and store it as a repository secret named BRANCH_PROTECTION_TOKEN.
+#
+# Steps:
+#   1. Go to https://github.com/settings/tokens → Generate new token (classic)
+#   2. Select scope: "repo" (Full control of private repositories)
+#   3. Copy the token
+#   4. In your repo → Settings → Secrets → Actions → New repository secret
+#      Name: BRANCH_PROTECTION_TOKEN   Value: <your token>
+#   5. Run this workflow from the Actions tab
+
 permissions:
   contents: read
 
@@ -13,7 +26,7 @@ jobs:
     steps:
       - name: Configure branch protection
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.BRANCH_PROTECTION_TOKEN }}
         run: |
           REPO="${{ github.repository }}"
 

@@ -1,0 +1,25 @@
+# =============================================================================
+# ConfigMap — Non-Secret Configuration
+# =============================================================================
+#
+# SECURITY LESSON: ConfigMaps hold non-secret configuration that is safe to
+# store in git. Separating config from secrets means you can audit, version,
+# and review configuration changes through normal PR review — while secrets
+# stay in Doppler where they belong.
+#
+# If a value would be dangerous in the wrong hands (API keys, tokens, passwords,
+# connection strings), it does NOT belong here — use ExternalSecret instead.
+# =============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cw-secure-app.fullname" . }}-config
+  labels:
+    {{- include "cw-secure-app.labels" . | nindent 4 }}
+data:
+  # SECURITY LESSON: These values are non-secret — the Okta issuer URL and
+  # audience are public metadata used to verify JWT tokens. The actual client
+  # secret stays in the ExternalSecret/Doppler pipeline.
+  okta-issuer: {{ .Values.okta.issuer | quote }}
+  okta-audience: {{ .Values.okta.audience | quote }}
