@@ -86,7 +86,7 @@ Every insecure shortcut has a faster secure alternative.
 
 ## Full `.claude/` Project Structure
 
-Claude Code reads this folder to understand how to work in your project. Commands, rules, skills, and agents — all security-focused.
+Claude Code reads this folder to know how to work in your project. Think of it as routing: commands route your requests to workflows, rules auto-apply based on file type, skills trigger on code changes, and agents are specialized personas for audits and reviews.
 
 ```
 .claude/
