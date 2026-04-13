@@ -1,0 +1,67 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Bash(make *)",
+      "Bash(go test *)",
+      "Bash(go build *)",
+      "Bash(python -m pytest *)",
+      "Bash(ruff *)",
+      "Bash(bandit *)",
+      "Bash(gitleaks *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git branch *)",
+      "Bash(git checkout -b *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(find *)",
+      "Bash(grep *)",
+      "Bash(echo *)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(which *)",
+      "Bash(command *)",
+      "Bash(date *)",
+      "Bash(uvicorn *)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git reset --hard *)",
+      "Bash(git commit --no-verify *)",
+      "Bash(rm -rf /)*",
+      "Bash(chmod 777 *)",
+      "Bash(curl * | bash)",
+      "Bash(wget * | bash)",
+      "Bash(eval *)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git commit *)",
+      "Bash(rm *)",
+      "Bash(pip install *)",
+      "Bash(go install *)",
+      "Bash(docker *)",
+      "Bash(kubectl *)",
+      "Bash(helm *)"
+    ]
+  },
+  "respectGitignore": true,
+  "attribution": {
+    "commit": "Co-Authored-By: Claude <noreply@anthropic.com>",
+    "pr": "Generated with [Claude Code](https://claude.ai/code) using CW Secure Template"
+  },
+  "env": {
+    "DEV_MODE": "true"
+  }
+}
