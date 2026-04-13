@@ -1,6 +1,6 @@
 # =============================================================================
 # Default values for cw-secure-app
-# Override per-environment via values-staging.yaml, values-production.yaml, etc.
+# Override per-environment via values-stg.yaml, values-prod.yaml, etc.
 # =============================================================================
 
 # -- Image configuration

@@ -44,12 +44,15 @@ spec:
     # termination, rate limiting, and auth) can reach our pods. Direct
     # pod-to-pod traffic from other namespaces is blocked.
     - from:
-        # Match pods in the ingress controller namespace. The label selector
-        # targets Traefik / nginx ingress controller pods specifically.
+        # SECURITY LESSON: Both selectors are in the SAME list item so they
+        # are AND'd together — traffic must come from a pod matching BOTH the
+        # namespace label AND the pod label. If they were separate list items
+        # (two dashes), they'd be OR'd, allowing any pod in the namespace OR
+        # any pod with that label in ANY namespace — a much wider opening.
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: ingress-nginx
-        - podSelector:
+          podSelector:
             matchLabels:
               app.kubernetes.io/name: ingress-nginx
       ports:
