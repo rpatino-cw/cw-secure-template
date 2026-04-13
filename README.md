@@ -18,6 +18,8 @@
   <img src="https://img.shields.io/badge/.claude-full_structure-a855f7?style=flat-square" alt=".claude/">
 </p>
 
+You use AI to build an app. It works. But is it secure? This template makes sure it is — automatically. You don't need to know anything about security. Clone it, run setup, start building. The template handles auth, secrets, scanning, testing, and deployment guardrails behind the scenes. Every shortcut you might take (hardcoding a key, skipping auth, pasting secrets) is caught and redirected to the safe path. **[See it in action](https://rpatino-cw.github.io/cw-secure-guide/)** — the interactive guide walks through every feature with live terminal simulations.
+
 ---
 
 ## Your Code Goes Through 6 Checkpoints
