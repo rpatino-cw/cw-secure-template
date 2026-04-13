@@ -5,7 +5,7 @@
     Memory, routing, security, deployment. All wired.
   </p>
   <p align="center">
-    <a href="https://rpatino-cw.github.io/cw-secure-guide/"><img src="https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_INTERACTIVE_GUIDE-See_it_in_action-ffffff?style=for-the-badge&labelColor=ffffff&color=4f46e5&logoColor=4f46e5" alt="Interactive Guide"></a>
+    <a href="https://rpatino-cw.github.io/cw-secure-guide/"><img src="https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_CW_VIBE-Plan_%C2%B7_Scaffold_%C2%B7_Ship_Secure-ffffff?style=for-the-badge&labelColor=ffffff&color=4f46e5&logoColor=4f46e5" alt="CW Vibe — Plan, Scaffold, Ship Secure"></a>
   </p>
 </p>
 
@@ -26,7 +26,7 @@ That's it. Claude gets project memory, slash commands, security rules, auto-revi
 
 ---
 
-This isn't just a security template. It's a full Claude Code project setup. When you clone this and run setup, Claude gets everything it needs to work in your project: memory that persists across sessions, slash commands for common tasks, rules that apply automatically based on file type, a security review skill that triggers on code changes, and subagent personas for audits and code review. Your app gets real Okta auth, rate limiting, secret management, CI with coverage gates, and Helm deployment configs. If you try to take a shortcut (hardcoding a key, skipping auth, pasting secrets), the template catches it and shows you the easy way. Check out the **[interactive guide](https://rpatino-cw.github.io/cw-secure-guide/)** to see it all in action.
+This isn't just a security template. It's a full Claude Code project setup. When you clone this and run setup, Claude gets everything it needs to work in your project: memory that persists across sessions, slash commands for common tasks, rules that apply automatically based on file type, a security review skill that triggers on code changes, and subagent personas for audits and code review. Your app gets real Okta auth, rate limiting, secret management, CI with coverage gates, and Helm deployment configs. If you try to take a shortcut (hardcoding a key, skipping auth, pasting secrets), the template catches it and shows you the easy way. Plan your app, get a scaffold, and see the pipeline in action at **[CW Vibe](https://rpatino-cw.github.io/cw-secure-guide/)** — the companion platform for this template.
 
 ---
 
@@ -221,5 +221,5 @@ docs/                         Getting started, handbook, AppSec review pack,
 ---
 
 <p align="center">
-  <sub>Built at CoreWeave · <a href="https://rpatino-cw.github.io/cw-secure-guide/">Interactive Guide</a> · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/architecture.md">Architecture Diagrams</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
+  <sub>Built at CoreWeave · <a href="https://rpatino-cw.github.io/cw-secure-guide/">CW Vibe</a> · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/architecture.md">Architecture Diagrams</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
 </p>
