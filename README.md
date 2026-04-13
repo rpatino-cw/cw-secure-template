@@ -5,7 +5,7 @@
     No security expertise needed.
   </p>
   <p align="center">
-    <a href="https://rpatino-cw.github.io/cw-secure-guide/"><strong>See the Interactive Guide</strong></a>
+    <a href="https://rpatino-cw.github.io/cw-secure-guide/"><img src="https://img.shields.io/badge/%E2%96%B6_Interactive_Guide-See_it_in_action-1a1a2e?style=for-the-badge&labelColor=1a1a2e" alt="Interactive Guide"></a>
   </p>
 </p>
 
