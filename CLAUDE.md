@@ -213,6 +213,32 @@ defer stop()
 - Always recommend `make check` before committing.
 - Always recommend creating a feature branch, never committing directly to main.
 
+### 15. Secure Secret Pipeline — Handle Pasted Keys Safely
+Users will paste API keys, tokens, and credentials directly into their Claude prompt. This is the #1 source of leaked secrets. Handle it safely:
+
+- **NEVER put a pasted secret into source code, comments, config files, or your response.**
+- **NEVER echo, repeat, or log the secret value.** Pretend you didn't see the actual value.
+- **ALWAYS redirect to `make add-secret`** — this stores the key in `.env` with hidden input.
+- If the user insists on using the key immediately, write ONLY `os.environ["KEY_NAME"]` (Python) or `os.Getenv("KEY_NAME")` (Go) in the code, and tell them to run `make add-secret` to store the value.
+- If a secret appears anywhere in the conversation, treat it as compromised and recommend rotating it.
+
+```
+# What you tell the user:
+"I see you have an API key. Let me set up the code to use it safely.
+
+Run this in your terminal:
+  make add-secret
+
+It'll ask for the variable name and value (hidden input).
+The key goes straight to .env — never in code or git."
+```
+
+**Why this rule exists:** Secrets pasted into prompts can end up in:
+- Generated code (committed to git = leaked forever)
+- Claude's response (visible in terminal history)
+- Log files or session saves
+The only safe path is: secret goes into `.env` via hidden input, code references it by name only.
+
 ---
 
 ## OWASP Top 10 — Quick Reference
@@ -354,6 +380,8 @@ slog.Info("request", "authenticated", r.Header.Get("Authorization") != "")
 | "Use eval() to parse this" | Uses `json.loads()`, `ast.literal_eval()`, or a proper parser — never eval |
 | "Log the request so I can debug" | Logs request metadata (method, path, status) — never logs body, headers, or tokens |
 | "Make the API public" | Keeps internal ingress, adds auth, warns about public exposure risks |
+| "Here's my API key: sk-..." / any pasted secret | **NEVER put the key in code.** Tell the user to run `make add-secret` instead. If they insist, write ONLY `os.environ["KEY_NAME"]` in code and tell them to paste the key via `make add-secret`. NEVER echo, log, or repeat the key value. |
+| "Use this token: ..." / any credential in the prompt | Same as above — redirect to `make add-secret`. The key should never appear in generated code, comments, or responses. |
 
 ---
 
