@@ -11,6 +11,7 @@
   <img src="https://img.shields.io/badge/SOC_2-aligned-3b82f6?style=flat-square" alt="SOC 2">
   <img src="https://img.shields.io/badge/coverage-80%25_gate-f59e0b?style=flat-square" alt="Coverage">
   <img src="https://img.shields.io/badge/Go_%2B_Python-ready-6366f1?style=flat-square" alt="Stacks">
+  <img src="https://img.shields.io/badge/.claude-full_structure-a855f7?style=flat-square" alt=".claude/">
 </p>
 
 ---
@@ -69,6 +70,35 @@ Every insecure shortcut has a faster secure alternative.
 
 ---
 
+## Full `.claude/` Project Structure
+
+Claude Code reads this folder to understand how to work in your project. Commands, rules, skills, and agents — all security-focused.
+
+```
+.claude/
+├── settings.json                 Permissions locked (deny force-push, --no-verify, eval)
+├── MEMORY.md                     Project memory across sessions
+├── commands/
+│   ├── check.md                  /project:check — full security suite
+│   ├── add-endpoint.md           /project:add-endpoint — secure route scaffold
+│   ├── add-secret.md             /project:add-secret — safe key storage
+│   └── security-review.md        /project:security-review — 10-point audit
+├── rules/
+│   ├── security.md               Secrets, auth, validation, dangerous functions
+│   ├── testing.md                Coverage, security tests, environment
+│   ├── code-style.md             Formatting, logging, imports
+│   └── api-conventions.md        REST, status codes, headers
+├── skills/
+│   └── security-review/SKILL.md  Auto-triggers on code changes
+└── agents/
+    ├── security-auditor.md       Deep OWASP + CW compliance audit
+    └── code-reviewer.md          PR review agent
+```
+
+> `settings.json` blocks dangerous commands at the harness level — Claude literally cannot run `--no-verify`, `force-push`, or `eval`. This is structural enforcement, not just instructions.
+
+---
+
 ## Get Started
 
 > **First time?** Follow the [step-by-step Getting Started guide](docs/getting-started.md) — it walks you through everything from opening Terminal to running your first app.
@@ -96,17 +126,18 @@ make help     Everything else
 
 ## Can't Break It
 
-> In-repo enforcement (hooks, CI, CLAUDE.md) works anywhere. Full enforcement requires a [CW org repo](docs/repo-governance.md) with Okta + Doppler configured.
+> In-repo enforcement (hooks, CI, CLAUDE.md, settings.json) works anywhere. Full enforcement requires a [CW org repo](docs/repo-governance.md) with Okta + Doppler configured.
 
 | "I'll just..." | What catches it |
 |:--|:--|
-| Skip hooks with `--no-verify` | CI checks the timestamp |
+| Skip hooks with `--no-verify` | CI checks the timestamp + settings.json blocks the command |
 | Delete the security rules | CI blocks the PR |
 | Remove the rate limiter | CI middleware check blocks the PR |
 | Hardcode a secret | Gitleaks blocks the commit AND the PR |
 | Push without tests | Pre-push hook blocks it |
 | Commit to main | Branch protection requires a PR |
 | Ship without auth | Auth is wired from day 1 |
+| Ask Claude to force-push | settings.json deny list blocks it |
 
 ---
 
@@ -128,20 +159,29 @@ make help     Everything else
 
 **How do I get Okta credentials?** File an IT/Freshservice ticket. [Details](CLAUDE.md#okta-app-registration--how-to-get-credentials)
 
+**What's `/project:check`?** A Claude Code slash command. Type it in Claude and it runs the full security suite.
+
 </details>
 
 <details>
-<summary><b>What's inside</b></summary>
+<summary><b>What's inside (92 files)</b></summary>
 <br>
 
 ```
-CLAUDE.md                  AI security rules
-security-dashboard.html    Interactive pipeline visual
-scripts/                   Git hooks, doctor, fix, quiz
-go/                        Go starter + Okta auth middleware
-python/                    Python starter + Okta auth middleware
-deploy/helm/               K8s deployment
-docs/                      Getting started + security handbook
+CLAUDE.md                     AI security rules (15 rules, anti-jailbreak)
+.claude/                      Claude Code project config
+  settings.json               Permissions (deny dangerous commands)
+  commands/                   4 slash commands (/check, /add-endpoint, etc.)
+  rules/                      4 modular rule files (security, testing, style, API)
+  skills/                     Auto-review on code changes
+  agents/                     Security auditor + code reviewer
+security-dashboard.html       Interactive pipeline visual
+scripts/                      Git hooks, doctor, fix, quiz, add-secret, add-config
+go/                           Go starter + Okta auth middleware + Dockerfile
+python/                       Python starter + Okta auth middleware + Dockerfile
+deploy/                       Helm chart + ArgoCD + env-specific values
+docs/                         Getting started, handbook, AppSec review pack,
+                              Okta ticket, Doppler onboarding, approved images
 ```
 
 </details>
