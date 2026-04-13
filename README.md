@@ -55,6 +55,20 @@ No cryptic error codes. Plain English.
 
 ---
 
+## The Lazy Path Is the Secure Path
+
+Every insecure shortcut has a faster secure alternative.
+
+| You want to... | Don't | Do this instead |
+|:--|:--|:--|
+| Use an API key | Paste it in code or Claude | `make add-secret` (hidden input, straight to .env) |
+| Use a config file (.json, .pem) | Drop it in the project folder | `make add-config` (stored in gitignored .secrets/) |
+| Use a database URL | Hardcode `postgres://user:pass@...` | `make add-secret` (password goes to .env) |
+| Share your .env | Paste it to Claude or Slack | `make add-secret` per value (never paste the whole file) |
+| Check for dropped files | Hope for the best | `make doctor` (scans for 20+ dangerous file patterns) |
+
+---
+
 ## Get Started
 
 > **First time?** Follow the [step-by-step Getting Started guide](docs/getting-started.md) — it walks you through everything from opening Terminal to running your first app.
