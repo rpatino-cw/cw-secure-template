@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 110" fill="none">
+  <style>
+    @keyframes cmd { 0%,100%{opacity:0} 5%,40%{opacity:1} }
+    @keyframes run { 0%,40%{opacity:0} 50%,95%{opacity:1} }
+    text { font-family: 'Menlo','Consolas',monospace; }
+  </style>
+  <rect width="600" height="110" rx="12" fill="#1e1b2e"/>
+  <circle cx="18" cy="14" r="5" fill="#f87171"/><circle cx="34" cy="14" r="5" fill="#fbbf24"/><circle cx="50" cy="14" r="5" fill="#4ade80"/>
+  <g style="animation:cmd 5s ease infinite">
+    <text x="16" y="50" font-size="13" fill="#a78bfa">$</text>
+    <text x="30" y="50" font-size="13" fill="#e2e8f0">make start</text>
+  </g>
+  <g style="animation:run 5s ease infinite">
+    <text x="16" y="76" font-size="12" fill="#60a5fa">INFO:</text>
+    <text x="68" y="76" font-size="12" fill="#94a3b8">  Uvicorn running on</text>
+    <text x="268" y="76" font-size="12" fill="#4ade80">http://localhost:8080</text>
+    <text x="16" y="98" font-size="11" fill="#4ade80">  App running with auth + rate limiting + security headers</text>
+  </g>
+</svg>

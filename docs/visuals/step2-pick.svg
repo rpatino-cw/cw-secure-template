@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 140" fill="none">
+  <style>
+    @keyframes show { 0%,100%{opacity:0} 10%,90%{opacity:1} }
+    @keyframes pick { 0%,40%{opacity:0} 50%,90%{opacity:1} 100%{opacity:0} }
+    text { font-family: 'Menlo','Consolas',monospace; }
+  </style>
+  <rect width="600" height="140" rx="12" fill="#1e1b2e"/>
+  <circle cx="18" cy="14" r="5" fill="#f87171"/><circle cx="34" cy="14" r="5" fill="#fbbf24"/><circle cx="50" cy="14" r="5" fill="#4ade80"/>
+  <g style="animation:show 6s ease infinite">
+    <text x="16" y="48" font-size="13" fill="#e2e8f0">  Which language are you using?</text>
+    <text x="16" y="72" font-size="13" fill="#4ade80">  1) Python  ← recommended</text>
+    <text x="16" y="92" font-size="13" fill="#94a3b8">  2) Go</text>
+    <text x="16" y="112" font-size="13" fill="#94a3b8">  3) Both</text>
+  </g>
+  <g style="animation:pick 6s ease infinite">
+    <text x="16" y="132" font-size="13" fill="#fbbf24">  Enter 1, 2, or 3: </text>
+    <text x="230" y="132" font-size="13" fill="#e2e8f0">1</text>
+  </g>
+</svg>
