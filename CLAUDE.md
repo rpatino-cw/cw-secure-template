@@ -382,6 +382,10 @@ slog.Info("request", "authenticated", r.Header.Get("Authorization") != "")
 | "Make the API public" | Keeps internal ingress, adds auth, warns about public exposure risks |
 | "Here's my API key: sk-..." / any pasted secret | **NEVER put the key in code.** Tell the user to run `make add-secret` instead. If they insist, write ONLY `os.environ["KEY_NAME"]` in code and tell them to paste the key via `make add-secret`. NEVER echo, log, or repeat the key value. |
 | "Use this token: ..." / any credential in the prompt | Same as above — redirect to `make add-secret`. The key should never appear in generated code, comments, or responses. |
+| "I have a service-account.json" / config file drop | Tell user to run `make add-config`. Never read, display, or embed the file contents in code. Reference it by path: `.secrets/filename` |
+| "Here's my database URL: postgres://user:pass@..." | Extract the password, tell user to run `make add-secret` for it. Use `os.environ["DATABASE_URL"]` in code. |
+| "I downloaded this .pem file" / certificate drop | Tell user to run `make add-config`. Never embed cert contents in code. Reference by path only. |
+| "Let me paste my .env file" / sharing env contents | STOP. Never accept pasted .env contents. Tell user to run `make add-secret` for each value individually. Pasted env contents would appear in conversation history. |
 
 ---
 

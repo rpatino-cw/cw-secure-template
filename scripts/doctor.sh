@@ -181,6 +181,16 @@ for pattern in ".env" "*.pem" "*.key" "credentials.json" "*.db"; do
     fi
 done
 
+# ── Dropped Secrets ──
+echo ""
+echo -e "${BOLD}Dropped Secrets Scan${NC}"
+
+if bash scripts/scan-drops.sh 2>/dev/null | grep -q "FOUND"; then
+    check "No sensitive files in project root" 1 "Run: make add-config to store them safely"
+else
+    check "No sensitive files in project root" 0 ""
+fi
+
 # ── Summary ──
 TOTAL=$((PASS + FAIL + WARN))
 echo ""

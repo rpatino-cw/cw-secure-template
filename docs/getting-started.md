@@ -58,6 +58,26 @@ Press `Ctrl+C` to stop the app when you're done.
 
 ---
 
+## Step 3.5: Got an API key? Store it safely
+
+If you have an API key, database password, or any secret value — **don't paste it into Claude or your code.** Run this instead:
+
+```
+make add-secret
+```
+
+It asks for a name and value (the value is hidden as you type). The key goes straight into your `.env` file, which is never committed to git.
+
+**Got a config file** (like service-account.json or a .pem certificate)? Don't drop it in the project folder. Run:
+
+```
+make add-config
+```
+
+It stores the file in a hidden `.secrets/` folder that's gitignored.
+
+---
+
 ## Step 4: Build something with Claude
 
 Open **Claude Code** (or any AI coding tool) in the `my-app` folder.

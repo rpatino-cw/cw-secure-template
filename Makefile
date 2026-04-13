@@ -54,6 +54,7 @@ help: ## Show all available commands
 	@echo ""
 	@echo "  Setup:"
 	@echo "    make add-secret  Safely store an API key in .env"
+	@echo "    make add-config  Safely store a config file (.json, .pem, etc.)"
 	@echo "    make setup       Re-run first-time setup"
 	@echo "    make docker      Build Docker image"
 	@echo ""
@@ -118,6 +119,14 @@ security-scan: scan
 .PHONY: add-secret
 add-secret:
 	@bash scripts/add-secret.sh
+
+.PHONY: add-config
+add-config:
+	@bash scripts/add-config.sh
+
+.PHONY: scan-drops
+scan-drops:
+	@bash scripts/scan-drops.sh
 
 .PHONY: learn
 learn:
