@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CW Vibe — Plan, Scaffold, Ship Secure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: oklch(97% 0.008 80);
+  --bg-elevated: oklch(99% 0.004 80);
+  --bg-sunken: oklch(94% 0.012 80);
+  --border: oklch(88% 0.016 80);
+  --border-subtle: oklch(92% 0.010 80);
+  --text-primary: oklch(22% 0.02 260);
+  --text-secondary: oklch(45% 0.02 260);
+  --text-tertiary: oklch(60% 0.015 260);
+  --pass: oklch(52% 0.14 155);
+  --pass-bg: oklch(95% 0.04 155);
+  --warn: oklch(58% 0.16 75);
+  --warn-bg: oklch(95% 0.04 75);
+  --critical: oklch(52% 0.18 25);
+  --critical-bg: oklch(95% 0.04 25);
+  --info: oklch(52% 0.12 250);
+  --info-bg: oklch(95% 0.04 250);
+  --accent: oklch(52% 0.14 290);
+  --accent-bg: oklch(95% 0.04 290);
+  --text-xs: clamp(0.7rem, 0.65rem + 0.25vw, 0.75rem);
+  --text-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.875rem);
+  --text-base: clamp(0.9rem, 0.85rem + 0.25vw, 1rem);
+  --text-lg: clamp(1.05rem, 0.95rem + 0.5vw, 1.2rem);
+  --text-xl: clamp(1.3rem, 1.1rem + 1vw, 1.75rem);
+  --text-2xl: clamp(1.8rem, 1.4rem + 2vw, 2.75rem);
+  --space-xs: clamp(4px, 0.25rem + 0.1vw, 6px);
+  --space-sm: clamp(8px, 0.5rem + 0.2vw, 12px);
+  --space-md: clamp(16px, 1rem + 0.5vw, 24px);
+  --space-lg: clamp(24px, 1.5rem + 1vw, 40px);
+  --space-xl: clamp(40px, 2.5rem + 2vw, 72px);
+  --space-2xl: clamp(64px, 4rem + 3vw, 112px);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration: 320ms;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration: 0ms; } }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; font-size: var(--text-base); color: var(--text-primary); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+.container { max-width: 960px; margin: 0 auto; padding: 0 var(--space-lg); }
+section { padding: var(--space-2xl) 0; }
+section + section { border-top: 1px solid var(--border-subtle); }
+h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-2xl); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: var(--space-xs); }
+h2 + p.subtitle { color: var(--text-secondary); margin-bottom: var(--space-lg); max-width: 540px; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+
+/* NAV */
+nav { position: sticky; top: 0; z-index: 100; background: oklch(97% 0.008 80 / 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle); }
+.nav-inner { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) 0; overflow-x: auto; }
+.nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: var(--text-lg); white-space: nowrap; letter-spacing: -0.02em; }
+.nav-logo span { color: var(--info); }
+.nav-links { display: flex; gap: var(--space-xs); margin-left: auto; }
+.nav-link { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); text-decoration: none; padding: 6px 12px; border-radius: 6px; white-space: nowrap; transition: all var(--duration) var(--ease-out); }
+.nav-link:hover, .nav-link.active { color: var(--text-primary); background: var(--bg-sunken); }
+
+/* HERO */
+.hero { padding: var(--space-2xl) 0; text-align: left; }
+.hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.6rem, 1.2rem + 2vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em; max-width: 600px; }
+.hero-stat { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-xl); color: var(--info); margin: var(--space-lg) 0 var(--space-xs); }
+.hero-sub { color: var(--text-secondary); font-size: var(--text-lg); max-width: 560px; margin-bottom: var(--space-lg); }
+.hero-cta { display: inline-block; background: var(--text-primary); color: var(--bg); font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); padding: 12px 28px; border-radius: 8px; border: none; cursor: pointer; transition: transform var(--duration) var(--ease-out), opacity var(--duration); text-decoration: none; }
+.hero-cta:hover { transform: translateY(-2px); opacity: 0.9; }
+
+/* STEPPER */
+.step-track { display: flex; gap: 0; margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: var(--space-xs); }
+.step-indicator { flex: 1; min-width: 80px; text-align: center; position: relative; cursor: default; }
+.step-indicator:not(:last-child)::after { content: ''; position: absolute; top: 18px; right: -1px; width: calc(100% - 40px); height: 2px; background: var(--border); left: calc(50% + 20px); transition: background var(--duration) var(--ease-out); }
+.step-indicator.done:not(:last-child)::after { background: var(--pass); }
+.step-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); font-weight: 500; color: var(--text-tertiary); transition: all var(--duration) var(--ease-out); }
+.step-indicator.active .step-dot { border-color: var(--info); color: var(--info); box-shadow: 0 0 0 4px var(--info-bg); }
+.step-indicator.done .step-dot { border-color: var(--pass); background: var(--pass); color: white; }
+.step-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-top: var(--space-xs); }
+.step-indicator.active .step-label { color: var(--info); }
+.step-indicator.done .step-label { color: var(--pass); }
+
+/* CARDS */
+.step-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: var(--space-lg); display: none; animation: fadeUp var(--duration) var(--ease-out); }
+.step-card.active { display: block; }
+.step-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-lg); margin-bottom: var(--space-xs); }
+.step-card > p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-md); }
+
+/* FORM */
+label.field-label { display: block; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: var(--space-xs); }
+input[type="text"], textarea, select { width: 100%; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text-primary); outline: none; transition: border-color var(--duration) var(--ease-out); }
+input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--info); }
+textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
+.field-group { margin-bottom: var(--space-md); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+@media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+.btn { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; transition: all var(--duration) var(--ease-out); }
+.btn-primary { background: var(--text-primary); color: var(--bg); }
+.btn-primary:hover { transform: translateY(-1px); opacity: 0.9; }
+.btn-secondary { background: var(--bg-sunken); color: var(--text-secondary); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
+.btn-row { display: flex; gap: var(--space-sm); margin-top: var(--space-md); }
+
+/* DYNAMIC ROWS */
+.dynamic-rows { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm); }
+.dynamic-row { display: grid; gap: var(--space-sm); align-items: start; padding: var(--space-sm); background: var(--bg-sunken); border-radius: 8px; }
+.dynamic-row.roles-row { grid-template-columns: 1fr 1fr 1fr 32px; }
+.dynamic-row.table-row { grid-template-columns: 1fr 2fr 1fr 32px; }
+.dynamic-row.endpoint-row { grid-template-columns: 80px 1fr 80px 1.5fr 32px; }
+@media (max-width: 600px) {
+  .dynamic-row.roles-row, .dynamic-row.table-row { grid-template-columns: 1fr 32px; }
+  .dynamic-row.endpoint-row { grid-template-columns: 1fr 32px; }
+  .dynamic-row input, .dynamic-row select { grid-column: 1; }
+}
+.remove-row { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all var(--duration); align-self: center; }
+.remove-row:hover { border-color: var(--critical); color: var(--critical); background: var(--critical-bg); }
+.add-row-btn { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 6px 12px; border-radius: 6px; background: var(--info-bg); color: var(--info); border: 1px solid transparent; cursor: pointer; transition: all var(--duration); }
+.add-row-btn:hover { border-color: var(--info); }
+
+/* STACK CHIPS */
+.stack-options { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.stack-chip { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-elevated); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); color: var(--text-secondary); transition: all var(--duration) var(--ease-out); }
+.stack-chip:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
+.stack-chip.selected { border-color: var(--info); background: var(--info-bg); color: var(--info); font-weight: 500; }
+
+/* PLAN OUTPUT */
+.plan-output { background: var(--text-primary); border-radius: 12px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); line-height: 1.7; margin-top: var(--space-lg); }
+.plan-chrome { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: oklch(18% 0.015 260); }
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.r { background: #f87171; } .dot.y { background: #fbbf24; } .dot.g { background: #4ade80; }
+.plan-title { font-size: 11px; color: oklch(55% 0.01 260); margin-left: 8px; }
+.plan-body { padding: var(--space-md); max-height: 500px; overflow-y: auto; color: oklch(85% 0.01 80); white-space: pre-wrap; word-break: break-word; }
+.plan-actions { display: flex; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: oklch(18% 0.015 260); }
+.plan-copy-btn { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 6px 14px; border-radius: 6px; background: oklch(30% 0.02 260); color: oklch(75% 0.01 260); border: 1px solid oklch(35% 0.02 260); cursor: pointer; transition: all var(--duration); }
+.plan-copy-btn:hover { background: oklch(35% 0.02 260); color: oklch(90% 0.005 80); }
+
+/* SCAFFOLD */
+.scaffold-cmd { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); background: var(--text-primary); color: oklch(85% 0.01 80); padding: var(--space-md); border-radius: 10px; line-height: 1.8; white-space: pre-wrap; position: relative; }
+.copy-btn { position: absolute; top: var(--space-sm); right: var(--space-sm); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 5px; background: oklch(30% 0.02 260); color: oklch(75% 0.01 260); border: 1px solid oklch(35% 0.02 260); cursor: pointer; }
+.copy-btn:hover { background: oklch(35% 0.02 260); }
+
+/* TERMINAL */
+.terminal { background: var(--text-primary); border-radius: 12px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); line-height: 1.7; }
+.terminal-chrome { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: oklch(18% 0.015 260); }
+.terminal-title { font-size: 11px; color: oklch(55% 0.01 260); margin-left: 8px; }
+.terminal-body { padding: var(--space-md); min-height: 280px; max-height: 420px; overflow-y: auto; }
+.terminal-line { white-space: pre-wrap; word-break: break-all; }
+.terminal-line.prompt { color: oklch(70% 0.01 260); }
+.terminal-line .cmd { color: oklch(90% 0.005 80); }
+.terminal-line.output { color: oklch(65% 0.01 260); }
+.terminal-line.success { color: #4ade80; }
+.terminal-line.error { color: #f87171; font-weight: 500; }
+.terminal-line.warn { color: #fbbf24; }
+.terminal-line.info { color: #60a5fa; }
+.terminal-line.dim { color: oklch(45% 0.01 260); }
+.cursor { display: inline-block; width: 8px; height: 14px; background: oklch(70% 0.01 260); animation: blink 1s step-end infinite; vertical-align: text-bottom; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* SCENARIO BUTTONS */
+.scenarios { display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-md); }
+.scenario-btn { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: var(--space-sm) var(--space-md); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); color: var(--text-secondary); transition: all var(--duration) var(--ease-out); }
+.scenario-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+.scenario-btn.active { border-color: var(--info); background: var(--info-bg); color: var(--info); font-weight: 500; }
+.scenario-group { margin-bottom: var(--space-sm); }
+.scenario-group-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: var(--space-xs); display: block; }
+.scenario-group-btns { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
+.narration { margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; font-size: var(--text-sm); color: var(--text-secondary); min-height: 48px; transition: opacity var(--duration) var(--ease-out); }
+
+/* PIPELINE */
+.pipeline-row { display: flex; gap: 0; overflow-x: auto; padding: var(--space-sm) 0; }
+.p-stage { flex: 1; min-width: 100px; text-align: center; cursor: pointer; position: relative; }
+.p-stage:not(:last-child)::after { content: ''; position: absolute; top: 24px; right: -1px; width: calc(100% - 48px); height: 2px; background: var(--border); left: calc(50% + 24px); }
+.p-dot { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.2rem; transition: all var(--duration) var(--ease-out); }
+.p-stage:hover .p-dot { transform: scale(1.08); border-color: var(--info); }
+.p-stage.active .p-dot { border-color: var(--info); box-shadow: 0 0 0 4px var(--info-bg); }
+.p-label { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-top: var(--space-xs); }
+.p-detail { margin-top: var(--space-lg); padding: var(--space-lg); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; display: none; }
+.p-detail.show { display: block; animation: fadeUp var(--duration) var(--ease-out); }
+.p-detail h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-lg); margin-bottom: var(--space-sm); }
+.p-detail ul { list-style: none; padding: 0; }
+.p-detail li { font-size: var(--text-sm); color: var(--text-secondary); padding: 3px 0 3px 16px; position: relative; }
+.p-detail li::before { content: ''; position: absolute; left: 0; top: 50%; width: 6px; height: 6px; border-radius: 50%; transform: translateY(-50%); }
+.catches li::before { background: var(--pass); }
+.escapes li::before { background: var(--warn); }
+.catches h4 { color: var(--pass); } .escapes h4 { color: var(--warn); }
+.p-detail h4 { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; margin: var(--space-md) 0 var(--space-xs); color: var(--text-tertiary); }
+
+/* CONCEPTS */
+.concept-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.concept-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color var(--duration) var(--ease-out); }
+.concept-card:hover { border-color: var(--text-tertiary); }
+.concept-head { padding: var(--space-md); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.concept-head h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: var(--text-base); }
+.concept-chev { color: var(--text-tertiary); transition: transform var(--duration) var(--ease-out); font-size: var(--text-sm); }
+.concept-card.open .concept-chev { transform: rotate(180deg); }
+.concept-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration) var(--ease-out); }
+.concept-card.open .concept-body { grid-template-rows: 1fr; }
+.concept-inner { overflow: hidden; }
+.concept-content { padding: 0 var(--space-md) var(--space-md); border-top: 1px solid var(--border-subtle); }
+.concept-content p { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-sm); }
+.try-btn { display: inline-block; margin-top: var(--space-sm); font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 4px 12px; border-radius: 6px; background: var(--info-bg); color: var(--info); border: none; cursor: pointer; }
+
+/* POLICIES */
+.policy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-sm); }
+.policy-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: var(--space-md); transition: border-color var(--duration) var(--ease-out); }
+.policy-card:hover { border-color: var(--text-tertiary); }
+.policy-card h4 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-xs); }
+.policy-card p { font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.6; }
+.policy-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-bottom: var(--space-xs); text-transform: uppercase; letter-spacing: 0.04em; }
+.tag-critical { background: var(--critical-bg); color: var(--critical); }
+.tag-high { background: var(--warn-bg); color: var(--warn); }
+.tag-medium { background: var(--info-bg); color: var(--info); }
+.tag-low { background: var(--pass-bg); color: var(--pass); }
+.timeline-bar { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); margin-bottom: var(--space-lg); }
+.timeline-segment { flex: 1; text-align: center; padding: var(--space-md); border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elevated); }
+.timeline-segment .days { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-xl); }
+.timeline-segment .label { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: var(--space-xs); }
+
+/* Q&A */
+.qa-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+.qa { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color var(--duration) var(--ease-out); }
+.qa:hover { border-color: var(--text-tertiary); }
+.qa-q { padding: var(--space-md); cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-md); }
+.qa-q h3 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); line-height: 1.5; }
+.qa-chev { color: var(--text-tertiary); transition: transform var(--duration) var(--ease-out); font-size: var(--text-xs); flex-shrink: 0; margin-top: 3px; }
+.qa.open .qa-chev { transform: rotate(180deg); }
+.qa-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration) var(--ease-out); }
+.qa.open .qa-body { grid-template-rows: 1fr; }
+.qa-inner { overflow: hidden; }
+.qa-a { padding: 0 var(--space-md) var(--space-md); border-top: 1px solid var(--border-subtle); font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; }
+.qa-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.tag-core { background: var(--info-bg); color: var(--info); }
+.tag-hard { background: var(--critical-bg); color: var(--critical); }
+.tag-skeptic { background: var(--warn-bg); color: var(--warn); }
+
+/* TEAM */
+.team-placeholder { text-align: center; padding: var(--space-xl); background: var(--bg-elevated); border: 2px dashed var(--border); border-radius: 12px; color: var(--text-tertiary); }
+.team-placeholder h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: var(--space-xs); color: var(--text-secondary); }
+
+/* FILE TREE */
+.tree-dir { cursor: pointer; color: var(--text-primary); font-weight: 500; }
+.tree-dir:hover { color: var(--info); }
+.tree-file { color: var(--text-secondary); cursor: pointer; padding-left: 4px; }
+.tree-file:hover { color: var(--text-primary); }
+.tree-children { padding-left: 20px; }
+.tree-children.collapsed { display: none; }
+.tree-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.layer-ai { background: oklch(55% 0.14 290); }
+.layer-hooks { background: oklch(52% 0.14 155); }
+.layer-ci { background: oklch(52% 0.12 250); }
+.layer-docs { background: oklch(58% 0.16 75); }
+.layer-deploy { background: oklch(48% 0.10 260); }
+.layer-code { background: oklch(52% 0.12 200); }
+.file-desc { margin-top: var(--space-sm); padding: var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); color: var(--text-secondary); }
+
+/* FOOTER */
+.footer { padding: var(--space-xl) 0; text-align: center; font-size: var(--text-sm); color: var(--text-tertiary); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+<div class="container nav-inner">
+  <div class="nav-logo">cw<span>/</span>vibe</div>
+  <div class="nav-links">
+    <a href="#plan" class="nav-link active" data-section="plan">Plan</a>
+    <a href="#scaffold" class="nav-link" data-section="scaffold">Scaffold</a>
+    <a href="#demo" class="nav-link" data-section="demo">Demo</a>
+    <a href="#pipeline" class="nav-link" data-section="pipeline">Pipeline</a>
+    <a href="#files" class="nav-link" data-section="files">Files</a>
+    <a href="#policies" class="nav-link" data-section="policies">Policies</a>
+    <a href="#qa" class="nav-link" data-section="qa">Q&amp;A</a>
+    <a href="#team" class="nav-link" data-section="team">Team</a>
+  </div>
+</div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+<div class="container">
+  <h1>Plan it. Scaffold it.<br>Ship it secure.</h1>
+  <p class="hero-stat">Architecture before code. Security by default.</p>
+  <p class="hero-sub">Answer six questions. Get a PLAN.md Claude can follow, a secure scaffold that passes CI from commit one, and CW policy compliance baked in.</p>
+  <a href="#plan" class="hero-cta" onclick="document.getElementById('plan').scrollIntoView({behavior:'smooth'});return false;">Start Planning</a>
+</div>
+</section>
+
+<!-- ===== SECTION 1: PLAN ===== -->
+<section id="plan">
+<div class="container">
+  <h2>What Are We Building?</h2>
+  <p class="subtitle">Six steps. No skipping. Answer each one and your PLAN.md writes itself.</p>
+  <div class="step-track" id="stepTrack"></div>
+
+  <!-- Step 1: Identity -->
+  <div class="step-card active" data-step="1">
+    <h3>1. Project Identity</h3>
+    <p>Name your app and describe it in one sentence.</p>
+    <div class="field-group"><label class="field-label" for="appName">App Name</label><input type="text" id="appName" placeholder="e.g. inventory-tracker" autocomplete="off"></div>
+    <div class="field-group"><label class="field-label" for="appDesc">One-Sentence Description</label><input type="text" id="appDesc" placeholder="e.g. Tracks rack inventory for DCT ops"></div>
+    <div class="field-group"><label class="field-label" for="teamName">Team / Slack Channel</label><input type="text" id="teamName" placeholder="e.g. dct-ops (#dct-eng)"></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="nextStep(1)">Next</button></div>
+  </div>
+
+  <!-- Step 2: Roles -->
+  <div class="step-card" data-step="2">
+    <h3>2. Users &amp; Roles</h3>
+    <p>Who uses this app and what can they do?</p>
+    <div class="dynamic-rows" id="rolesRows">
+      <div class="dynamic-row roles-row"><input type="text" placeholder="Role (e.g. Admin)" class="role-name"><input type="text" placeholder="Who (e.g. DCT leads)" class="role-who"><input type="text" placeholder="Permissions (e.g. Full CRUD)" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+      <div class="dynamic-row roles-row"><input type="text" placeholder="Role" class="role-name"><input type="text" placeholder="Who" class="role-who"><input type="text" placeholder="Permissions" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+    </div>
+    <button class="add-row-btn" onclick="addRoleRow()">+ Add Role</button>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(2)">Back</button><button class="btn btn-primary" onclick="nextStep(2)">Next</button></div>
+  </div>
+
+  <!-- Step 3: Data -->
+  <div class="step-card" data-step="3">
+    <h3>3. Data Schema</h3>
+    <p>What data does this app store? Define your tables.</p>
+    <div class="dynamic-rows" id="tableRows">
+      <div class="dynamic-row table-row"><input type="text" placeholder="Table name" class="tbl-name"><input type="text" placeholder="Fields (comma-separated)" class="tbl-fields"><input type="text" placeholder="Notes" class="tbl-notes"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+    </div>
+    <button class="add-row-btn" onclick="addTableRow()">+ Add Table</button>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(3)">Back</button><button class="btn btn-primary" onclick="nextStep(3)">Next</button></div>
+  </div>
+
+  <!-- Step 4: Endpoints -->
+  <div class="step-card" data-step="4">
+    <h3>4. API Endpoints</h3>
+    <p>What endpoints does the app expose?</p>
+    <div class="dynamic-rows" id="endpointRows">
+      <div class="dynamic-row endpoint-row"><select class="ep-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input type="text" placeholder="/api/resource" class="ep-path"><input type="text" placeholder="Auth role" class="ep-auth"><input type="text" placeholder="Description" class="ep-desc"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+    </div>
+    <button class="add-row-btn" onclick="addEndpointRow()">+ Add Endpoint</button>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(4)">Back</button><button class="btn btn-primary" onclick="nextStep(4)">Next</button></div>
+  </div>
+
+  <!-- Step 5: Flow -->
+  <div class="step-card" data-step="5">
+    <h3>5. User Flow</h3>
+    <p>Describe the main user journey. We'll generate a Mermaid diagram.</p>
+    <div class="field-group"><label class="field-label" for="flowDesc">Flow Description</label><textarea id="flowDesc" placeholder="e.g. User logs in via Okta -> sees dashboard -> selects a rack -> views/edits inventory -> changes auto-save -> admin can export CSV"></textarea></div>
+    <div class="field-group">
+      <label class="field-label">Or define nodes manually</label>
+      <div class="dynamic-rows" id="flowRows">
+        <div class="dynamic-row" style="grid-template-columns:1fr 40px 1fr 32px"><input type="text" placeholder="From (e.g. User)" class="flow-from"><span style="text-align:center;color:var(--text-tertiary);font-size:var(--text-lg)">&rarr;</span><input type="text" placeholder="To (e.g. Okta)" class="flow-to"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addFlowRow()">+ Add Step</button>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(5)">Back</button><button class="btn btn-primary" onclick="nextStep(5)">Next</button></div>
+  </div>
+
+  <!-- Step 6: Stack -->
+  <div class="step-card" data-step="6">
+    <h3>6. Tech Stack</h3>
+    <p>Pick your stack. CW-approved options highlighted.</p>
+    <label class="field-label">Language / Framework</label>
+    <div class="stack-options" id="langOptions">
+      <div class="stack-chip selected" data-val="Python (FastAPI)" onclick="selectChip(this)">Python (FastAPI)</div>
+      <div class="stack-chip" data-val="Python (Flask)" onclick="selectChip(this)">Python (Flask)</div>
+      <div class="stack-chip" data-val="Go" onclick="selectChip(this)">Go</div>
+      <div class="stack-chip" data-val="Node.js (Express)" onclick="selectChip(this)">Node.js (Express)</div>
+      <div class="stack-chip" data-val="Rust" onclick="selectChip(this)">Rust</div>
+    </div>
+    <label class="field-label">Database</label>
+    <div class="stack-options" id="dbOptions">
+      <div class="stack-chip selected" data-val="PostgreSQL" onclick="selectChip(this)">PostgreSQL</div>
+      <div class="stack-chip" data-val="MySQL" onclick="selectChip(this)">MySQL</div>
+      <div class="stack-chip" data-val="Redis" onclick="selectChip(this)">Redis</div>
+      <div class="stack-chip" data-val="SQLite" onclick="selectChip(this)">SQLite</div>
+      <div class="stack-chip" data-val="None" onclick="selectChip(this)">None</div>
+    </div>
+    <label class="field-label">Deployment</label>
+    <div class="stack-options" id="deployOptions">
+      <div class="stack-chip selected" data-val="Helm + Argo" onclick="selectChip(this)">Helm + Argo</div>
+      <div class="stack-chip" data-val="Docker Compose" onclick="selectChip(this)">Docker Compose</div>
+      <div class="stack-chip" data-val="Kubernetes (raw)" onclick="selectChip(this)">Kubernetes (raw)</div>
+      <div class="stack-chip" data-val="GitHub Pages" onclick="selectChip(this)">GitHub Pages</div>
+    </div>
+    <div class="field-group" style="margin-top:var(--space-md)"><label class="field-label" for="secAuth">Auth Provider</label><input type="text" id="secAuth" placeholder="e.g. Okta OIDC" value="Okta OIDC"></div>
+    <div class="field-group"><label class="field-label" for="secSecrets">Secrets Manager</label><input type="text" id="secSecrets" placeholder="e.g. Doppler" value="Doppler"></div>
+    <div class="field-group"><label class="field-label" for="secClass">Data Classification</label><select id="secClass"><option>Public</option><option selected>Internal</option><option>Confidential</option><option>Restricted</option></select></div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(6)">Back</button><button class="btn btn-primary" onclick="nextStep(6)">Next</button></div>
+  </div>
+
+  <!-- Step 7: Infrastructure -->
+  <div class="step-card" data-step="7">
+    <h3>7. Infrastructure &amp; Scaling</h3>
+    <p>Plan for production from the start. How does this app run at scale?</p>
+    <label class="field-label">Environments</label>
+    <div class="stack-options" id="envOptions">
+      <div class="stack-chip selected" data-val="dev" onclick="toggleChip(this)">Dev</div>
+      <div class="stack-chip selected" data-val="staging" onclick="toggleChip(this)">Staging</div>
+      <div class="stack-chip selected" data-val="prod" onclick="toggleChip(this)">Prod</div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label" for="replicasDev">Dev Replicas</label><input type="text" id="replicasDev" value="1" placeholder="1"></div>
+      <div class="field-group"><label class="field-label" for="replicasProd">Prod Replicas</label><input type="text" id="replicasProd" value="3" placeholder="3"></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label" for="cpuLimit">CPU Limit</label><input type="text" id="cpuLimit" value="500m" placeholder="e.g. 500m, 1"></div>
+      <div class="field-group"><label class="field-label" for="memLimit">Memory Limit</label><input type="text" id="memLimit" value="512Mi" placeholder="e.g. 256Mi, 1Gi"></div>
+    </div>
+    <div class="field-group"><label class="field-label" for="scalingStrategy">Scaling Strategy</label><select id="scalingStrategy"><option>Fixed replicas</option><option selected>HPA (CPU-based)</option><option>HPA (custom metrics)</option><option>KEDA (event-driven)</option></select></div>
+    <div class="field-group"><label class="field-label" for="infraNotes">Infrastructure Notes</label><textarea id="infraNotes" placeholder="e.g. Needs GPU nodes, requires persistent volume, external load balancer needed..." style="min-height:60px"></textarea></div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(7)">Back</button><button class="btn btn-primary" onclick="nextStep(7)">Next</button></div>
+  </div>
+
+  <!-- Step 8: Scope Lock & GitHub -->
+  <div class="step-card" data-step="8">
+    <h3>8. Scope Lock &amp; GitHub</h3>
+    <p>Define what's in v1, what's deferred, and how the team ships code.</p>
+    <div class="field-group">
+      <label class="field-label">MVP Features (what ships in v1)</label>
+      <div class="dynamic-rows" id="mvpRows">
+        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CRUD for racks with auth" class="mvp-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addMvpRow()">+ Add Feature</button>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Deferred (explicitly NOT in v1)</label>
+      <div class="dynamic-rows" id="deferredRows">
+        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CSV export, email notifications" class="deferred-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addDeferredRow()">+ Add Deferred Item</button>
+    </div>
+    <div style="margin-top:var(--space-md);padding:var(--space-md);background:var(--warn-bg);border:1px solid oklch(80% 0.08 75);border-radius:10px;margin-bottom:var(--space-md)">
+      <p style="font-size:var(--text-sm);color:var(--warn);font-weight:500">Scope Lock: Features listed above are frozen for v1. Claude will reference this list and resist scope creep. If it's not in MVP, it waits.</p>
+    </div>
+    <label class="field-label">GitHub Practices</label>
+    <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-md)">
+      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghBranchProtect" checked> Branch protection on main</label>
+      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghRequirePR" checked> Require PR reviews before merge</label>
+      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghRequireCI" checked> Require CI to pass before merge</label>
+      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghCodeowners" checked> CODEOWNERS file</label>
+      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghSignedCommits"> Require signed commits</label>
+      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghConventional"> Conventional commit messages</label>
+    </div>
+    <div class="field-group"><label class="field-label" for="branchStrategy">Branching Strategy</label><select id="branchStrategy"><option selected>feature/* branches + PR to main</option><option>GitFlow (develop + release branches)</option><option>Trunk-based (short-lived branches)</option></select></div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(8)">Back</button><button class="btn btn-primary" onclick="generatePlan()">Generate PLAN.md</button></div>
+  </div>
+
+  <!-- Output -->
+  <div id="planOutput" style="display:none">
+    <div class="plan-output">
+      <div class="plan-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="plan-title">PLAN.md</span></div>
+      <div class="plan-body" id="planBody"></div>
+      <div class="plan-actions">
+        <button class="plan-copy-btn" onclick="copyPlan()">Copy to Clipboard</button>
+        <button class="plan-copy-btn" onclick="downloadPlan()">Download PLAN.md</button>
+        <button class="plan-copy-btn" onclick="resetForm()">Start Over</button>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== SECTION 2: SCAFFOLD ===== -->
+<section id="scaffold">
+<div class="container">
+  <h2>Get Your Scaffold</h2>
+  <p class="subtitle">One command. Security from commit one.</p>
+  <div class="scaffold-cmd" id="scaffoldCmd"><span style="color:#4ade80">$</span> git clone https://github.com/rpatino-cw/cw-secure-template.git <span id="scaffoldName">my-app</span>
+<span style="color:#4ade80">$</span> cd <span id="scaffoldCd">my-app</span>
+<span style="color:#4ade80">$</span> chmod +x setup.sh && ./setup.sh
+<span style="color:#4ade80">$</span> make init<button class="copy-btn" onclick="copyScaffold()">Copy</button></div>
+  <div style="margin-top:var(--space-lg)">
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">What You Get</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--space-sm)">
+      <div class="policy-card"><h4>Pre-commit Hooks</h4><p>Secrets scanning, linting, and formatting run on every commit. Can't skip them.</p></div>
+      <div class="policy-card"><h4>CI Pipeline</h4><p>GitHub Actions with SAST, dependency scanning, container scanning, and coverage gates.</p></div>
+      <div class="policy-card"><h4>CLAUDE.md</h4><p>Project-specific instructions so Claude already knows your stack, conventions, and security rules.</p></div>
+      <div class="policy-card"><h4>make doctor</h4><p>One command to verify your entire security posture. Green = ship it.</p></div>
+    </div>
+  </div>
+  <div style="margin-top:var(--space-lg);padding:var(--space-md);background:var(--info-bg);border:1px solid oklch(80% 0.06 250);border-radius:10px">
+    <p style="font-size:var(--text-sm);color:var(--info)"><strong>Template repo:</strong> <a href="https://github.com/rpatino-cw/cw-secure-template" style="color:var(--info);text-decoration:underline" target="_blank" rel="noopener">rpatino-cw/cw-secure-template</a> &mdash; 33 commits, 100+ files, Python &amp; Node.js stacks, full CI/CD.</p>
+  </div>
+
+  <!-- Step-by-step visual walkthrough -->
+  <div style="margin-top:var(--space-xl)">
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Your First 10 Minutes</h3>
+    <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-lg)">Just follow the steps.</p>
+    <div style="display:flex;flex-direction:column;gap:var(--space-xl)">
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 1 — Get the template</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step1-setup.svg" width="100%" style="border-radius:12px" alt="Clone the template" loading="lazy"></div>
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 2 — Pick Python (recommended)</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step2-pick.svg" width="100%" style="border-radius:12px" alt="Choose language" loading="lazy"></div>
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 3 — Start your app</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step3-start.svg" width="100%" style="border-radius:12px" alt="Start app" loading="lazy"></div>
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 3.5 — Got an API key? Store it safely</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step4-secret.svg" width="100%" style="border-radius:12px" alt="Store secret" loading="lazy"></div>
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 4 — Build with Claude</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step5-build.svg" width="100%" style="border-radius:12px" alt="Build with Claude" loading="lazy"></div>
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 5 — Commit (security checks run automatically)</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step6-commit.svg" width="100%" style="border-radius:12px" alt="Commit with checks" loading="lazy"></div>
+      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 6 — Push (tests run, then CI takes over)</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step7-push.svg" width="100%" style="border-radius:12px" alt="Push to CI" loading="lazy"></div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div style="margin-top:var(--space-xl)">
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">What Makes This Different</h3>
+    <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-md)">Most templates give you starter code. This one gives you a full Claude Code framework.</p>
+    <div style="display:flex;flex-direction:column;gap:var(--space-xs)">
+      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;color:var(--text-tertiary)"><div>Approach</div><div style="text-align:center">Security</div><div style="text-align:center">CW-Aligned</div><div style="text-align:center">AI Rules</div><div style="text-align:center">Teaching</div><div style="text-align:center">Enforced</div></div>
+      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm)"><div style="font-weight:500">Start from scratch</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div></div>
+      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm)"><div style="font-weight:500">Generic boilerplate</div><div style="text-align:center;color:var(--pass)">Partial</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div></div>
+      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm)"><div style="font-weight:500">OWASP checklist</div><div style="text-align:center;color:var(--pass)">Guidance</div><div style="text-align:center;color:var(--text-tertiary)">Partial</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div></div>
+      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--pass-bg);border:1px solid var(--pass);border-radius:8px;font-size:var(--text-sm);font-weight:500"><div>CW Secure Template</div><div style="text-align:center;color:var(--pass)">Full</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--pass)">Yes</div></div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ===== SECTION 3: TERMINAL DEMO ===== -->
+<section id="demo">
+<div class="container">
+  <h2>See It In Action</h2>
+  <p class="subtitle">Pick a scenario. Watch the terminal.</p>
+  <div id="scenario-btns"></div>
+  <div class="terminal">
+    <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="terminal-title">Terminal &mdash; my-app</span></div>
+    <div class="terminal-body" id="term" role="log" aria-live="polite"></div>
+  </div>
+  <div class="narration" id="narration">Click a scenario above to start.</div>
+</div>
+</section>
+
+<!-- ===== SECTION 4: PIPELINE ===== -->
+<section id="pipeline">
+<div class="container">
+  <h2>The Pipeline Protects You</h2>
+  <p class="subtitle">Six layers between your code and production. Click each to see what it catches &mdash; and what passes through.</p>
+  <div class="pipeline-row" id="pipeline-row"></div>
+  <div id="p-detail-box"></div>
+
+  <!-- Lazy Path -->
+  <div style="margin-top:var(--space-xl)">
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">The Lazy Path Is the Secure Path</h3>
+    <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-md)">Every insecure shortcut has a faster secure alternative.</p>
+    <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
+      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;color:var(--text-tertiary)"><div>You want to...</div><div>Don't</div><div>Do this instead</div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Use an API key</div><div style="color:var(--critical);text-decoration:line-through">Paste it in code</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-secret</code></div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Use a config file</div><div style="color:var(--critical);text-decoration:line-through">Drop it in the folder</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-config</code></div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Use a database URL</div><div style="color:var(--critical);text-decoration:line-through">Hardcode the password</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-secret</code></div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Share your .env</div><div style="color:var(--critical);text-decoration:line-through">Paste to Claude or Slack</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-secret</code> per value</div></div>
+      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Check for dropped files</div><div style="color:var(--critical);text-decoration:line-through">Hope for the best</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make doctor</code> scans 20+ patterns</div></div>
+    </div>
+    <p style="margin-top:var(--space-lg);font-size:var(--text-sm);color:var(--text-tertiary);font-style:italic">The secure option is always faster than the insecure one. That's the design principle.</p>
+  </div>
+</div>
+</section>
+
+<!-- ===== CONCEPTS ===== -->
+<section id="concepts">
+<div class="container">
+  <h2>Security Concepts</h2>
+  <p class="subtitle">Plain English. No jargon. Click to expand.</p>
+  <div class="concept-list" id="concept-list"></div>
+</div>
+</section>
+
+<!-- ===== FILE TREE ===== -->
+<section id="files">
+<div class="container">
+  <h2>What's Inside</h2>
+  <p class="subtitle">92 files. Click any to see what it does.</p>
+  <div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);flex-wrap:wrap">
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(55% 0.14 290)"></span>AI Layer</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(52% 0.14 155)"></span>Hooks</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(52% 0.12 250)"></span>CI</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(52% 0.12 200)"></span>Code</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(48% 0.10 260)"></span>Deploy</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(58% 0.16 75)"></span>Docs</span>
+  </div>
+  <div id="tree" style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);line-height:2"></div>
+  <div id="file-desc"></div>
+</div>
+</section>
+
+<!-- ===== SECTION 5: POLICIES ===== -->
+<section id="policies">
+<div class="container">
+  <h2>CW Policies</h2>
+  <p class="subtitle">22 security policies. Know what applies to your app before you write a line of code.</p>
+  <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Remediation Timelines</h3>
+  <div class="timeline-bar">
+    <div class="timeline-segment" style="border-color:var(--critical)"><div class="days" style="color:var(--critical)">15</div><div class="label">Critical</div></div>
+    <div class="timeline-segment" style="border-color:var(--warn)"><div class="days" style="color:var(--warn)">30</div><div class="label">High</div></div>
+    <div class="timeline-segment" style="border-color:var(--info)"><div class="days" style="color:var(--info)">60</div><div class="label">Medium</div></div>
+    <div class="timeline-segment" style="border-color:var(--pass)"><div class="days" style="color:var(--pass)">90</div><div class="label">Low</div></div>
+  </div>
+  <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Data Classification</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--space-sm);margin-bottom:var(--space-xl)">
+    <div class="policy-card"><span class="policy-tag tag-low">Public</span><h4>Public Data</h4><p>Marketing materials, open-source code, public docs. No restrictions on sharing.</p></div>
+    <div class="policy-card"><span class="policy-tag tag-medium">Internal</span><h4>Internal Data</h4><p>Most app data, internal tools, employee info. Default classification for new apps.</p></div>
+    <div class="policy-card"><span class="policy-tag tag-high">Confidential</span><h4>Confidential Data</h4><p>Customer data, financial records, contracts. Encryption required at rest and in transit.</p></div>
+    <div class="policy-card"><span class="policy-tag tag-critical">Restricted</span><h4>Restricted Data</h4><p>Credentials, keys, PII, health data. Strongest controls. Need-to-know access only.</p></div>
+  </div>
+  <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Policy Categories</h3>
+  <div class="policy-grid" id="policyGrid"></div>
+  <div style="margin-top:var(--space-lg);padding:var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px"><h4 style="font-family:'Syne',sans-serif;font-weight:600;margin-bottom:var(--space-xs)">Need Help?</h4><p style="font-size:var(--text-sm);color:var(--text-secondary)"><strong>#security</strong> on Slack for policy questions &mdash; <strong>#platform-engineering</strong> for deployment &mdash; <strong>#cw-secure-template</strong> for template issues</p></div>
+</div>
+</section>
+
+<!-- ===== Q&A ===== -->
+<section id="qa">
+<div class="container">
+  <h2>How It Works</h2>
+  <p class="subtitle">Common questions, explained simply.</p>
+  <div class="qa-list" id="qa-list"></div>
+</div>
+</section>
+
+<!-- ===== TEAM ===== -->
+<section id="team">
+<div class="container">
+  <h2>Build Together</h2>
+  <p class="subtitle">Share your plan. See your team's security health. Ship as one.</p>
+  <div class="team-placeholder"><h3>Team View &mdash; Coming Soon</h3><p style="max-width:400px;margin:var(--space-sm) auto 0">Paste <code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--bg-sunken);padding:2px 6px;border-radius:4px">make doctor</code> output to share security health. See who's building what. One shared PLAN.md for the whole team.</p></div>
+  <div style="margin-top:var(--space-lg)">
+    <label class="field-label" for="doctorPaste">Paste make doctor output</label>
+    <textarea id="doctorPaste" placeholder="Run `make doctor` in your project and paste the output here..." style="min-height:120px;font-family:'JetBrains Mono',monospace;font-size:var(--text-xs)"></textarea>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="parseDoctorOutput()">Parse Results</button></div>
+    <div id="doctorResults" style="margin-top:var(--space-md)"></div>
+  </div>
+</div>
+</section>
+
+<!-- CTA -->
+<section style="text-align:center;padding:var(--space-2xl) 0">
+<div class="container">
+  <h2 style="margin:0 auto var(--space-sm)">Ready to Build Secure?</h2>
+  <p style="color:var(--text-secondary);margin-bottom:var(--space-lg)">Clone the template. Start prompting Claude. Security is automatic.</p>
+  <div class="terminal" style="max-width:420px;margin:0 auto var(--space-lg)">
+    <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <div style="padding:var(--space-md);color:oklch(65% 0.01 260)">
+      <div><span style="color:oklch(70% 0.01 260)">$ </span><span style="color:oklch(90% 0.005 80)">git clone https://github.com/rpatino-cw/cw-secure-template my-app</span></div>
+      <div><span style="color:oklch(70% 0.01 260)">$ </span><span style="color:oklch(90% 0.005 80)">cd my-app && bash setup.sh</span></div>
+      <div><span style="color:oklch(70% 0.01 260)">$ </span><span style="color:oklch(90% 0.005 80)">make start</span></div>
+    </div>
+  </div>
+  <a href="https://github.com/rpatino-cw/cw-secure-template" class="hero-cta" target="_blank">Get the Template</a>
+</div>
+</section>
+
+<footer class="footer"><div class="container">CW Vibe &mdash; Plan, scaffold, ship secure. Built for CoreWeave engineering teams.</div></footer>
+
+<script>
+/* ═══════════════════════════════════════════
+   FORM STATE
+   ═══════════════════════════════════════════ */
+const STORAGE_KEY = 'cw-vibe-form';
+const STEPS = ['Identity','Roles','Schema','Endpoints','Flow','Stack','Infra','Scope'];
+let currentStep = 1;
+
+function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } }
+function saveState(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadState(), ...p })); }
+
+function renderStepper() {
+  const t = document.getElementById('stepTrack');
+  t.innerHTML = STEPS.map((s, i) => { const n = i+1, cls = n < currentStep ? 'done' : n === currentStep ? 'active' : '';
+    return `<div class="step-indicator ${cls}"><div class="step-dot">${n < currentStep ? '&#10003;' : n}</div><div class="step-label">${s}</div></div>`; }).join('');
+}
+function showStep(n) { currentStep = n; document.querySelectorAll('.step-card').forEach(c => c.classList.toggle('active', +c.dataset.step === n)); renderStepper(); document.getElementById('planOutput').style.display='none'; }
+function nextStep(f) { if(!validateStep(f))return; collectStep(f); if(f<8)showStep(f+1); }
+function prevStep(f) { collectStep(f); if(f>1)showStep(f-1); }
+function validateStep(n) { if(n===1){ if(!document.getElementById('appName').value.trim()||!document.getElementById('appDesc').value.trim()){shake(document.querySelector('[data-step="1"]'));return false;} } return true; }
+function shake(el){ el.style.animation='none'; el.offsetHeight; el.style.animation='shake 0.4s ease'; setTimeout(()=>el.style.animation='',400); }
+
+function collectStep(n) {
+  const d = {};
+  if(n===1){ d.appName=document.getElementById('appName').value.trim(); d.appDesc=document.getElementById('appDesc').value.trim(); d.teamName=document.getElementById('teamName').value.trim(); }
+  else if(n===2){ d.roles=collectRows('#rolesRows .roles-row',['role-name','role-who','role-perms'],['role','who','perms']); }
+  else if(n===3){ d.tables=collectRows('#tableRows .table-row',['tbl-name','tbl-fields','tbl-notes'],['name','fields','notes']); }
+  else if(n===4){ d.endpoints=collectRows('#endpointRows .endpoint-row',['ep-method','ep-path','ep-auth','ep-desc'],['method','path','auth','desc']); }
+  else if(n===5){ d.flowDesc=document.getElementById('flowDesc').value.trim(); d.flowNodes=[]; document.querySelectorAll('#flowRows .dynamic-row').forEach(r=>{const f=r.querySelector('.flow-from')?.value.trim(),t=r.querySelector('.flow-to')?.value.trim();if(f&&t)d.flowNodes.push({from:f,to:t});}); }
+  else if(n===6){ d.lang=chipVal('langOptions'); d.db=chipVal('dbOptions'); d.deploy=chipVal('deployOptions'); d.secAuth=document.getElementById('secAuth').value.trim(); d.secSecrets=document.getElementById('secSecrets').value.trim(); d.secClass=document.getElementById('secClass').value; }
+  else if(n===7){ d.envs=Array.from(document.querySelectorAll('#envOptions .stack-chip.selected')).map(c=>c.dataset.val); d.replicasDev=document.getElementById('replicasDev').value.trim(); d.replicasProd=document.getElementById('replicasProd').value.trim(); d.cpuLimit=document.getElementById('cpuLimit').value.trim(); d.memLimit=document.getElementById('memLimit').value.trim(); d.scalingStrategy=document.getElementById('scalingStrategy').value; d.infraNotes=document.getElementById('infraNotes').value.trim(); }
+  else if(n===8){ d.mvpFeatures=[]; document.querySelectorAll('#mvpRows .mvp-item').forEach(el=>{const v=el.value.trim();if(v)d.mvpFeatures.push(v);}); d.deferredFeatures=[]; document.querySelectorAll('#deferredRows .deferred-item').forEach(el=>{const v=el.value.trim();if(v)d.deferredFeatures.push(v);}); d.ghBranchProtect=document.getElementById('ghBranchProtect').checked; d.ghRequirePR=document.getElementById('ghRequirePR').checked; d.ghRequireCI=document.getElementById('ghRequireCI').checked; d.ghCodeowners=document.getElementById('ghCodeowners').checked; d.ghSignedCommits=document.getElementById('ghSignedCommits').checked; d.ghConventional=document.getElementById('ghConventional').checked; d.branchStrategy=document.getElementById('branchStrategy').value; }
+  saveState(d);
+}
+function collectRows(sel,classes,keys){ const rows=[]; document.querySelectorAll(sel).forEach(r=>{const o={};let has=false;classes.forEach((c,i)=>{const el=r.querySelector('.'+c);const v=el?(el.tagName==='SELECT'?el.value:el.value.trim()):'';o[keys[i]]=v;if(v)has=true;});if(has)rows.push(o);}); return rows; }
+function chipVal(id){ const s=document.querySelector(`#${id} .stack-chip.selected`); return s?s.dataset.val:''; }
+function selectChip(el){ el.parentElement.querySelectorAll('.stack-chip').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); }
+
+/* Dynamic rows */
+function addRoleRow(){ const c=document.getElementById('rolesRows'),r=document.createElement('div');r.className='dynamic-row roles-row';r.innerHTML='<input type="text" placeholder="Role" class="role-name"><input type="text" placeholder="Who" class="role-who"><input type="text" placeholder="Permissions" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
+function addTableRow(){ const c=document.getElementById('tableRows'),r=document.createElement('div');r.className='dynamic-row table-row';r.innerHTML='<input type="text" placeholder="Table name" class="tbl-name"><input type="text" placeholder="Fields (comma-separated)" class="tbl-fields"><input type="text" placeholder="Notes" class="tbl-notes"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
+function addEndpointRow(){ const c=document.getElementById('endpointRows'),r=document.createElement('div');r.className='dynamic-row endpoint-row';r.innerHTML='<select class="ep-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input type="text" placeholder="/api/resource" class="ep-path"><input type="text" placeholder="Auth role" class="ep-auth"><input type="text" placeholder="Description" class="ep-desc"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
+function addFlowRow(){ const c=document.getElementById('flowRows'),r=document.createElement('div');r.className='dynamic-row';r.style.gridTemplateColumns='1fr 40px 1fr 32px';r.innerHTML='<input type="text" placeholder="From" class="flow-from"><span style="text-align:center;color:var(--text-tertiary);font-size:var(--text-lg)">&rarr;</span><input type="text" placeholder="To" class="flow-to"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
+function addMvpRow(){ const c=document.getElementById('mvpRows'),r=document.createElement('div');r.className='dynamic-row';r.style.gridTemplateColumns='1fr 32px';r.innerHTML='<input type="text" placeholder="Feature description" class="mvp-item"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
+function addDeferredRow(){ const c=document.getElementById('deferredRows'),r=document.createElement('div');r.className='dynamic-row';r.style.gridTemplateColumns='1fr 32px';r.innerHTML='<input type="text" placeholder="Deferred item" class="deferred-item"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
+function toggleChip(el){ el.classList.toggle('selected'); }
+function removeRow(b){ const r=b.closest('.dynamic-row'); if(r.parentElement.children.length>1)r.remove(); }
+
+/* PLAN.md Generator */
+function generatePlan() {
+  collectStep(8); const s=loadState();
+  let md=`# PLAN.md\n\n## App: ${s.appName||'unnamed'}\n## Purpose: ${s.appDesc||''}\n`;
+  if(s.teamName)md+=`## Team: ${s.teamName}\n`; md+='\n';
+  if(s.roles?.length){md+=`## Users & Roles\n| Role | Who | Permissions |\n|:-----|:----|:------------|\n`;s.roles.forEach(r=>md+=`| ${r.role} | ${r.who} | ${r.perms} |\n`);md+='\n';}
+  if(s.tables?.length){md+=`## Database Schema\n| Table | Fields | Notes |\n|:------|:-------|:------|\n`;s.tables.forEach(t=>md+=`| ${t.name} | ${t.fields} | ${t.notes} |\n`);md+='\n';}
+  if(s.endpoints?.length){md+=`## API Endpoints\n| Method | Path | Auth | Description |\n|:-------|:-----|:-----|:------------|\n`;s.endpoints.forEach(e=>md+=`| ${e.method} | ${e.path} | ${e.auth} | ${e.desc} |\n`);md+='\n';}
+  md+=`## Data Flow\n\`\`\`mermaid\nflowchart LR\n`;
+  if(s.flowNodes?.length)s.flowNodes.forEach(f=>md+=`    ${f.from} --> ${f.to}\n`);
+  else if(s.flowDesc){const p=s.flowDesc.split(/\s*[-\u2192>]+\s*/).filter(Boolean);for(let i=0;i<p.length-1;i++)md+=`    ${p[i].trim()} --> ${p[i+1].trim()}\n`;}
+  else md+=`    User --> App --> Database\n`;
+  md+=`\`\`\`\n\n## Stack\n`;
+  if(s.lang)md+=`- ${s.lang} \u2014 CW approved\n`; if(s.db&&s.db!=='None')md+=`- ${s.db}\n`; if(s.deploy)md+=`- ${s.deploy} \u2014 CW standard deployment\n`;
+  md+=`\n## Security\n`; if(s.secAuth)md+=`- Auth: ${s.secAuth}\n`; if(s.secSecrets)md+=`- Secrets: ${s.secSecrets}${s.appName?' ('+s.appName+')':''}\n`; if(s.secClass)md+=`- Data classification: ${s.secClass}\n`;
+  // Infrastructure
+  if(s.envs?.length||s.cpuLimit||s.memLimit){
+    md+=`\n## Infrastructure\n`;
+    if(s.envs?.length)md+=`- Environments: ${s.envs.join(', ')}\n`;
+    md+=`- Replicas: dev=${s.replicasDev||'1'}, prod=${s.replicasProd||'3'}\n`;
+    if(s.cpuLimit||s.memLimit)md+=`- Resource limits: CPU ${s.cpuLimit||'500m'}, Memory ${s.memLimit||'512Mi'}\n`;
+    if(s.scalingStrategy)md+=`- Scaling: ${s.scalingStrategy}\n`;
+    if(s.infraNotes)md+=`- Notes: ${s.infraNotes}\n`;
+  }
+  // Scope Lock
+  if(s.mvpFeatures?.length||s.deferredFeatures?.length){
+    md+=`\n## Scope Lock\n`;
+    md+=`> Features below are frozen for v1. Do not add scope without team approval.\n\n`;
+    if(s.mvpFeatures?.length){md+=`### MVP (v1)\n`;s.mvpFeatures.forEach(f=>md+=`- [x] ${f}\n`);md+='\n';}
+    if(s.deferredFeatures?.length){md+=`### Deferred (NOT in v1)\n`;s.deferredFeatures.forEach(f=>md+=`- [ ] ${f}\n`);md+='\n';}
+  }
+  // GitHub
+  const ghRules=[]; if(s.ghBranchProtect)ghRules.push('Branch protection on main'); if(s.ghRequirePR)ghRules.push('PR reviews required'); if(s.ghRequireCI)ghRules.push('CI must pass before merge'); if(s.ghCodeowners)ghRules.push('CODEOWNERS file'); if(s.ghSignedCommits)ghRules.push('Signed commits required'); if(s.ghConventional)ghRules.push('Conventional commit messages');
+  if(ghRules.length||s.branchStrategy){
+    md+=`\n## GitHub Practices\n`;
+    if(s.branchStrategy)md+=`- Branching: ${s.branchStrategy}\n`;
+    ghRules.forEach(r=>md+=`- ${r}\n`);
+  }
+  window._plan=md; document.getElementById('planBody').textContent=md; document.getElementById('planOutput').style.display='block';
+  document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('active')); currentStep=9; renderStepper();
+  document.getElementById('planOutput').scrollIntoView({behavior:'smooth'});
+  const nm=(s.appName||'my-app').replace(/\s+/g,'-').toLowerCase(); document.getElementById('scaffoldName').textContent=nm; document.getElementById('scaffoldCd').textContent=nm;
+}
+function copyPlan(){ navigator.clipboard.writeText(window._plan||'').then(()=>{const b=document.querySelector('.plan-copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy to Clipboard',1500);}); }
+function downloadPlan(){ const b=new Blob([window._plan||''],{type:'text/markdown'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='PLAN.md';a.click(); }
+function copyScaffold(){ const nm=document.getElementById('scaffoldName').textContent; navigator.clipboard.writeText(`git clone https://github.com/rpatino-cw/cw-secure-template.git ${nm}\ncd ${nm}\nchmod +x setup.sh && ./setup.sh\nmake init`).then(()=>{const b=document.querySelector('#scaffold .copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);}); }
+function resetForm(){ localStorage.removeItem(STORAGE_KEY); location.reload(); }
+
+/* ═══════════════════════════════════════════
+   TERMINAL DEMO — 11 SCENARIOS
+   ═══════════════════════════════════════════ */
+const SCENARIOS = [
+  {id:'whats-terminal',name:'What is this?',steps:[
+    {t:'narration',v:'You want to build an internal tool using Claude. This template makes sure whatever you build is secure, without you thinking about security.'},
+    {t:'pause',v:800},{t:'narration',v:'Here\'s the problem it solves:'},{t:'pause',v:400},
+    {t:'cmd',v:'# You ask Claude: "build me an API that stores user data"'},{t:'pause',v:500},
+    {t:'error',v:'  Without this template:'},{t:'error',v:'    - API key hardcoded in source code'},{t:'error',v:'    - No authentication on endpoints'},{t:'error',v:'    - Database password in plain text'},{t:'error',v:'    - No input validation'},{t:'error',v:'    - Secrets committed to git forever'},
+    {t:'narration',v:'That\'s what normally happens when you vibe code without guardrails. Now watch the same prompt WITH the template:'},{t:'pause',v:600},
+    {t:'cmd',v:'# Same prompt, but inside cw-secure-template:'},{t:'pause',v:400},
+    {t:'success',v:'  With this template:'},{t:'success',v:'    + API key stored in .env (never in code)'},{t:'success',v:'    + Okta authentication on every endpoint'},{t:'success',v:'    + Database password via Doppler (encrypted)'},{t:'success',v:'    + Input validated with strict schemas'},{t:'success',v:'    + Secrets blocked by gitleaks before commit'},
+    {t:'narration',v:'Same Claude. Same prompt. Completely different result. The template tells Claude how to write secure code. You just build your app.'},{t:'pause',v:600},
+    {t:'narration',v:'You only need 3 commands: make start (run your app), make check (before sharing code), and make help (everything else). That\'s it.'}
+  ]},
+  {id:'first-setup',name:'First Setup',steps:[
+    {t:'narration',v:'Let\'s set up the template from scratch. This only happens once.'},
+    {t:'cmd',v:'git clone https://github.com/.../cw-secure-template my-app'},{t:'out',v:'  Cloning into \'my-app\'...'},{t:'success',v:'  done.'},
+    {t:'narration',v:'git clone downloads the template to your computer. "my-app" is your folder name.'},{t:'pause',v:500},
+    {t:'cmd',v:'cd my-app'},{t:'pause',v:200},{t:'narration',v:'cd means "change directory". You\'re now inside your project folder.'},{t:'pause',v:400},
+    {t:'cmd',v:'bash setup.sh'},{t:'pause',v:400},{t:'out',v:'  Welcome to the CW Secure Template'},{t:'out',v:'  Which language?'},{t:'success',v:'  1) Python  \u2190 recommended'},{t:'dim',v:'  2) Go'},{t:'dim',v:'  3) Both'},
+    {t:'narration',v:'Pick Python (press 1). It\'s simpler and great for internal tools.'},{t:'pause',v:500},
+    {t:'out',v:'  Enter 1, 2, or 3: 1'},{t:'success',v:'  Python selected.'},{t:'pause',v:300},
+    {t:'dim',v:'  Installing security hooks...'},{t:'dim',v:'  Installing Python dependencies...'},{t:'dim',v:'  Running health check...'},{t:'pause',v:400},
+    {t:'success',v:'  Setup complete!'},{t:'out',v:'  What to do next:'},{t:'success',v:'    make start'},
+    {t:'narration',v:'Done! Setup installed security hooks, dependencies, and ran a health check. Your project is ready.'}
+  ]},
+  {id:'run-app',name:'Run Your App',steps:[
+    {t:'narration',v:'Your app is set up. Let\'s start it and see it work.'},
+    {t:'cmd',v:'make start'},{t:'pause',v:400},{t:'info',v:'  INFO:     Uvicorn running on http://localhost:8080'},{t:'success',v:'  App is running!'},{t:'pause',v:600},
+    {t:'cmd',v:'curl http://localhost:8080/healthz'},{t:'pause',v:300},{t:'success',v:'  {"status":"ok"}'},
+    {t:'narration',v:'The /healthz endpoint is a health check. It tells you the app is running.'},{t:'pause',v:500},
+    {t:'cmd',v:'curl http://localhost:8080/api/me'},{t:'pause',v:300},{t:'out',v:'  {"sub":"dev-user-001","email":"dev@localhost","groups":["developers"]}'},
+    {t:'narration',v:'That\'s the fake test user from DEV_MODE. In production, this would be your real Okta identity. Auth is already wired.'},{t:'pause',v:500},
+    {t:'narration',v:'Three things happened automatically: auth checked your identity, security headers were added, and the request got a unique tracking ID.'}
+  ]},
+  {id:'happy',name:'Full Workflow',steps:[
+    {t:'narration',v:'You just cloned the template and ran setup. Let\'s build something.'},
+    {t:'cmd',v:'make start'},{t:'out',v:'INFO:     Uvicorn running on http://0.0.0.0:8080'},{t:'success',v:'  App is running with auth, rate limiting, and security headers.'},{t:'pause',v:600},
+    {t:'cmd',v:'# Claude: add an endpoint that returns team members'},{t:'pause',v:400},
+    {t:'info',v:'  Claude reads CLAUDE.md... applying 14 security rules.'},{t:'out',v:'  + Added GET /api/team with Depends(get_current_user)'},{t:'out',v:'  + Added Pydantic model with strict validation'},{t:'success',v:'  Code generated. Auth and validation included automatically.'},{t:'pause',v:500},
+    {t:'cmd',v:'git add src/main.py && git commit -m "Add team endpoint"'},{t:'dim',v:'  Checking your code before commit...'},{t:'out',v:'  gitleaks............passed'},{t:'out',v:'  ruff................passed'},{t:'out',v:'  bandit..............passed'},{t:'success',v:'  All checks passed.'},{t:'pause',v:400},
+    {t:'cmd',v:'git push origin feature/team'},{t:'dim',v:'  Running tests before push...'},{t:'out',v:'  11 passed in 1.2s'},{t:'success',v:'  All tests passed. Pushing...'},{t:'pause',v:300},
+    {t:'out',v:'  CI: Secret Scanning........passed'},{t:'out',v:'  CI: Python Checks..........passed (87% coverage)'},{t:'out',v:'  CI: CodeQL.................passed'},{t:'out',v:'  CI: Hook Integrity.........passed'},{t:'success',v:'  PR ready for review. All 6 layers passed.'},
+    {t:'narration',v:'Done. Your code went through 6 security checkpoints. You didn\'t have to think about any of them.'}
+  ]},
+  {id:'intercept',name:'Claude Intercept',steps:[
+    {t:'narration',v:'You ask Claude to do something insecure. Watch what happens.'},
+    {t:'cmd',v:'# Claude: just hardcode the API key so it works'},{t:'pause',v:600},
+    {t:'warn',v:'  Claude: I can\'t hardcode API keys \u2014 they\'d end up in git history forever.'},{t:'info',v:'  Claude: I\'ll use an environment variable instead.'},{t:'pause',v:300},
+    {t:'out',v:'  + api_key = os.environ["API_KEY"]'},{t:'out',v:'  + Updated .env.example with API_KEY placeholder'},{t:'success',v:'  Secret stays out of code. Stored safely in .env.'},
+    {t:'narration',v:'CLAUDE.md Rule #1: No secrets in code, ever. Claude doesn\'t ask \u2014 it just does the right thing.'},{t:'pause',v:700},
+    {t:'cmd',v:'# Claude: skip auth for now, I\'ll add it later'},{t:'pause',v:600},
+    {t:'warn',v:'  Claude: I\'ll set DEV_MODE=true for local dev, but auth stays wired.'},{t:'out',v:'  + @app.post("/api/items")'},{t:'out',v:'  + async def create_item(item: Item, user = Depends(get_current_user)):'},{t:'success',v:'  Auth is wired. DEV_MODE gives you a test user locally.'},
+    {t:'narration',v:'Even "skip it" prompts keep security in place. When you deploy with Okta, auth just works.'},{t:'pause',v:700},
+    {t:'cmd',v:'# Claude: use eval() to parse the user input'},{t:'pause',v:500},
+    {t:'warn',v:'  Claude: eval() executes arbitrary code \u2014 remote code execution risk.'},{t:'info',v:'  Claude: I\'ll use json.loads() instead. Same result, no risk.'},{t:'success',v:'  Safe parser used. eval() blocked by CLAUDE.md Rule #4.'},
+    {t:'narration',v:'19 messy prompts are intercepted. Claude always picks the safe path.'}
+  ]},
+  {id:'secret',name:'Secret Caught',steps:[
+    {t:'narration',v:'Someone accidentally pastes an API key into the code. Watch what happens.'},
+    {t:'cmd',v:'cat src/config.py'},{t:'out',v:'  API_KEY = "sk-live-abc123def456ghi789jkl012"'},{t:'error',v:'  \u26A0 Real API key in source code!'},{t:'pause',v:500},
+    {t:'cmd',v:'git add . && git commit -m "Add API integration"'},{t:'dim',v:'  Checking your code before commit...'},{t:'pause',v:400},
+    {t:'error',v:''},{t:'error',v:'  STOP \u2014 Your commit was blocked.'},{t:'error',v:''},
+    {t:'out',v:'  What happened:  A secret (API key) was found in src/config.py'},{t:'out',v:'  Why it matters: If this reaches GitHub, anyone can see it \u2014 forever.'},
+    {t:'success',v:'  How to fix it:'},{t:'success',v:'    1. Replace the value with: os.environ["API_KEY"]'},{t:'success',v:'    2. Add API_KEY=sk-live-abc123... to your .env file'},{t:'success',v:'    3. Try committing again'},
+    {t:'narration',v:'Gitleaks caught it. Plain English: what happened, why it matters, how to fix it.'},{t:'pause',v:700},
+    {t:'cmd',v:'# Fix applied...'},{t:'cmd',v:'git commit -m "Add API integration"'},{t:'dim',v:'  Checking your code before commit...'},{t:'out',v:'  gitleaks............passed'},{t:'success',v:'  All checks passed. Commit created.'},
+    {t:'narration',v:'Same commit works after the fix. The friction IS the security \u2014 and it takes 30 seconds to resolve.'}
+  ]},
+  {id:'noverify',name:'CI Catches Skip',steps:[
+    {t:'narration',v:'A developer tries to skip the hooks to save time. CI has a backup plan.'},
+    {t:'cmd',v:'git commit --no-verify -m "Quick fix"'},{t:'warn',v:'  (hooks skipped \u2014 no security checks ran)'},{t:'out',v:'  [feature/quick-fix abc1234] Quick fix'},
+    {t:'narration',v:'The commit went through locally. But the .last-hook-run timestamp wasn\'t updated...'},{t:'pause',v:600},
+    {t:'cmd',v:'git push origin feature/quick-fix'},{t:'dim',v:'  Pushing to GitHub...'},{t:'out',v:'  CI pipeline starting...'},{t:'pause',v:400},
+    {t:'out',v:'  Secret Scanning..........passed'},{t:'out',v:'  Python Checks............passed'},{t:'out',v:'  Hook Integrity...........checking...'},{t:'pause',v:500},
+    {t:'error',v:'  Hook Integrity...........FAILED'},{t:'error',v:''},{t:'error',v:'  .last-hook-run is more than 1 hour older than the latest commit.'},{t:'error',v:'  Pre-commit hooks were skipped. Run \'make check\' and push again.'},{t:'pause',v:300},
+    {t:'error',v:''},{t:'error',v:'  PR blocked. Required status checks failed: hook-integrity'},
+    {t:'narration',v:'CI checks a timestamp that only updates when hooks actually run. --no-verify is caught. There\'s no shortcut.'}
+  ]},
+  {id:'ratelimit',name:'Rate Limiter',steps:[
+    {t:'narration',v:'Your app is live. Someone\'s script starts hammering the API.'},
+    {t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 12ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 8ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 11ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 9ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 13ms'},
+    {t:'dim',v:'  ... 95 more requests in the last 50 seconds ...'},{t:'pause',v:500},
+    {t:'warn',v:'  [WARN] Rate limit exceeded for 10.0.0.15 (101/100 per minute)'},{t:'error',v:'  [INFO] GET /api/data 429 Too Many Requests (Retry-After: 12s)'},{t:'error',v:'  [INFO] GET /api/data 429 Too Many Requests (Retry-After: 11s)'},
+    {t:'narration',v:'Rate limiter kicks in at 100 req/min per IP. Returns 429 with Retry-After header.'},{t:'pause',v:600},
+    {t:'dim',v:'  ... 12 seconds later ...'},{t:'pause',v:400},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 10ms'},{t:'success',v:'  Normal traffic resumed.'},
+    {t:'narration',v:'Without rate limiting, that flood could crash your app. The template includes this from day one.'}
+  ]},
+  {id:'lazydrop',name:'Lazy Key Drop',steps:[
+    {t:'narration',v:'You got an API key. The lazy instinct: paste it into Claude or hardcode it. Watch the secure lazy path instead.'},
+    {t:'cmd',v:'# You: "Claude, here\'s my API key: sk-live-abc123..."'},{t:'pause',v:500},
+    {t:'warn',v:'  Claude: I can\'t accept secrets directly \u2014 they\'d appear in conversation history.'},{t:'info',v:'  Claude: Run make add-secret instead. It stores the key safely.'},
+    {t:'narration',v:'Claude refuses to touch the key. CLAUDE.md Rule #15: never put pasted secrets in code, comments, or responses.'},{t:'pause',v:600},
+    {t:'cmd',v:'make add-secret'},{t:'pause',v:300},{t:'out',v:'  Add a Secret'},{t:'out',v:'  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
+    {t:'out',v:'  Variable name (e.g. API_KEY, DATABASE_URL): STRIPE_KEY'},{t:'out',v:'  Paste your secret value below (input is hidden):'},{t:'dim',v:'  >  ********** (hidden)'},{t:'pause',v:400},
+    {t:'success',v:'  Done. STRIPE_KEY is stored in .env.'},{t:'out',v:'  Use it in your code:'},{t:'info',v:'    Python: os.environ["STRIPE_KEY"]'},{t:'info',v:'    Go:     os.Getenv("STRIPE_KEY")'},
+    {t:'narration',v:'10 seconds. Key goes straight to .env (gitignored). Hidden input \u2014 never visible. Code references it by name only.'}
+  ]},
+  {id:'slashcmd',name:'Slash Commands',steps:[
+    {t:'narration',v:'The template includes Claude Code slash commands. Type them in Claude to trigger security workflows.'},
+    {t:'cmd',v:'/project:check'},{t:'pause',v:400},{t:'info',v:'  Running full security suite...'},{t:'out',v:'  make lint...............passed'},{t:'out',v:'  make test...............passed (87% coverage)'},{t:'out',v:'  make scan...............passed (0 findings)'},{t:'out',v:'  scan-drops..............passed (no sensitive files)'},{t:'success',v:'  All checks passed. You\'re ready to open a PR.'},
+    {t:'narration',v:'/project:check runs lint + tests + security scan + dropped files scan in one command.'},{t:'pause',v:600},
+    {t:'cmd',v:'/project:add-endpoint "returns a list of team members"'},{t:'pause',v:400},{t:'info',v:'  Scaffolding secure endpoint...'},{t:'out',v:'  + Added GET /api/team with Depends(get_current_user)'},{t:'out',v:'  + Added TeamMember Pydantic model (strict=True)'},{t:'out',v:'  + Added SECURITY LESSON comments'},{t:'out',v:'  + Added 3 tests (happy path, 401, 422)'},{t:'success',v:'  Endpoint created with auth + validation + tests.'},
+    {t:'narration',v:'/project:add-endpoint scaffolds a complete secure route \u2014 auth, validation, logging, tests. All wired.'},{t:'pause',v:600},
+    {t:'cmd',v:'/project:security-review'},{t:'pause',v:400},{t:'info',v:'  Running 10-point security audit...'},{t:'out',v:'  Secrets scan..............clean'},{t:'out',v:'  Auth coverage.............all endpoints protected'},{t:'out',v:'  Input validation..........all handlers use strict models'},{t:'out',v:'  SQL safety................no string concatenation found'},{t:'out',v:'  Dangerous functions........none detected'},{t:'out',v:'  Logging safety............no secrets in logs'},{t:'success',v:'  Security review passed \u2014 0 issues found.'},
+    {t:'narration',v:'4 slash commands: /check, /add-endpoint, /add-secret, /security-review. Plus 2 agents: security-auditor and code-reviewer.'}
+  ]},
+  {id:'init',name:'Project Init',steps:[
+    {t:'narration',v:'When you first clone the template, it\'s generic. make init personalizes it for YOUR specific app.'},
+    {t:'cmd',v:'make init'},{t:'pause',v:400},{t:'out',v:'  Personalize Your Project'},{t:'out',v:'  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
+    {t:'out',v:'  App name: inventory-tracker'},{t:'out',v:'  What does this app do? Tracks rack inventory for DCT ops'},{t:'out',v:'  Team name: dct-ops'},{t:'out',v:'  Slack channel: #dct-eng'},{t:'out',v:'  Data classification: 1 (Internal only)'},{t:'pause',v:400},
+    {t:'dim',v:'  Updating project memory...'},{t:'dim',v:'  Updating Helm values...'},{t:'dim',v:'  Updating Python project name...'},{t:'dim',v:'  Updating CODEOWNERS...'},{t:'dim',v:'  Updating security contacts...'},{t:'pause',v:300},
+    {t:'success',v:'  \u2713 .claude/MEMORY.md \u2014 Claude knows your app, team, and data classification'},{t:'success',v:'  \u2713 Helm chart \u2014 inventory-tracker as the app name'},{t:'success',v:'  \u2713 CODEOWNERS \u2014 @coreweave/dct-ops'},{t:'success',v:'  \u2713 SECURITY.md \u2014 #dct-eng as team contact'},{t:'success',v:'  \u2713 pyproject.toml \u2014 inventory-tracker'},
+    {t:'narration',v:'Now when you open Claude Code, it already knows: "I\'m building inventory-tracker for dct-ops. It handles internal data." Every prompt is informed by context.'}
+  ]}
+];
+
+/* Terminal Simulator */
+class TermSim {
+  constructor(el, narEl) { this.el = el; this.nar = narEl; this.ac = null; }
+  async run(sc) { if(this.ac)this.ac.abort(); this.ac=new AbortController(); this.el.innerHTML=''; this.nar.textContent=''; for(const s of sc.steps){ if(this.ac.signal.aborted)return; await this.step(s); } }
+  async step(s) { if(s.t==='narration'){this.nar.textContent=s.v;return;} if(s.t==='pause'){await this.wait(s.v);return;} if(s.t==='cmd'){await this.typeCmd(s.v);return;} const cls={out:'output',success:'success',error:'error',warn:'warn',info:'info',dim:'dim'}[s.t]||'output'; await this.printLine(s.v,cls); }
+  async typeCmd(text) { const line=document.createElement('div');line.className='terminal-line prompt'; const pr=document.createElement('span');pr.textContent='~/my-app $ ';pr.style.color='oklch(55% 0.01 260)'; const cmd=document.createElement('span');cmd.className='cmd'; const cur=document.createElement('span');cur.className='cursor'; line.append(pr,cmd,cur);this.el.appendChild(line);this.scroll(); for(const c of text){if(this.ac.signal.aborted)return;cmd.textContent+=c;await this.wait(35);} cur.remove();await this.wait(200); }
+  async printLine(text,cls) { const line=document.createElement('div');line.className='terminal-line '+cls;this.el.appendChild(line); for(const c of text){if(this.ac.signal.aborted)return;line.textContent+=c;await this.wait(12);} this.scroll(); }
+  scroll() { this.el.scrollTop=this.el.scrollHeight; }
+  wait(ms) { return new Promise(r=>{const id=setTimeout(r,ms);this.ac.signal.addEventListener('abort',()=>{clearTimeout(id);r();});}); }
+}
+
+/* ═══════════════════════════════════════════
+   PIPELINE (with catches + escapes)
+   ═══════════════════════════════════════════ */
+const STAGES = [
+  {title:'Your Code',emoji:'\u270E',catches:['CLAUDE.md prevents hardcoded secrets','Parameterized queries enforced','Dangerous functions blocked','Auth required on every endpoint'],escapes:['Manual edits bypass Claude (caught by hooks)']},
+  {title:'CLAUDE.md',emoji:'\uD83E\uDD16',catches:['15 non-negotiable security rules','19 messy-prompt interceptions','Anti-jailbreak protection','settings.json blocks force-push, --no-verify, eval'],escapes:['User writes code without Claude (caught by linters)']},
+  {title:'Pre-commit',emoji:'\uD83D\uDEE1',catches:['Gitleaks: passwords, API keys, tokens','Private key detection','Lint + security scanning (ruff, bandit)','Blocks commits to main branch'],escapes:['--no-verify skips hooks (caught by CI timestamp)']},
+  {title:'CI Pipeline',emoji:'\u2699',catches:['CodeQL deep static analysis','80% test coverage gate','Hook integrity check (catches --no-verify)','SBOM generation'],escapes:['Zero-day vulns not in databases (mitigated by defense-in-depth)']},
+  {title:'PR Review',emoji:'\uD83D\uDC40',catches:['10-point security checklist','Business logic issues automation misses','Architecture-level security decisions'],escapes:['Reviewer might miss subtle issues (mitigated by CI)']},
+  {title:'Deploy',emoji:'\uD83D\uDE80',catches:['Non-root container, read-only filesystem','Network policy: default-deny','Secrets from Doppler via ESO','Health probes, resource limits'],escapes:['Runtime vulns (mitigated by monitoring)']}
+];
+
+/* ═══════════════════════════════════════════
+   CONCEPTS
+   ═══════════════════════════════════════════ */
+const CONCEPTS = [
+  {name:'SQL Injection',desc:'Attacker puts commands inside your database query. Like ordering "chicken; empty the register" at a restaurant.',scenario:'secret'},
+  {name:'Hardcoded Secrets',desc:'API keys written directly in code. Once in git, they\'re in the history forever \u2014 even after deletion.',scenario:'secret'},
+  {name:'Cross-Site Scripting (XSS)',desc:'Attacker injects JavaScript into your page that runs in other users\' browsers. Content-Security-Policy header blocks it.',scenario:'happy'},
+  {name:'Broken Authentication',desc:'When your app doesn\'t properly verify who someone is. The template uses Okta OIDC \u2014 never custom auth.',scenario:'intercept'},
+  {name:'Rate Limiting',desc:'Without it, attackers can flood your API with thousands of requests per second, crashing it.',scenario:'ratelimit'},
+  {name:'Defense in Depth',desc:'6 overlapping security layers. If one fails, the next catches it. No single point of failure.',scenario:'noverify'},
+  {name:'Parameterized Queries',desc:'Instead of putting user input into SQL strings (dangerous), you use placeholders. The database treats input as data, never as commands.',scenario:'intercept'},
+  {name:'Secure Secret Pipeline',desc:'API keys go to .env via hidden input (make add-secret). Config files go to .secrets/ (make add-config). The lazy path is the secure path.',scenario:'lazydrop'},
+  {name:'Claude Code Slash Commands',desc:'Type /project:check in Claude to run the full security suite. /project:add-endpoint scaffolds secure routes. /project:security-review audits your code.',scenario:'slashcmd'},
+  {name:'settings.json Deny List',desc:'The .claude/settings.json file blocks dangerous commands at the harness level. Claude literally cannot run force-push, --no-verify, or eval.',scenario:'noverify'},
+  {name:'Project Initialization',desc:'make init personalizes the template for YOUR app \u2014 name, team, data classification. Claude reads .claude/MEMORY.md every session.',scenario:'init'}
+];
+
+/* ═══════════════════════════════════════════
+   Q&A
+   ═══════════════════════════════════════════ */
+const QA = [
+  {tag:'core',q:'What does this actually do?',a:'It\'s a secure starter template for internal AI-powered tools. It gives teams a safe default foundation so they can build internal apps without inventing auth, secret handling, middleware, CI enforcement, and deployment guardrails from scratch.'},
+  {tag:'core',q:'What makes it different from a normal starter template?',a:'It makes the secure path the easiest path. Instead of telling people "be careful," it wires in guardrails: Claude project rules, denied dangerous commands in settings.json, hook enforcement, secret scanning, CI checks, auth defaults, rate limiting, and secure deployment.'},
+  {tag:'core',q:'How do you stop Claude from generating insecure code?',a:'Two layers. Instruction-level: CLAUDE.md says the model cannot hardcode secrets, skip auth, or suggest --no-verify. Structural: .claude/settings.json blocks dangerous commands at the harness level \u2014 Claude literally cannot execute them.'},
+  {tag:'core',q:'What\'s the authentication model?',a:'Okta OIDC/OAuth2. The guardrails ban custom username/password auth, require auth on every user-facing endpoint, and use group claims for RBAC. In local dev, DEV_MODE=true bypasses auth with a fake user.'},
+  {tag:'core',q:'What\'s the strategy for secrets?',a:'Never in code, never echoed back, never committed. Code references env vars only. Users store values through make add-secret (hidden input \u2192 .env) or make add-config (files \u2192 .secrets/). Production secrets flow through Doppler via External Secrets Operator.'},
+  {tag:'core',q:'What are the three commands a new user needs?',a:'make start, make check, and make help.'},
+  {tag:'core',q:'What does "make init" do?',a:'It asks 5 questions (app name, purpose, team, Slack channel, data classification) and updates 6 files. After init, Claude knows your project context without you repeating it.'},
+  {tag:'hard',q:'Walk me through the Python middleware order.',a:'Request ID is outermost (trace ID on every log), then request size checks, then rate limiting (throttle before auth), then trusted host and CORS. Security headers are set on every response.'},
+  {tag:'hard',q:'Why rate limiting before auth?',a:'To throttle abusive traffic before it hits the auth layer. It protects the auth system itself from being overwhelmed.'},
+  {tag:'hard',q:'What if someone says "it\'s internal, we can loosen security"?',a:'The repo explicitly rejects that logic. CLAUDE.md says internal tools are the most common attack vector and should be treated like production.'},
+  {tag:'hard',q:'What does DEV_MODE do exactly?',a:'It bypasses Okta auth with a fake test user. Risk: if deployed with DEV_MODE=true, anyone can access every endpoint. Mitigation: the app logs a warning at startup, and Helm prod values set DEV_MODE=false.'},
+  {tag:'hard',q:'How do you teach security instead of just enforcing it?',a:'Three ways: inline SECURITY LESSON comments in generated code, a 1,325-line security handbook with plain-English OWASP explanations, and a 15-question interactive quiz (make learn).'},
+  {tag:'skeptic',q:'Is this really secure, or does it just have a lot of badges?',a:'It doesn\'t remove the need for security review. It raises the floor. The repo bakes in defaults and enforcement so a non-expert is less likely to do the obviously dangerous thing.'},
+  {tag:'skeptic',q:'What\'s NOT covered?',a:'It doesn\'t replace threat modeling, AppSec review, correct RBAC design, data classification, or secure infrastructure setup. The repo includes an AppSec review pack specifically because those require human judgment.'},
+  {tag:'skeptic',q:'How many of these "6 layers" actually enforce anything?',a:'CLAUDE.md + settings.json enforce at the AI level. Pre-commit hooks at commit time. CI server-side (can\'t bypass). Branch protection at PR time. Helm at deploy time. Full enforcement requires a CW org repo with Okta + Doppler configured.'}
+];
+
+/* ═══════════════════════════════════════════
+   POLICIES
+   ═══════════════════════════════════════════ */
+const POLICIES = [
+  {cat:'Authentication',severity:'critical',items:['Okta OIDC required for all internal apps','MFA enforced for all users','Service accounts use short-lived tokens','No hardcoded credentials anywhere']},
+  {cat:'Secrets Management',severity:'critical',items:['All secrets stored in Doppler','No .env files in production','Secrets rotated on schedule','Audit log for all secret access']},
+  {cat:'Code Security',severity:'high',items:['SAST scanning on every PR','Dependency scanning with auto-PR for CVEs','Container image scanning before deploy','No known critical CVEs in production']},
+  {cat:'Data Protection',severity:'high',items:['Encryption at rest for all data stores','TLS 1.2+ for all network traffic','Data classified before storage','PII handled per data classification level']},
+  {cat:'Access Control',severity:'high',items:['RBAC with least-privilege principle','Okta groups mapped to app roles','Regular access reviews (quarterly)','Break-glass procedures documented']},
+  {cat:'Deployment',severity:'medium',items:['Helm + Argo for all K8s workloads','Chainguard base images preferred','Resource limits required on all pods','Network policies isolate namespaces']},
+  {cat:'Monitoring',severity:'medium',items:['Structured logging to central collector','Security events forwarded to SIEM','Alerting on auth failures and anomalies','Incident response runbook exists']},
+  {cat:'SDLC',severity:'medium',items:['PR reviews required before merge','Branch protection on main','Signed commits encouraged','CLAUDE.md defines project conventions']}
+];
+
+/* ═══════════════════════════════════════════
+   INIT EVERYTHING
+   ═══════════════════════════════════════════ */
+
+// Stepper
+renderStepper();
+
+// Restore form state
+(function restoreState(){
+  const s=loadState();
+  if(s.appName)document.getElementById('appName').value=s.appName;
+  if(s.appDesc)document.getElementById('appDesc').value=s.appDesc;
+  if(s.teamName)document.getElementById('teamName').value=s.teamName;
+  if(s.flowDesc)document.getElementById('flowDesc').value=s.flowDesc;
+  if(s.secAuth)document.getElementById('secAuth').value=s.secAuth;
+  if(s.secSecrets)document.getElementById('secSecrets').value=s.secSecrets;
+  if(s.secClass)document.getElementById('secClass').value=s.secClass;
+  if(s.lang)document.querySelectorAll('#langOptions .stack-chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===s.lang));
+  if(s.db)document.querySelectorAll('#dbOptions .stack-chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===s.db));
+  if(s.deploy)document.querySelectorAll('#deployOptions .stack-chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===s.deploy));
+  function esc(v){return(v||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+  if(s.roles?.length){const c=document.getElementById('rolesRows');c.innerHTML='';s.roles.forEach(r=>{const d=document.createElement('div');d.className='dynamic-row roles-row';d.innerHTML=`<input type="text" class="role-name" value="${esc(r.role)}"><input type="text" class="role-who" value="${esc(r.who)}"><input type="text" class="role-perms" value="${esc(r.perms)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
+  if(s.tables?.length){const c=document.getElementById('tableRows');c.innerHTML='';s.tables.forEach(t=>{const d=document.createElement('div');d.className='dynamic-row table-row';d.innerHTML=`<input type="text" class="tbl-name" value="${esc(t.name)}"><input type="text" class="tbl-fields" value="${esc(t.fields)}"><input type="text" class="tbl-notes" value="${esc(t.notes)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
+  if(s.endpoints?.length){const c=document.getElementById('endpointRows');c.innerHTML='';s.endpoints.forEach(e=>{const d=document.createElement('div');d.className='dynamic-row endpoint-row';d.innerHTML=`<select class="ep-method"><option${e.method==='GET'?' selected':''}>GET</option><option${e.method==='POST'?' selected':''}>POST</option><option${e.method==='PUT'?' selected':''}>PUT</option><option${e.method==='PATCH'?' selected':''}>PATCH</option><option${e.method==='DELETE'?' selected':''}>DELETE</option></select><input type="text" class="ep-path" value="${esc(e.path)}"><input type="text" class="ep-auth" value="${esc(e.auth)}"><input type="text" class="ep-desc" value="${esc(e.desc)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
+  if(s.flowNodes?.length){const c=document.getElementById('flowRows');c.innerHTML='';s.flowNodes.forEach(f=>{const d=document.createElement('div');d.className='dynamic-row';d.style.gridTemplateColumns='1fr 40px 1fr 32px';d.innerHTML=`<input type="text" class="flow-from" value="${esc(f.from)}"><span style="text-align:center;color:var(--text-tertiary);font-size:var(--text-lg)">&rarr;</span><input type="text" class="flow-to" value="${esc(f.to)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
+  // Step 7 restore
+  if(s.envs)document.querySelectorAll('#envOptions .stack-chip').forEach(c=>c.classList.toggle('selected',s.envs.includes(c.dataset.val)));
+  if(s.replicasDev)document.getElementById('replicasDev').value=s.replicasDev;
+  if(s.replicasProd)document.getElementById('replicasProd').value=s.replicasProd;
+  if(s.cpuLimit)document.getElementById('cpuLimit').value=s.cpuLimit;
+  if(s.memLimit)document.getElementById('memLimit').value=s.memLimit;
+  if(s.scalingStrategy)document.getElementById('scalingStrategy').value=s.scalingStrategy;
+  if(s.infraNotes)document.getElementById('infraNotes').value=s.infraNotes;
+  // Step 8 restore
+  if(s.mvpFeatures?.length){const c=document.getElementById('mvpRows');c.innerHTML='';s.mvpFeatures.forEach(f=>{const d=document.createElement('div');d.className='dynamic-row';d.style.gridTemplateColumns='1fr 32px';d.innerHTML=`<input type="text" class="mvp-item" value="${esc(f)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
+  if(s.deferredFeatures?.length){const c=document.getElementById('deferredRows');c.innerHTML='';s.deferredFeatures.forEach(f=>{const d=document.createElement('div');d.className='dynamic-row';d.style.gridTemplateColumns='1fr 32px';d.innerHTML=`<input type="text" class="deferred-item" value="${esc(f)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
+  if(s.ghBranchProtect!==undefined)document.getElementById('ghBranchProtect').checked=s.ghBranchProtect;
+  if(s.ghRequirePR!==undefined)document.getElementById('ghRequirePR').checked=s.ghRequirePR;
+  if(s.ghRequireCI!==undefined)document.getElementById('ghRequireCI').checked=s.ghRequireCI;
+  if(s.ghCodeowners!==undefined)document.getElementById('ghCodeowners').checked=s.ghCodeowners;
+  if(s.ghSignedCommits!==undefined)document.getElementById('ghSignedCommits').checked=s.ghSignedCommits;
+  if(s.ghConventional!==undefined)document.getElementById('ghConventional').checked=s.ghConventional;
+  if(s.branchStrategy)document.getElementById('branchStrategy').value=s.branchStrategy;
+})();
+
+// Terminal demo
+const term = new TermSim(document.getElementById('term'), document.getElementById('narration'));
+const btnBox = document.getElementById('scenario-btns');
+const GROUPS = [
+  {label:'Start here',ids:['whats-terminal','first-setup','run-app']},
+  {label:'Building',ids:['happy','intercept','lazydrop']},
+  {label:'What happens when...',ids:['secret','noverify','ratelimit']},
+  {label:'Power user',ids:['slashcmd','init']}
+];
+GROUPS.forEach(g => {
+  const group = document.createElement('div'); group.className = 'scenario-group';
+  group.innerHTML = `<span class="scenario-group-label">${g.label}</span>`;
+  const btns = document.createElement('div'); btns.className = 'scenario-group-btns';
+  g.ids.forEach(id => { const sc = SCENARIOS.find(s => s.id === id); if(!sc)return;
+    const b = document.createElement('button'); b.className = 'scenario-btn'; b.textContent = sc.name;
+    b.addEventListener('click', () => { btnBox.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); term.run(sc); });
+    btns.appendChild(b); });
+  group.appendChild(btns); btnBox.appendChild(group);
+});
+
+// Pipeline
+const pRow = document.getElementById('pipeline-row');
+const pBox = document.getElementById('p-detail-box');
+STAGES.forEach((v, i) => {
+  const el = document.createElement('div'); el.className = 'p-stage' + (i===0?' active':'');
+  el.innerHTML = `<div class="p-dot">${v.emoji}</div><div class="p-label">${v.title}</div>`;
+  el.addEventListener('click', () => {
+    pRow.querySelectorAll('.p-stage').forEach(s=>s.classList.remove('active')); el.classList.add('active');
+    pBox.innerHTML = `<div class="p-detail show"><h3>${v.title}</h3>
+      <div class="catches"><h4>What it catches</h4><ul>${v.catches.map(c=>'<li>'+c+'</li>').join('')}</ul></div>
+      <div class="escapes"><h4>What passes through</h4><ul>${v.escapes.map(c=>'<li>'+c+'</li>').join('')}</ul></div></div>`;
+  });
+  pRow.appendChild(el);
+});
+// Show first stage detail
+pBox.innerHTML = `<div class="p-detail show"><h3>${STAGES[0].title}</h3><div class="catches"><h4>What it catches</h4><ul>${STAGES[0].catches.map(c=>'<li>'+c+'</li>').join('')}</ul></div><div class="escapes"><h4>What passes through</h4><ul>${STAGES[0].escapes.map(c=>'<li>'+c+'</li>').join('')}</ul></div></div>`;
+
+// Concepts
+const cList = document.getElementById('concept-list');
+CONCEPTS.forEach(c => {
+  const el = document.createElement('div'); el.className = 'concept-card';
+  el.innerHTML = `<div class="concept-head"><h3>${c.name}</h3><span class="concept-chev">\u25BC</span></div>
+    <div class="concept-body"><div class="concept-inner"><div class="concept-content"><p>${c.desc}</p>
+    <button class="try-btn" data-sc="${c.scenario}">See demo</button></div></div></div>`;
+  el.querySelector('.concept-head').addEventListener('click', () => el.classList.toggle('open'));
+  el.querySelector('.try-btn').addEventListener('click', e => {
+    e.stopPropagation(); const sc = SCENARIOS.find(s => s.id === c.scenario);
+    if(sc){ document.getElementById('demo').scrollIntoView({behavior:'smooth'}); setTimeout(()=>{btnBox.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active'));term.run(sc);},400); }
+  });
+  cList.appendChild(el);
+});
+
+// Policies
+const pGrid = document.getElementById('policyGrid');
+POLICIES.forEach(p => {
+  pGrid.innerHTML += `<div class="policy-card"><span class="policy-tag tag-${p.severity}">${p.severity}</span><h4>${p.cat}</h4>
+    <ul style="list-style:none;padding:0;margin-top:var(--space-xs)">${p.items.map(i=>`<li style="font-size:var(--text-xs);color:var(--text-secondary);padding:2px 0 2px 14px;position:relative"><span style="position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--border)"></span>${i}</li>`).join('')}</ul></div>`;
+});
+
+// Q&A
+const qaList = document.getElementById('qa-list');
+QA.forEach(item => {
+  const el = document.createElement('div'); el.className = 'qa';
+  const tagClass = {core:'tag-core',hard:'tag-hard',skeptic:'tag-skeptic'}[item.tag];
+  const tagLabel = {core:'core',hard:'deep dive',skeptic:'skeptic'}[item.tag];
+  el.innerHTML = `<div class="qa-q"><h3><span class="qa-tag ${tagClass}">${tagLabel}</span> ${item.q}</h3><span class="qa-chev">\u25BC</span></div>
+    <div class="qa-body"><div class="qa-inner"><div class="qa-a">${item.a}</div></div></div>`;
+  el.querySelector('.qa-q').addEventListener('click', () => el.classList.toggle('open'));
+  qaList.appendChild(el);
+});
+
+// Doctor output parser
+function parseDoctorOutput() {
+  const raw = document.getElementById('doctorPaste').value.trim(); if(!raw)return;
+  const results = document.getElementById('doctorResults');
+  const checks = raw.split('\n').map(line => {
+    const isPass=/pass|ok|\u2713|\u2705|yes/i.test(line), isFail=/fail|error|\u2717|\u274C|no|missing/i.test(line), isWarn=/warn|\u26A0/i.test(line);
+    return { line:line.trim(), status: isFail?'critical':isWarn?'warn':isPass?'pass':'info' };
+  }).filter(c=>c.line);
+  const pc=checks.filter(c=>c.status==='pass').length, fc=checks.filter(c=>c.status==='critical').length;
+  results.innerHTML = `<div style="display:flex;gap:var(--space-md);margin-bottom:var(--space-md)">
+    <div style="padding:var(--space-sm) var(--space-md);border-radius:8px;background:var(--pass-bg);border:1px solid var(--pass);font-family:'JetBrains Mono',monospace;font-size:var(--text-sm);color:var(--pass)">${pc} passed</div>
+    <div style="padding:var(--space-sm) var(--space-md);border-radius:8px;background:${fc?'var(--critical-bg)':'var(--bg-sunken)'};border:1px solid ${fc?'var(--critical)':'var(--border)'};font-family:'JetBrains Mono',monospace;font-size:var(--text-sm);color:${fc?'var(--critical)':'var(--text-tertiary)'}">${fc} failed</div></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--text-primary);border-radius:10px;padding:var(--space-md);color:oklch(85% 0.01 80);line-height:1.8">
+    ${checks.map(c=>`<div style="color:${c.status==='pass'?'#4ade80':c.status==='critical'?'#f87171':c.status==='warn'?'#fbbf24':'oklch(65% 0.01 260)'}">${c.line}</div>`).join('')}</div>`;
+}
+
+// File tree
+const FILETREE = [
+  {name:'CLAUDE.md',layer:'ai',desc:'15 security rules + anti-jailbreak + 24 messy-prompt interceptions. The AI brain.'},
+  {name:'.claude/',layer:'ai',desc:'Full Claude Code project config \u2014 commands, rules, skills, agents.',children:[
+    {name:'settings.json',layer:'ai',desc:'Permissions locked. Denies force-push, --no-verify, eval at harness level.'},
+    {name:'MEMORY.md',layer:'ai',desc:'Project memory \u2014 context that persists across Claude sessions.'},
+    {name:'commands/',layer:'ai',desc:'4 slash commands for Claude Code.',children:[
+      {name:'check.md',layer:'ai',desc:'/project:check \u2014 runs full security suite (lint + test + scan + drops).'},
+      {name:'add-endpoint.md',layer:'ai',desc:'/project:add-endpoint \u2014 scaffolds a secure route with auth + tests.'},
+      {name:'add-secret.md',layer:'ai',desc:'/project:add-secret \u2014 guides safe key storage via make add-secret.'},
+      {name:'security-review.md',layer:'ai',desc:'/project:security-review \u2014 10-point security audit of the codebase.'}
+    ]},
+    {name:'rules/',layer:'ai',desc:'Modular instruction files, auto-applied by glob pattern.',children:[
+      {name:'security.md',layer:'ai',desc:'Globs *.go,*.py \u2014 secrets, auth, validation, dangerous functions.'},
+      {name:'testing.md',layer:'ai',desc:'Globs *_test.* \u2014 coverage, security tests, environment setup.'},
+      {name:'code-style.md',layer:'ai',desc:'Globs *.go,*.py \u2014 formatting, logging, imports.'},
+      {name:'api-conventions.md',layer:'ai',desc:'Globs main.* \u2014 REST, status codes, headers.'}
+    ]},
+    {name:'skills/',layer:'ai',desc:'Auto-invoked workflows.',children:[
+      {name:'security-review/SKILL.md',layer:'ai',desc:'Auto-triggers on code changes. Checks 7 security categories.'}
+    ]},
+    {name:'agents/',layer:'ai',desc:'Subagent personas for specialized tasks.',children:[
+      {name:'security-auditor.md',layer:'ai',desc:'Deep OWASP + CW compliance audit. Uses sonnet, 10 turns.'},
+      {name:'code-reviewer.md',layer:'ai',desc:'PR review agent. Security + quality + conventions. Uses sonnet, 8 turns.'}
+    ]}
+  ]},
+  {name:'SECURITY.md',layer:'docs',desc:'Incident response template aligned with CW IR process.'},
+  {name:'Makefile',layer:'code',desc:'3 visible commands: start, check, help. Plus: fix, doctor, add-secret, add-config, learn.'},
+  {name:'setup.sh',layer:'code',desc:'One-command bootstrap. Auto-opens dashboard, auto-configures branch protection.'},
+  {name:'scripts/',layer:'hooks',desc:'Git hooks, doctor, security-fix, quiz, add-secret, add-config, scan-drops.',children:[
+    {name:'git-hooks/',layer:'hooks',desc:'Pre-commit, post-checkout, pre-push hooks.',children:[
+      {name:'pre-commit',layer:'hooks',desc:'Scans for secrets + lint. Plain English errors. Writes timestamp for CI.'},
+      {name:'pre-push',layer:'hooks',desc:'Runs tests before push. Last local gate.'},
+      {name:'post-checkout',layer:'hooks',desc:'Auto-reinstalls hooks if removed.'}
+    ]},
+    {name:'add-secret.sh',layer:'hooks',desc:'Stores API keys in .env with hidden input. Never displays the value.'},
+    {name:'add-config.sh',layer:'hooks',desc:'Stores config files (.json, .pem) in gitignored .secrets/ directory.'},
+    {name:'scan-drops.sh',layer:'hooks',desc:'Scans for 20+ accidentally dropped sensitive file patterns.'},
+    {name:'doctor.sh',layer:'hooks',desc:'Full pipeline health check with pass/fail table.'},
+    {name:'security-fix.sh',layer:'hooks',desc:'Auto-fix lint, plain English guidance for manual fixes.'},
+    {name:'security-quiz.sh',layer:'docs',desc:'15-question OWASP quiz with explanations.'}
+  ]},
+  {name:'.github/',layer:'ci',desc:'CI workflows, branch protection, PR template.',children:[
+    {name:'workflows/ci.yml',layer:'ci',desc:'CodeQL, gosec/bandit, 80% coverage gate, hook integrity, middleware presence check.'},
+    {name:'workflows/branch-protection-setup.yml',layer:'ci',desc:'One-time workflow to configure branch protection rules.'},
+    {name:'pull_request_template.md',layer:'ci',desc:'10-point security checklist for every PR.'}
+  ]},
+  {name:'python/',layer:'code',desc:'Python starter with FastAPI.',children:[
+    {name:'src/main.py',layer:'code',desc:'Wired: auth, rate limit, request ID, CORS, security headers, startup validation.'},
+    {name:'src/middleware/',layer:'code',desc:'Okta OIDC auth, rate limiter, request ID, request size limit.'},
+    {name:'Dockerfile',layer:'deploy',desc:'Multi-stage slim build, non-root user, health check.'}
+  ]},
+  {name:'go/',layer:'code',desc:'Go starter with net/http. Zero external dependencies.',children:[
+    {name:'main.go',layer:'code',desc:'Full middleware stack, graceful shutdown, startup env validation.'},
+    {name:'middleware/',layer:'code',desc:'Okta OIDC JWT (stdlib only), rate limiter, request ID, security headers.'},
+    {name:'Dockerfile',layer:'deploy',desc:'CW Chainguard multi-stage, distroless runtime.'}
+  ]},
+  {name:'deploy/',layer:'deploy',desc:'Helm chart + ArgoCD + env-specific values.',children:[
+    {name:'helm/',layer:'deploy',desc:'K8s deployment, service, ESO, network policy, PDB, service account.',children:[
+      {name:'values.yaml',layer:'deploy',desc:'Default values: resources, Okta, Doppler, health checks.'},
+      {name:'values-dev.yaml',layer:'deploy',desc:'Dev overrides: 1 replica, DEV_MODE, small resources.'},
+      {name:'values-stg.yaml',layer:'deploy',desc:'Staging overrides: 2 replicas, staging Okta.'},
+      {name:'values-prod.yaml',layer:'deploy',desc:'Prod overrides: 3 replicas, pinned image, PDB enabled.'}
+    ]},
+    {name:'argo/',layer:'deploy',desc:'ArgoCD Application manifest with auto-sync.'}
+  ]},
+  {name:'docs/',layer:'docs',desc:'Guides, handbook, AppSec review pack, CW operational docs.',children:[
+    {name:'getting-started.md',layer:'docs',desc:'Step-by-step for your first 10 minutes. Includes Step 3.5: add-secret.'},
+    {name:'security-handbook.md',layer:'docs',desc:'Plain-English OWASP guide + glossary + FAQ.'},
+    {name:'appsec-review-pack/',layer:'docs',desc:'STRIDE threat model, architecture, data classification, review request.'},
+    {name:'okta-ticket-template.md',layer:'docs',desc:'Copy-paste Freshservice ticket for Okta app registration.'},
+    {name:'doppler-onboarding.md',layer:'docs',desc:'Naming conventions, step-by-step onboarding.'},
+    {name:'approved-images.md',layer:'docs',desc:'CW Chainguard image families, mirror paths, tag policy.'},
+    {name:'cw-integration.md',layer:'docs',desc:'How to layer this on top of cw scaffold / cw repo create.'},
+    {name:'repo-governance.md',layer:'docs',desc:'Production repos must live in CW org. What org gives you for free.'}
+  ]}
+];
+function renderTree(items, parent) {
+  items.forEach(item => {
+    const isDir = !!item.children;
+    const row = document.createElement('div');
+    row.innerHTML = `<span class="tree-dot layer-${item.layer}"></span><span class="${isDir?'tree-dir':'tree-file'}">${isDir?'\u25BC ':'' }${item.name}</span>`;
+    parent.appendChild(row);
+    if(isDir) {
+      const kids = document.createElement('div'); kids.className = 'tree-children'; parent.appendChild(kids);
+      row.querySelector('.tree-dir').addEventListener('click', () => {
+        kids.classList.toggle('collapsed');
+        const arrow = row.querySelector('.tree-dir');
+        arrow.textContent = kids.classList.contains('collapsed') ? '\u25B6 '+item.name : '\u25BC '+item.name;
+      });
+      renderTree(item.children, kids);
+    }
+    row.addEventListener('click', e => {
+      if(isDir && e.target.classList.contains('tree-dir')) return;
+      document.getElementById('file-desc').innerHTML = `<div class="file-desc"><strong>${item.name}</strong> \u2014 ${item.desc}</div>`;
+    });
+  });
+}
+renderTree(FILETREE, document.getElementById('tree'));
+
+// Nav scroll tracking
+function updateNav() {
+  const sections = ['plan','scaffold','demo','pipeline','concepts','files','policies','qa','team'];
+  let active = sections[0];
+  sections.forEach(id => { const el=document.getElementById(id); if(el&&el.getBoundingClientRect().top<=100)active=id; });
+  document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.section === active));
+}
+window.addEventListener('scroll', updateNav, { passive: true });
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', e => { e.preventDefault(); const t=document.getElementById(link.dataset.section); if(t)t.scrollIntoView({behavior:'smooth'}); });
+});
+</script>
+</body>
+</html>
