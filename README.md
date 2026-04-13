@@ -149,5 +149,5 @@ docs/                      Getting started + security handbook
 ---
 
 <p align="center">
-  <sub>Built at CoreWeave · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
+  <sub>Built at CoreWeave · <a href="https://rpatino-cw.github.io/cw-secure-guide/">Interactive Guide</a> · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
 </p>
