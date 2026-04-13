@@ -15,6 +15,31 @@ NC='\033[0m'
 AUTO_FIXED=0
 MANUAL_NEEDED=0
 
+# ──────────────────────────────────────
+# Tool check — tell user what's missing upfront
+# ──────────────────────────────────────
+MISSING_TOOLS=()
+command -v gitleaks &>/dev/null || MISSING_TOOLS+=("gitleaks (brew install gitleaks)")
+if [ -f go/go.mod ]; then
+    command -v gosec &>/dev/null || MISSING_TOOLS+=("gosec (go install github.com/securego/gosec/v2/cmd/gosec@latest)")
+    command -v govulncheck &>/dev/null || MISSING_TOOLS+=("govulncheck (go install golang.org/x/vuln/cmd/govulncheck@latest)")
+fi
+if [ -f python/pyproject.toml ]; then
+    command -v bandit &>/dev/null || MISSING_TOOLS+=("bandit (pip install bandit)")
+    command -v pip-audit &>/dev/null || MISSING_TOOLS+=("pip-audit (pip install pip-audit)")
+fi
+
+if [ ${#MISSING_TOOLS[@]} -gt 0 ]; then
+    echo ""
+    echo -e "${YELLOW}  Some security tools are not installed:${NC}"
+    for tool in "${MISSING_TOOLS[@]}"; do
+        echo -e "    - $tool"
+    done
+    echo ""
+    echo -e "  Install them to get full security scanning."
+    echo -e "  Continuing with what's available..."
+fi
+
 header() { echo -e "\n${BOLD}$1${NC}\n"; }
 auto_fix() { echo -e "  ${GREEN}[AUTO-FIXED]${NC} $1"; ((AUTO_FIXED++)); }
 manual() {

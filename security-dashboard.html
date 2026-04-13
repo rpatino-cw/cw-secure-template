@@ -1170,7 +1170,7 @@ doctorInput.addEventListener('input', () => {
     const icons = { pass: '\u2713', fail: '\u2717', warn: '\u26A0' };
     html += `<div style="display:flex;align-items:center;gap:var(--space-sm);padding:6px var(--space-sm);background:${bgs[item.status]};border-radius:6px">
       <span style="color:${colors[item.status]};font-weight:600;width:1.2em;text-align:center">${icons[item.status]}</span>
-      <span style="font-size:var(--text-sm);color:var(--text-secondary)">${item.text}</span>
+      <span style="font-size:var(--text-sm);color:var(--text-secondary)">${item.text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>
     </div>`;
   });
 

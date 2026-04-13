@@ -209,6 +209,10 @@ jobs:
             exit 1
           fi
           HOOK_TS=$(cat .last-hook-run)
+          if ! [[ "$HOOK_TS" =~ ^[0-9]+$ ]]; then
+            echo "::error::.last-hook-run has invalid format (expected epoch seconds). Run 'make check' to regenerate."
+            exit 1
+          fi
           LATEST_COMMIT_TS=$(git log -1 --format=%ct)
           DIFF_SECONDS=$((LATEST_COMMIT_TS - HOOK_TS))
           if [ "$DIFF_SECONDS" -gt 3600 ]; then

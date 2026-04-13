@@ -80,7 +80,18 @@ else
 fi
 
 # ─── Git init ───
-if [ ! -d .git ]; then
+if [ -d .git ]; then
+  : # Already has its own git repo — good
+elif git rev-parse --git-dir 2>/dev/null | grep -qv "^\.git$"; then
+  echo ""
+  echo -e "  ${RED}WARNING: This folder is inside another git repo.${NC}"
+  echo "  The template needs its own repo to work correctly."
+  echo ""
+  echo "  Move this folder somewhere else first, then re-run setup."
+  echo "  Example: mv $(pwd) ~/dev/my-app && cd ~/dev/my-app && bash setup.sh"
+  echo ""
+  exit 1
+else
   echo ""
   echo "  Setting up git..."
   GIT_TEMPLATE_DIR="" git init -q 2>/dev/null || git init -q
