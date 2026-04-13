@@ -33,9 +33,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app, rps: int = RATE_LIMIT_RPS, burst: int = RATE_LIMIT_BURST):
         super().__init__(app)
-        self.rps = rps
         self.burst = burst
-        self.window_seconds = 1.0
+        # SECURITY LESSON: window_seconds = burst / rps. At 10 rps with burst 20,
+        # the window is 2 seconds — allowing 20 requests per 2-second window.
+        self.window_seconds = burst / rps if rps > 0 else 1.0
         # SECURITY LESSON: defaultdict(list) — each IP gets a list of request timestamps.
         # The sliding window checks how many timestamps fall within the last N seconds.
         self._requests: dict[str, list[float]] = defaultdict(list)
