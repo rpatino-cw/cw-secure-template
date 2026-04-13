@@ -17,7 +17,7 @@
 
 ## Your Code Goes Through 6 Checkpoints
 
-Each one catches what the last one missed. None of them can be skipped.
+Each one catches what the last one missed.
 
 <p align="center">
   <img src="docs/pipeline-animation.svg" alt="Security Pipeline" width="100%">
@@ -82,6 +82,8 @@ make help     Everything else
 
 ## Can't Break It
 
+> In-repo enforcement (hooks, CI, CLAUDE.md) works anywhere. Full enforcement requires a [CW org repo](docs/repo-governance.md) with Okta + Doppler configured.
+
 | "I'll just..." | What catches it |
 |:--|:--|
 | Skip hooks with `--no-verify` | CI checks the timestamp |
@@ -94,7 +96,9 @@ make help     Everything else
 
 ---
 
-Okta OIDC · Doppler + ESO · Chainguard images · CodeQL · SOC 2 · ISO 27001 · OWASP Top 10
+[Okta OIDC](docs/okta-ticket-template.md) · [Doppler + ESO](docs/doppler-onboarding.md) · [Chainguard images](docs/approved-images.md) · CodeQL · SOC 2 · ISO 27001 · OWASP Top 10
+
+> **Going to production?** Use the [AppSec Review Pack](docs/appsec-review-pack/) and [CW Integration Guide](docs/cw-integration.md).
 
 ---
 

@@ -17,6 +17,11 @@ spec:
       labels:
         {{- include "cw-secure-app.selectorLabels" . | nindent 8 }}
     spec:
+      # SECURITY LESSON: Use a dedicated ServiceAccount (see serviceaccount.yaml)
+      # rather than the namespace default. This isolates RBAC permissions and
+      # gives clear audit identity for this app's pods.
+      serviceAccountName: {{ include "cw-secure-app.fullname" . }}
+
       # SECURITY LESSON: automountServiceAccountToken=false prevents the default
       # service account token from being mounted into the pod. Most apps don't
       # need K8s API access, and a leaked token lets an attacker query the API

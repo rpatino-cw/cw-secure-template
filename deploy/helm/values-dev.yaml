@@ -1,0 +1,52 @@
+# =============================================================================
+# Dev Environment Overrides
+# =============================================================================
+# Minimal resources, single replica, debug-friendly settings.
+# Applied via: helm install -f values.yaml -f values-dev.yaml
+# Or via ArgoCD valueFiles: [values-dev.yaml]
+# =============================================================================
+
+# -- Single replica in dev — no need for HA, saves cluster resources.
+replicaCount: 1
+
+# -- Image config
+image:
+  tag: latest
+  pullPolicy: Always  # Always pull in dev to pick up latest builds
+
+# -- Smaller resource footprint for dev
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "50m"
+  limits:
+    memory: "128Mi"
+    cpu: "100m"
+
+# -- Okta dev tenant
+# SECURITY LESSON: Even in dev, use real Okta OIDC — never skip auth.
+# Okta has a separate dev org so test users can't accidentally access prod
+# resources, and prod credentials can't leak into dev logs.
+okta:
+  issuer: "https://coreweave-dev.okta.com/oauth2/default"  # Replace with actual dev tenant
+  clientId: ""  # Pulled from Doppler dev config via ExternalSecret
+  audience: "api://cw-secure-app-dev"
+
+# -- Doppler dev config
+doppler:
+  project: "cw-secure-app"
+  config: "dev"
+
+# -- Ingress disabled in dev — use port-forward or localhost
+ingress:
+  enabled: false
+
+# -- Health check tuning for dev (faster startup, more tolerance)
+healthcheck:
+  initialDelaySeconds: 5
+  periodSeconds: 30
+  failureThreshold: 5
+
+# -- PDB disabled in dev (single replica, no disruption budget needed)
+pdb:
+  enabled: false

@@ -73,3 +73,8 @@ securityContext:
   capabilities:
     drop:
       - ALL
+
+# -- PodDisruptionBudget (only created when replicas > 1)
+pdb:
+  enabled: false       # Override to true in stg/prod values files
+  minAvailable: 1

@@ -1,0 +1,100 @@
+# =============================================================================
+# ArgoCD Application — GitOps Deployment
+# =============================================================================
+#
+# SECURITY LESSON: ArgoCD is a GitOps controller — it watches a git repo and
+# continuously reconciles the cluster state to match what's in git. This means
+# no one needs kubectl access to deploy. The git repo IS the deployment
+# pipeline, and every change is auditable via git history.
+#
+# To deploy: merge to main → Argo detects the change → syncs automatically.
+# To rollback: revert the commit → Argo syncs the previous state.
+# =============================================================================
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  # Name of the ArgoCD Application resource. This is how it appears in the
+  # Argo UI and CLI. Keep it short and match your service name.
+  name: cw-secure-app
+  # ArgoCD Applications must live in the argocd namespace — this is where the
+  # Argo controller watches for Application resources.
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: cw-secure-app
+    app.kubernetes.io/managed-by: argocd
+  # SECURITY LESSON: Finalizers prevent accidental deletion of the ArgoCD
+  # Application from also deleting all the K8s resources it manages. Without
+  # this, deleting the Application in Argo would cascade-delete your running
+  # pods, services, and secrets.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # The ArgoCD project scopes what clusters and namespaces this Application
+  # can deploy to. 'default' allows any — in production, use a scoped project
+  # to enforce least-privilege (e.g., only your team's namespaces).
+  project: default
+
+  source:
+    # SECURITY LESSON: repoURL points to the git repo that contains your Helm
+    # chart. Argo authenticates to this repo via SSH key or token configured in
+    # Argo's repo credentials — never hardcoded here.
+    repoURL: https://github.com/coreweave/cw-secure-app.git
+    # targetRevision controls which git ref Argo tracks. 'HEAD' means the
+    # latest commit on the default branch. For production, consider pinning to
+    # a tag (e.g., 'v1.2.3') for explicit release control.
+    targetRevision: HEAD
+    # Path within the repo where the Helm chart lives.
+    path: deploy/helm
+
+    helm:
+      # valueFiles lists the environment-specific overrides. Argo merges these
+      # on top of the default values.yaml. Change this per-environment:
+      #   dev:  values-dev.yaml
+      #   stg:  values-stg.yaml
+      #   prod: values-prod.yaml
+      valueFiles:
+        - values-prod.yaml
+
+  destination:
+    # SECURITY LESSON: The destination cluster. 'https://kubernetes.default.svc'
+    # means the cluster where Argo itself is running (core-internal). For
+    # multi-cluster setups, register external clusters in Argo and reference
+    # their server URL here.
+    server: https://kubernetes.default.svc
+    # The namespace where your app's K8s resources will be created. Argo will
+    # create the namespace if CreateNamespace=true in syncPolicy below.
+    namespace: cw-secure-app
+
+  syncPolicy:
+    # SECURITY LESSON: Automated sync means Argo applies changes as soon as
+    # it detects drift between git and the cluster. This ensures the cluster
+    # always matches the declared state — no one can make manual kubectl
+    # changes that stick (Argo will revert them on the next sync).
+    automated:
+      # Prune: delete K8s resources that no longer exist in git. Without this,
+      # removed manifests leave orphaned resources running in the cluster —
+      # potential attack surface you thought you removed.
+      prune: true
+      # SelfHeal: revert manual changes made directly to the cluster. If
+      # someone uses kubectl to edit a deployment, Argo will detect the drift
+      # and revert it to match git. This enforces git as the single source of
+      # truth.
+      selfHeal: true
+    syncOptions:
+      # CreateNamespace: Argo will create the target namespace if it doesn't
+      # exist. Useful for first-time deployments.
+      - CreateNamespace=true
+      # ServerSideApply: use server-side apply instead of client-side. This
+      # handles field ownership conflicts better and is the recommended
+      # approach for Helm charts managed by Argo.
+      - ServerSideApply=true
+    retry:
+      # Retry failed syncs automatically. Network blips, brief API server
+      # unavailability, or transient webhook failures shouldn't require
+      # manual intervention.
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

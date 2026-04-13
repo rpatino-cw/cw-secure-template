@@ -1,0 +1,40 @@
+# =============================================================================
+# PodDisruptionBudget — Availability During Maintenance
+# =============================================================================
+#
+# SECURITY LESSON: PDBs aren't just about uptime — they're a security control.
+#
+# Without a PDB, a cluster autoscaler, node drain, or maintenance event can
+# terminate ALL your pods simultaneously. During the window where zero pods are
+# running, your app is completely down — and a down app can't enforce auth,
+# rate limits, or access control. Attackers can also exploit the restart window
+# to race conditions (e.g., hitting an endpoint before security middleware
+# fully initializes).
+#
+# PDB guarantees that at least N pods remain running during voluntary
+# disruptions (node drains, upgrades, autoscaling). It does NOT protect
+# against involuntary disruptions (OOMKills, node crashes) — that's what
+# replicas and health checks handle.
+#
+# minAvailable: 1 means "always keep at least 1 pod running." With 3 replicas,
+# K8s can drain 2 pods at a time but must wait for replacements before
+# touching the last one.
+# =============================================================================
+
+{{- if and (.Values.pdb).enabled (gt (int .Values.replicaCount) 1) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "cw-secure-app.fullname" . }}
+  labels:
+    {{- include "cw-secure-app.labels" . | nindent 4 }}
+spec:
+  # SECURITY LESSON: minAvailable is preferred over maxUnavailable for security
+  # because it guarantees a floor — you always have at least this many pods
+  # serving traffic. maxUnavailable expresses a ceiling on disruption, but with
+  # small replica counts it can result in zero available pods.
+  minAvailable: {{ (.Values.pdb).minAvailable | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "cw-secure-app.selectorLabels" . | nindent 6 }}
+{{- end }}

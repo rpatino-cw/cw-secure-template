@@ -1,0 +1,56 @@
+# =============================================================================
+# Staging Environment Overrides
+# =============================================================================
+# Mirrors production configuration for realistic pre-release testing.
+# Resources match prod, replicas reduced slightly to save cost.
+# Applied via: helm install -f values.yaml -f values-stg.yaml
+# Or via ArgoCD valueFiles: [values-stg.yaml]
+# =============================================================================
+
+# -- Two replicas in staging — tests rolling deployments without full HA.
+replicaCount: 2
+
+# -- Image config — staging uses a specific tag, never 'latest'.
+image:
+  tag: "stg"  # CI tags staging builds; replace with SHA or semver in practice
+  pullPolicy: IfNotPresent
+
+# -- Match production resources so staging surfaces real memory/CPU issues.
+# SECURITY LESSON: Staging resource limits should match prod. If staging
+# runs with generous limits and prod is tight, you'll miss OOMKills and
+# throttling issues until they hit real users.
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "200m"
+  limits:
+    memory: "512Mi"
+    cpu: "400m"
+
+# -- Okta staging tenant
+okta:
+  issuer: "https://coreweave-stg.okta.com/oauth2/default"  # Replace with actual staging tenant
+  clientId: ""  # Pulled from Doppler stg config via ExternalSecret
+  audience: "api://cw-secure-app-stg"
+
+# -- Doppler staging config
+doppler:
+  project: "cw-secure-app"
+  config: "stg"
+
+# -- Ingress enabled with staging hostname
+ingress:
+  enabled: true
+  className: "nginx-internal"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  host: "cw-secure-app.stg.internal.coreweave.com"
+  tls:
+    enabled: true
+    secretName: "cw-secure-app-stg-tls"
+
+# -- PDB enabled — staging should test disruption budgets too.
+pdb:
+  enabled: true
+  minAvailable: 1
