@@ -162,6 +162,18 @@ echo -e "${BOLD}  Checking your setup...${NC}"
 echo "  ──────────────────────"
 bash scripts/doctor.sh 2>/dev/null || true
 
+# ─── Personalize project ───
+echo ""
+echo -e "  ${BOLD}Would you like to personalize this for your project?${NC}"
+echo "  This tells Claude your app name, team, and what data you handle."
+echo ""
+read -rp "  Personalize now? [Y/n]: " DO_INIT
+DO_INIT=${DO_INIT:-Y}
+
+if [[ "$DO_INIT" =~ ^[Yy]$ ]]; then
+  bash scripts/init-project.sh
+fi
+
 # ─── Guided first run ───
 echo ""
 echo -e "${BOLD}  ──────────────────────────────────${NC}"
@@ -174,7 +186,7 @@ echo -e "  ${BOLD}1.${NC} Start your app:"
 echo -e "     ${GREEN}make start${NC}"
 echo ""
 echo -e "  ${BOLD}2.${NC} Open Claude Code in this folder and start building."
-echo "     Claude will automatically follow the security rules."
+echo "     Claude knows your project — it'll use the right context automatically."
 echo ""
 echo -e "  ${BOLD}3.${NC} Before creating a pull request, run:"
 echo -e "     ${GREEN}make check${NC}"

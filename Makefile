@@ -53,6 +53,7 @@ help: ## Show all available commands
 	@echo "    make dashboard   Open the security dashboard"
 	@echo ""
 	@echo "  Setup:"
+	@echo "    make init        Personalize for your project (name, team, data)"
 	@echo "    make add-secret  Safely store an API key in .env"
 	@echo "    make add-config  Safely store a config file (.json, .pem, etc.)"
 	@echo "    make setup       Re-run first-time setup"
@@ -143,6 +144,10 @@ dashboard:
 .PHONY: setup
 setup:
 	@bash setup.sh
+
+.PHONY: init
+init:
+	@bash scripts/init-project.sh
 
 .PHONY: run
 run: start
