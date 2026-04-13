@@ -14,6 +14,7 @@
   <img src="https://img.shields.io/badge/SOC_2-aligned-3b82f6?style=flat-square" alt="SOC 2">
   <img src="https://img.shields.io/badge/coverage-80%25_gate-f59e0b?style=flat-square" alt="Coverage">
   <img src="https://img.shields.io/badge/Go_%2B_Python-ready-6366f1?style=flat-square" alt="Stacks">
+  <img src="https://img.shields.io/badge/AI_slop-0%25_·_S%2B%2B-22c55e?style=flat-square" alt="Zero AI Slop">
   <img src="https://img.shields.io/badge/.claude-full_structure-a855f7?style=flat-square" alt=".claude/">
 </p>
 

@@ -141,6 +141,36 @@ jobs:
           cd python && pip-audit .
 
   # ──────────────────────────────────────
+  # AI Slop Detection — catch low-quality AI code
+  # ──────────────────────────────────────
+  slop-check:
+    name: AI Slop Check
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install slop detectors
+        run: pip install sloppylint ai-slop-detector
+
+      - name: Run sloppylint (Python)
+        if: hashFiles('python/pyproject.toml') != ''
+        run: |
+          cd python && sloppylint src/ || true
+
+      - name: Run ai-slop-detector (Python)
+        if: hashFiles('python/pyproject.toml') != ''
+        run: |
+          cd python
+          for f in $(find src -name "*.py" -not -name "__init__.py"); do
+            echo "--- $f ---"
+            slop-detector "$f" 2>&1 | grep -E "Status|Deficit|LDR" || true
+          done
+
+  # ──────────────────────────────────────
   # CodeQL — deep static analysis
   # ──────────────────────────────────────
   codeql:
