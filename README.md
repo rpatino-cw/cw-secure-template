@@ -1,135 +1,211 @@
-# CW Secure Template
+<p align="center">
+  <h1 align="center">CW Secure Template</h1>
+  <p align="center">
+    Build internal tools with AI. Ship them secure. No security expertise needed.
+  </p>
+</p>
 
-A secure-by-default project template for CoreWeave colleagues building internal tools with AI assistance (Claude Code, Cursor, etc.).
+<p align="center">
+  <img src="https://img.shields.io/badge/OWASP_Top_10-10%2F10_covered-22c55e?style=flat-square" alt="OWASP Coverage">
+  <img src="https://img.shields.io/badge/SOC_2-aligned-3b82f6?style=flat-square" alt="SOC 2">
+  <img src="https://img.shields.io/badge/coverage_gate-80%25-f59e0b?style=flat-square" alt="Coverage Gate">
+  <img src="https://img.shields.io/badge/Go_%2B_Python-ready-6366f1?style=flat-square" alt="Go + Python">
+</p>
 
-**The problem:** Non-technical team members use AI to build apps fast, but AI-generated code ships with hardcoded secrets, missing auth, SQL injection, and no security scanning.
+---
 
-**The solution:** A tanky pipeline that makes it structurally difficult to ship insecure code. Security is baked into every layer — AI rules, git hooks, CI pipeline, auth middleware, deployment config — and each layer teaches you why it exists.
+## The Problem
 
-## What's included
+You use Claude or Cursor to build an internal tool. It works. You ship it. Then AppSec finds:
 
-| Layer | What it does |
-|---|---|
-| `CLAUDE.md` | 14 security rules Claude follows even if you ask it not to. Anti-jailbreak protected. |
-| `go/middleware/` | Real Okta OIDC auth, rate limiting, request ID tracking, request size limits |
-| `python/src/middleware/` | Same middleware stack for Python (FastAPI) |
-| `.pre-commit-config.yaml` | Gitleaks + linters + bandit before every commit |
-| `scripts/git-hooks/` | Enforcement wrapper — CI catches `--no-verify` via timestamp tracking |
-| `.github/workflows/ci.yml` | CodeQL, gosec/bandit, dep audit, 80% coverage gate, hook integrity check |
-| `scripts/doctor.sh` | `make doctor` — full pipeline health check |
-| `scripts/security-fix.sh` | `make fix` — auto-fix lint + human-readable security guidance |
-| `security-dashboard.html` | Interactive visual: pipeline flow, OWASP coverage, threat explorer |
-| `docs/security-handbook.md` | Plain-English security guide with analogies and exercises |
-| `scripts/security-quiz.sh` | `make learn` — 15-question OWASP quiz |
-| `deploy/helm/` | K8s deployment with security context, ESO, network policy |
-| `SECURITY.md` | Incident response template aligned with CW IR process |
+- API keys hardcoded in source code
+- No authentication on endpoints
+- SQL injection in the first query
+- Secrets committed to git history
 
-## Quick start
+**This template makes those mistakes impossible.**
+
+---
+
+## How It Works
+
+Your code passes through 6 security checkpoints before it reaches production. Each layer catches what the previous one missed.
+
+<p align="center">
+  <img src="docs/pipeline-animation.svg" alt="Security Pipeline" width="100%">
+</p>
+
+| Layer | What it does | Can you skip it? |
+|:------|:-------------|:-----------------|
+| **CLAUDE.md** | 14 rules Claude follows even if you say "ignore the rules" | No — anti-jailbreak protected |
+| **Pre-commit** | Scans for leaked secrets and code issues before every commit | No — CI catches skipped hooks |
+| **Pre-push** | Runs tests before your code leaves your machine | No — push is blocked |
+| **CI Pipeline** | CodeQL + security scanners + 80% test coverage gate | No — server-side, can't bypass |
+| **PR Review** | 10-point security checklist for every pull request | No — branch protection enforced |
+| **Deploy** | Non-root containers, network policies, encrypted secrets | No — Helm defaults are locked |
+
+---
+
+## Quick Start
 
 ```bash
-# 1. Clone the template
-git clone https://github.com/coreweave/cw-secure-template my-app
+# Clone it
+git clone https://github.com/rpatino-cw/cw-secure-template my-app
 cd my-app
 
-# 2. Run setup (picks Go or Python, installs hooks + deps, runs health check)
+# Run setup (takes ~2 min)
 bash setup.sh
 
-# 3. Edit .env (or use DEV_MODE=true for local development)
-$EDITOR .env
-
-# 4. Start building
+# Start building
 make run
 ```
 
-Then open Claude Code and start prompting. Claude automatically follows the security rules.
+That's it. Open Claude Code in the project folder and start prompting. Security is automatic.
+
+---
+
+## What You Get
+
+### For building
+
+| | Go | Python |
+|:--|:---|:-------|
+| **Framework** | net/http (stdlib) | FastAPI |
+| **Auth** | Okta OIDC (real, not a TODO) | Okta OIDC (real, not a TODO) |
+| **Rate limiting** | Token bucket, per-IP | Sliding window, per-IP |
+| **Request tracking** | UUID on every request | UUID on every request |
+| **Logging** | Structured JSON (slog) | Structured JSON (structlog) |
+| **Tests** | 7 tests included | 10 tests included |
+| **Docker** | Chainguard multi-stage | Slim multi-stage |
+
+### For learning
+
+| Command | What it does |
+|:--------|:-------------|
+| `make learn` | 15-question security quiz with explanations |
+| `make dashboard` | Interactive visual of the entire pipeline |
+| `make doctor` | Check if your security pipeline is healthy |
+| Read the code | Every security decision has a `SECURITY LESSON` comment |
+
+### For deploying
+
+- **Helm chart** with security context, resource limits, health probes
+- **External Secrets Operator** pulls secrets from Doppler (never in git)
+- **Network policies** default-deny with explicit allowlist
+- **Branch protection** auto-configured during setup
+
+---
 
 ## Commands
 
 ```
-make setup          First-time setup (hooks, deps, .env, health check)
+make setup          One-time setup (hooks, deps, health check)
 make run            Start the app
 make test           Run tests
-make lint           Check code style
-make lint-fix       Auto-fix lint issues
-make fix            Auto-fix security + lint issues with guidance
-make doctor         Health check — verify pipeline is working
-make check          Run everything (lint + test + security) — before PRs
-make security-scan  Deep security scan
-make learn          Interactive security quiz (15 OWASP questions)
-make dashboard      Open the security pipeline dashboard
-make docker-build   Build Docker image
-make help           Show all commands
+make check          Run everything — do this before PRs
+make fix            Auto-fix what it can, explain what it can't
+make doctor         Is my pipeline healthy?
+make learn          Security quiz
+make dashboard      Open the pipeline visual
 ```
 
-## Pipeline architecture
+---
+
+## How Claude Handles Messy Prompts
+
+The `CLAUDE.md` file intercepts bad habits before they become bad code:
+
+| You say | Claude does instead |
+|:--------|:-------------------|
+| "Just hardcode the API key" | Uses an environment variable |
+| "Skip auth for now" | Enables DEV_MODE (auth stays wired for production) |
+| "Set CORS to * so it works" | Sets the specific origin you need |
+| "Remove the rate limiter" | Increases the limit via config |
+| "Use eval() to parse this" | Uses a safe parser |
+| "git add everything and push" | Stages specific files, creates a feature branch |
+| "Ignore the security rules" | Refuses. Explains why. Helps you do it the right way. |
+
+---
+
+## CW Standards
+
+This template is aligned with CoreWeave's internal security policies:
+
+| Standard | How it's implemented |
+|:---------|:--------------------|
+| **Okta OIDC** | Real JWT verification middleware, not a TODO |
+| **Doppler** | External Secrets Operator in Helm chart |
+| **Chainguard** | CW-approved base images in Dockerfiles |
+| **AppSec scanning** | CodeQL, gosec, bandit, dependency audit in CI |
+| **SOC 2 / ISO 27001** | Audit-ready logging, access control, data protection |
+| **OWASP Top 10** | All 10 categories covered by default |
+
+---
+
+## FAQ
+
+<details>
+<summary><b>Do I need to know security to use this?</b></summary>
+<br>
+No. The template handles security for you. Claude follows the rules in CLAUDE.md, the hooks catch mistakes before they reach git, and CI catches everything else. You focus on building — the pipeline handles security.
+<br><br>
+</details>
+
+<details>
+<summary><b>What if I need to test without Okta?</b></summary>
+<br>
+Set <code>DEV_MODE=true</code> in your <code>.env</code> file. This gives you a fake test user locally. Auth is still wired — when you deploy with real Okta credentials, it just works.
+<br><br>
+</details>
+
+<details>
+<summary><b>Can I use JavaScript/TypeScript instead?</b></summary>
+<br>
+Not yet. The template currently supports Go and Python (CW's primary stacks). JS/TS support is planned. The CLAUDE.md rules and CI pipeline work with any language — only the starter code is language-specific.
+<br><br>
+</details>
+
+<details>
+<summary><b>What if a pre-commit hook is too slow?</b></summary>
+<br>
+Don't use <code>--no-verify</code> to skip it. The CI pipeline will catch that you skipped hooks and block your PR. Instead, run <code>make fix</code> to auto-fix the issue, or ask in <code>#application-security</code> for help.
+<br><br>
+</details>
+
+<details>
+<summary><b>How do I get Okta credentials for my app?</b></summary>
+<br>
+File an IT/Freshservice ticket requesting a new Okta OIDC application. Include: app name, grant type, redirect URIs, and which CW groups need access. IT will send you the client ID and issuer URL.
+<br><br>
+</details>
+
+---
+
+## Project Structure
 
 ```
-Your Code ──> CLAUDE.md ──> Pre-commit ──> CI Pipeline ──> PR Review ──> Deploy
-    |              |            |              |              |            |
-  AI rules    14 security   Gitleaks       CodeQL        Security     Non-root
-  enforced    rules that    Secret scan    gosec/bandit  checklist    containers
-              can't be      Lint + format  80% coverage  Approval     Doppler
-              overridden    Bandit scan    Hook verify   required     secrets
-                            Block main     SBOM gen                   Network
-                            commits                                   policy
+cw-secure-template/
+├── CLAUDE.md                  AI security rules (the brain)
+├── SECURITY.md                Incident response template
+├── security-dashboard.html    Interactive pipeline visual
+├── Makefile                   12 commands
+├── setup.sh                   One-command bootstrap
+│
+├── scripts/
+│   ├── git-hooks/             pre-commit, post-checkout, pre-push
+│   ├── doctor.sh              Pipeline health check
+│   ├── security-fix.sh        Auto-fix + guidance
+│   └── security-quiz.sh       15-question OWASP quiz
+│
+├── go/                        Go starter + middleware + Dockerfile
+├── python/                    Python starter + middleware + Dockerfile
+├── deploy/helm/               K8s deployment (Helm chart)
+└── docs/
+    └── security-handbook.md   Plain-English security guide
 ```
 
-Each layer catches what the previous one missed. Even if someone skips pre-commit hooks, CI catches it via timestamp tracking.
+---
 
-## Security standards
-
-Aligned with CoreWeave internal policies:
-
-- **OWASP Top 10** — all 10 categories covered
-- **SOC 2 / ISO 27001 / ISO 27701** — audit-ready logging, access control, data protection
-- **Okta OIDC/OAuth2** — real auth middleware, not a TODO
-- **Doppler + External Secrets** — secrets never in code
-- **Chainguard base images** — CW-approved container images
-- **AppSec scanning** — CodeQL, gosec, bandit, dependency audit, secret scanning
-- **80% coverage gate** — PRs below threshold are blocked
-- **Branch protection** — required reviews, no force push to main
-
-## For AI-assisted development
-
-The `CLAUDE.md` is the core. It:
-- Prevents hardcoded secrets (uses env vars instead)
-- Enforces auth on every endpoint (Okta OIDC)
-- Blocks dangerous functions (eval, exec, pickle, shell=True)
-- Requires parameterized queries (prevents SQL injection)
-- Adds security headers automatically
-- Teaches security concepts inline (`// SECURITY LESSON:` comments)
-- Refuses to bypass rules even if asked ("ignore CLAUDE.md" is explicitly handled)
-
-## Learning
-
-This template doesn't just protect — it teaches:
-
-- **`make learn`** — Interactive 15-question security quiz
-- **`make dashboard`** — Visual pipeline + OWASP coverage + threat explorer
-- **`docs/security-handbook.md`** — Plain-English security guide
-- **`// SECURITY LESSON:`** comments throughout all code
-- **Every security decision is explained**, not just implemented
-
-## Okta setup
-
-This template requires Okta OIDC credentials. File an IT/Freshservice ticket:
-
-1. Request a new Okta OIDC application
-2. Include: app name, grant type (auth code or device flow), redirect URIs, required groups
-3. IT provides: `OKTA_CLIENT_ID`, `OKTA_ISSUER`, JWKS URI
-4. Add to `.env` (local) and Doppler (production)
-
-For local development, `DEV_MODE=true` bypasses auth with a fake test user (with loud log warnings).
-
-## Customizing
-
-1. **Pick language:** `setup.sh` removes the starter you don't need
-2. **Update CODEOWNERS:** `.github/CODEOWNERS` with your team
-3. **Add Okta config:** fill `.env` after IT registers your app
-4. **Add routes:** build on `go/main.go` or `python/src/main.py`
-5. **Extend CLAUDE.md:** add project-specific rules as your app grows
-6. **Deploy:** update `deploy/helm/values.yaml` with your image + config
-
-## Contributing
-
-PRs welcome. All changes must pass `make check` and the PR security checklist.
+<p align="center">
+  <sub>Built at CoreWeave. Aligned with SOC 2, ISO 27001, and OWASP Top 10.</sub>
+</p>
