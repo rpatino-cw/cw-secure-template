@@ -1,2 +1,4 @@
 # Default: require review from the team
-* @coreweave/your-team-here
+# Replace with your team's GitHub handle when adopting this template
+# Example: * @coreweave/platform-team
+* @coreweave/TODO-replace-with-your-team

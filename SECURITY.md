@@ -6,7 +6,7 @@ If you discover a security vulnerability in this project, **do not open a public
 
 Report it through one of these channels:
 
-- **Email:** security@coreweave.com (replace with your team's security alias)
+- **Email:** Post in #application-security on Slack (preferred) or email the AppSec team directly
 - **Slack:** [#application-security](https://coreweave.slack.com/archives/application-security)
 - **PagerDuty:** For critical/actively-exploited vulnerabilities, use the AppSec on-call rotation
 
@@ -138,12 +138,12 @@ Permanent fix to eliminate the vulnerability:
 
 ## Security Contacts
 
-| Role                  | Contact                            |
-|-----------------------|------------------------------------|
-| Application Security  | #application-security (Slack)      |
-| Security On-Call      | PagerDuty AppSec rotation          |
-| Team Lead             | your-lead@coreweave.com            |
-| Engineering Manager   | your-em@coreweave.com              |
+| Role                  | Contact                            | Action Required |
+|-----------------------|------------------------------------|-----------------|
+| Application Security  | #application-security (Slack)      | - |
+| Security On-Call      | PagerDuty AppSec rotation          | - |
+| Team Lead             | *Fill in when adopting template*   | `TODO` |
+| Engineering Manager   | *Fill in when adopting template*   | `TODO` |
 
 ---
 
