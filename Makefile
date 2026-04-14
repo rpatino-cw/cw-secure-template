@@ -161,6 +161,10 @@ agent: ## Start a Claude session as a room agent (NAME=go-dev)
 room-status: ## Show pending requests across all rooms
 	@bash scripts/room-status.sh
 
+.PHONY: room-lint
+room-lint: ## Validate room config (runs automatically on push)
+	@bash scripts/room-lint.sh
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SETUP (behind make help)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
