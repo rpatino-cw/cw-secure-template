@@ -303,22 +303,24 @@ if [[ "$TOOL_NAME" == "Edit" && -n "$OLD_STRING" && -n "${AGENT_ROOM:-}" && -n "
   ROOMS_CONFIG="$REPO_TOP/rooms.json"
 
   if [[ -f "$ROOMS_CONFIG" ]]; then
-    # Find function/class names being REMOVED (in old_string but not in new_string)
-    REMOVED_NAMES=$(python3 -c "
+    # Find function/class names being REMOVED or RENAMED
+    # Output format: "DELETE:name" or "RENAME:old_name:new_name"
+    CHANGES=$(python3 -c "
 import re, sys
 
 old = sys.argv[1]
 new = sys.argv[2]
 
-# Extract function/class/method names from definitions
 patterns = [
-    r'(?:^|\n)\s*def\s+(\w+)\s*\(',           # Python def
-    r'(?:^|\n)\s*class\s+(\w+)',                # Python class
-    r'(?:^|\n)\s*func\s+(\w+)\s*\(',           # Go func
-    r'(?:^|\n)\s*func\s+\([^)]+\)\s+(\w+)\s*\(', # Go method
-    r'(?:^|\n)\s*(?:export\s+)?function\s+(\w+)', # JS function
-    r'(?:^|\n)\s*(?:export\s+)?const\s+(\w+)\s*=', # JS const export
+    r'(?:^|\n)\s*def\s+(\w+)\s*\(',
+    r'(?:^|\n)\s*class\s+(\w+)',
+    r'(?:^|\n)\s*func\s+(\w+)\s*\(',
+    r'(?:^|\n)\s*func\s+\([^)]+\)\s+(\w+)\s*\(',
+    r'(?:^|\n)\s*(?:export\s+)?function\s+(\w+)',
+    r'(?:^|\n)\s*(?:export\s+)?const\s+(\w+)\s*=',
 ]
+
+skip = {'main','init','new','get','set','run','test','setup','teardown'}
 
 old_names = set()
 for p in patterns:
@@ -328,31 +330,22 @@ new_names = set()
 for p in patterns:
     new_names.update(re.findall(p, new))
 
-# Names that were in old but NOT in new = removed
-removed = old_names - new_names
-# Filter out very short names and common patterns (avoid false positives)
-removed = {n for n in removed if len(n) > 2 and n not in ('main', 'init', 'new', 'get', 'set', 'run', 'test')}
+removed = {n for n in (old_names - new_names) if len(n) > 2 and n not in skip}
+added = {n for n in (new_names - old_names) if len(n) > 2 and n not in skip}
 
-for name in sorted(removed):
-    print(name)
+# Detect renames: 1 removed + 1 added in the same edit = likely rename
+if len(removed) == 1 and len(added) == 1:
+    old_n = removed.pop()
+    new_n = added.pop()
+    print(f'RENAME:{old_n}:{new_n}')
+else:
+    for name in sorted(removed):
+        print(f'DELETE:{name}')
 " "$OLD_STRING" "$CONTENT" 2>/dev/null || echo "")
 
-    if [[ -n "$REMOVED_NAMES" ]]; then
-      while IFS= read -r func_name; do
-        [[ -z "$func_name" ]] && continue
-
-        # Grep the codebase for references to this function (exclude the file being edited)
-        REFS=$(grep -rn --include="*.go" --include="*.py" --include="*.js" --include="*.ts" \
-          -w "$func_name" "$REPO_TOP" 2>/dev/null \
-          | grep -v "$FILE_PATH" \
-          | grep -v "_test\." \
-          | grep -v "rooms/" \
-          | head -5 || true)
-
-        if [[ -n "$REFS" ]]; then
-          # Check if any references are outside this agent's room
-          OUTSIDE=""
-          ALLOWED=$(python3 -c "
+    if [[ -n "$CHANGES" ]]; then
+      # Get this agent's owned paths once
+      ALLOWED=$(python3 -c "
 import json, sys
 with open(sys.argv[1]) as f:
     config = json.load(f)
@@ -361,37 +354,77 @@ for p in room.get('owns', []):
     print(p)
 " "$ROOMS_CONFIG" "$AGENT_ROOM" 2>/dev/null || echo "")
 
-          while IFS= read -r ref_line; do
-            [[ -z "$ref_line" ]] && continue
-            ref_file=$(echo "$ref_line" | cut -d: -f1)
-            ref_rel="${ref_file#$REPO_TOP/}"
+      # Helper: find references outside this room
+      find_outside_refs() {
+        local name="$1"
+        local outside=""
+        local refs
+        refs=$(grep -rn --include="*.go" --include="*.py" --include="*.js" --include="*.ts" \
+          -w "$name" "$REPO_TOP" 2>/dev/null \
+          | grep -v "$FILE_PATH" \
+          | grep -v "_test\." \
+          | grep -v "rooms/" \
+          | head -5 || true)
 
-            IN_MY_ROOM=false
-            while IFS= read -r owned; do
-              [[ -z "$owned" ]] && continue
-              owned="${owned#./}"
-              if [[ "$ref_rel" == "$owned"* ]]; then
-                IN_MY_ROOM=true
-                break
-              fi
-            done <<< "$ALLOWED"
+        [[ -z "$refs" ]] && return
 
-            if [[ "$IN_MY_ROOM" == false ]]; then
-              OUTSIDE="${OUTSIDE}  ${ref_line}\n"
+        while IFS= read -r ref_line; do
+          [[ -z "$ref_line" ]] && continue
+          local ref_file ref_rel in_room=false
+          ref_file=$(echo "$ref_line" | cut -d: -f1)
+          ref_rel="${ref_file#$REPO_TOP/}"
+
+          while IFS= read -r owned; do
+            [[ -z "$owned" ]] && continue
+            owned="${owned#./}"
+            if [[ "$ref_rel" == "$owned"* ]]; then
+              in_room=true
+              break
             fi
-          done <<< "$REFS"
+          done <<< "$ALLOWED"
 
+          if [[ "$in_room" == false ]]; then
+            outside="${outside}  ${ref_line}\n"
+          fi
+        done <<< "$refs"
+
+        echo "$outside"
+      }
+
+      while IFS= read -r change; do
+        [[ -z "$change" ]] && continue
+        TYPE=$(echo "$change" | cut -d: -f1)
+        NAME=$(echo "$change" | cut -d: -f2)
+
+        if [[ "$TYPE" == "DELETE" ]]; then
+          OUTSIDE=$(find_outside_refs "$NAME")
           if [[ -n "$OUTSIDE" ]]; then
-            echo "BLOCKED: Removing '$func_name' would break code in other rooms" >&2
+            echo "BLOCKED: Removing '$NAME' would break code in other rooms" >&2
             echo "" >&2
-            echo "These files reference '$func_name':" >&2
+            echo "These files reference '$NAME':" >&2
             echo -e "$OUTSIDE" >&2
-            echo "Coordinate with the owning agent before removing this function." >&2
+            echo "Coordinate with the owning agent before removing." >&2
             echo "Send a request to their inbox: rooms/{room}/inbox/" >&2
             exit 2
           fi
+
+        elif [[ "$TYPE" == "RENAME" ]]; then
+          NEW_NAME=$(echo "$change" | cut -d: -f3)
+          OUTSIDE=$(find_outside_refs "$NAME")
+          if [[ -n "$OUTSIDE" ]]; then
+            # Don't block renames — warn on stdout (injected into Claude context)
+            echo "<dependency-rename>"
+            echo "You renamed '$NAME' → '$NEW_NAME'"
+            echo ""
+            echo "These files in OTHER rooms still reference the old name '$NAME':"
+            echo -e "$OUTSIDE"
+            echo "Send a request to each room's inbox asking them to update:"
+            echo "  '$NAME' → '$NEW_NAME'"
+            echo "</dependency-rename>"
+            # Allow the edit — but the agent sees the warning
+          fi
         fi
-      done <<< "$REMOVED_NAMES"
+      done <<< "$CHANGES"
     fi
   fi
 fi
