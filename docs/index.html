@@ -1019,8 +1019,8 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   ];
   const dots = document.querySelectorAll('.step-dot');
 
-  let step = 0;
   let running = false;
+  let looping = false;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function setCaption(idx) {
@@ -1140,22 +1140,24 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     await animate(go.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 300);
     await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 300);
 
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise(r => setTimeout(r, 1500));
 
     running = false;
+    // Continuous loop — immediately start next cycle
+    if (looping) runCycle();
   }
 
-  // Start animation when stage scrolls into view
+  // Start looping when stage scrolls into view, pause when out
   const stageObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        runCycle();
-        // Loop
-        setInterval(() => { if (!running) runCycle(); }, 16000);
-        stageObserver.unobserve(entry.target);
+        looping = true;
+        if (!running) runCycle();
+      } else {
+        looping = false;
       }
     });
-  }, { threshold: 0.3 });
+  }, { threshold: 0.2 });
 
   stageObserver.observe(stage);
 })();
