@@ -57,6 +57,11 @@ help: ## Show all available commands
 	@echo "    make agent       Start Claude as a room agent (NAME=go-dev)"
 	@echo "    make room-status See pending requests across rooms"
 	@echo ""
+	@echo "  Branch workflow:"
+	@echo "    make branch      Create a feature branch (NAME=my-feature)"
+	@echo "    make pr          Run checks + push + open PR to main"
+	@echo "    make review      AI code review on unpushed changes"
+	@echo ""
 	@echo "  Docs:"
 	@echo "    make readme      Simplify README via Claude Code"
 	@echo ""
@@ -168,6 +173,14 @@ room-lint: ## Validate room config (runs automatically on push)
 .PHONY: review
 review: ## AI code review on your unpushed changes
 	@bash scripts/agent-review.sh
+
+.PHONY: branch
+branch: ## Create a feature branch (NAME=my-feature)
+	@bash scripts/create-branch.sh $(NAME)
+
+.PHONY: pr
+pr: ## Run checks + push + open PR to main
+	@bash scripts/open-pr.sh
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SETUP (behind make help)

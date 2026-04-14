@@ -15,6 +15,30 @@ echo -e "${DIM}  Pre-push checks...${NC}"
 
 FAILED=0
 
+# ── 0. Block direct pushes to main ──
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+REMOTE_REF=""
+while read local_ref local_sha remote_ref remote_sha; do
+  REMOTE_REF="$remote_ref"
+done
+
+if [[ "$CURRENT_BRANCH" == "main" || "$REMOTE_REF" == *"refs/heads/main"* ]]; then
+  # Allow if this is the initial setup (no remote commits yet)
+  REMOTE_COUNT=$(git rev-list --count origin/main 2>/dev/null || echo "0")
+  if [ "$REMOTE_COUNT" -gt 0 ]; then
+    echo -e "  ${RED}${BOLD}STOP — Cannot push directly to main.${NC}"
+    echo ""
+    echo -e "  ${BOLD}How to fix:${NC}"
+    echo "    1. Create a branch:  ${GREEN}make branch NAME=my-feature${NC}"
+    echo "    2. Push the branch:  ${GREEN}git push -u origin my-feature${NC}"
+    echo "    3. Open a PR:        ${GREEN}make pr${NC}"
+    echo ""
+    echo -e "  ${DIM}All changes to main go through pull requests with CI gates.${NC}"
+    echo ""
+    exit 1
+  fi
+fi
+
 # ── 1. Tests ──
 if [ -f go/go.mod ]; then
     echo -e "  ${DIM}Go tests...${NC}"
