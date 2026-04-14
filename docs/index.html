@@ -272,7 +272,6 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
     <a href="#pipeline" class="nav-link" data-section="pipeline">Pipeline</a>
     <a href="#files" class="nav-link" data-section="files">Files</a>
     <a href="#policies" class="nav-link" data-section="policies">Policies</a>
-    <a href="#plan" class="nav-link" data-section="plan">Plan</a>
     <a href="#qa" class="nav-link" data-section="qa">Q&amp;A</a>
     <a href="#team" class="nav-link" data-section="team">Team</a>
   </div>
@@ -429,112 +428,6 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 </div>
 </section>
 
-<!-- ===== PLAN FORM (hidden until user clicks Plan in nav) ===== -->
-<section id="plan" style="display:none">
-<div class="container">
-  <h2>Generate Your PLAN.md</h2>
-  <p class="subtitle">Ready to build? Describe your app and get a PLAN.md that Claude reads every session.</p>
-  <div class="step-progress" id="stepProgress">Step <strong>1</strong> of 8</div>
-  <div class="step-track" id="stepTrack"></div>
-  <div class="step-card active" data-step="1">
-    <h3>1. Project Identity</h3>
-    <p>What app are you planning?</p>
-    <div class="field-group"><label class="field-label" for="appName">App Name</label><input type="text" id="appName" placeholder="e.g. inventory-tracker" autocomplete="off"></div>
-    <div class="field-group"><label class="field-label" for="appDesc">One-Sentence Description</label><input type="text" id="appDesc" placeholder="e.g. Tracks rack inventory for DCT ops"></div>
-    <div class="field-group"><label class="field-label" for="teamName">Team / Slack Channel</label><input type="text" id="teamName" placeholder="e.g. dct-ops (#dct-eng)"></div>
-    <div class="btn-row"><button class="btn btn-primary" onclick="nextStep(1)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="2">
-    <h3>2. Users &amp; Roles</h3>
-    <p>Who uses this app and what can they do?</p>
-    <div class="dynamic-rows" id="rolesRows">
-      <div class="dynamic-row roles-row"><input type="text" placeholder="Role (e.g. Admin)" class="role-name"><input type="text" placeholder="Who (e.g. DCT leads)" class="role-who"><input type="text" placeholder="Permissions (e.g. Full CRUD)" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-    </div>
-    <button class="add-row-btn" onclick="addRoleRow()">+ Add Role</button>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(2)">Back</button><button class="btn btn-primary" onclick="nextStep(2)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="3">
-    <h3>3. Data Schema</h3>
-    <p>What data does this app store?</p>
-    <div class="dynamic-rows" id="tableRows">
-      <div class="dynamic-row table-row"><input type="text" placeholder="Table name" class="tbl-name"><input type="text" placeholder="Fields (comma-separated)" class="tbl-fields"><input type="text" placeholder="Notes" class="tbl-notes"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-    </div>
-    <button class="add-row-btn" onclick="addTableRow()">+ Add Table</button>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(3)">Back</button><button class="btn btn-primary" onclick="nextStep(3)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="4">
-    <h3>4. API Endpoints</h3>
-    <p>What endpoints does the app expose?</p>
-    <div class="dynamic-rows" id="endpointRows">
-      <div class="dynamic-row endpoint-row"><select class="ep-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input type="text" placeholder="/api/resource" class="ep-path"><input type="text" placeholder="Auth role" class="ep-auth"><input type="text" placeholder="Description" class="ep-desc"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-    </div>
-    <button class="add-row-btn" onclick="addEndpointRow()">+ Add Endpoint</button>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(4)">Back</button><button class="btn btn-primary" onclick="nextStep(4)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="5">
-    <h3>5. User Flow</h3>
-    <p>Describe the main user journey.</p>
-    <div class="field-group"><label class="field-label" for="flowDesc">Flow Description</label><textarea id="flowDesc" placeholder="e.g. User logs in via Okta -> sees dashboard -> selects a rack -> views/edits inventory"></textarea></div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(5)">Back</button><button class="btn btn-primary" onclick="nextStep(5)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="6">
-    <h3>6. Tech Stack</h3>
-    <p>Pick your stack.</p>
-    <label class="field-label">Language / Framework</label>
-    <div class="stack-options" id="langOptions">
-      <div class="stack-chip selected" data-val="Python (FastAPI)" onclick="selectChip(this)">Python (FastAPI)</div>
-      <div class="stack-chip" data-val="Go" onclick="selectChip(this)">Go</div>
-      <div class="stack-chip" data-val="Node.js (Express)" onclick="selectChip(this)">Node.js</div>
-    </div>
-    <label class="field-label">Database</label>
-    <div class="stack-options" id="dbOptions">
-      <div class="stack-chip selected" data-val="PostgreSQL" onclick="selectChip(this)">PostgreSQL</div>
-      <div class="stack-chip" data-val="SQLite" onclick="selectChip(this)">SQLite</div>
-      <div class="stack-chip" data-val="None" onclick="selectChip(this)">None</div>
-    </div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(6)">Back</button><button class="btn btn-primary" onclick="nextStep(6)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="7">
-    <h3>7. Infrastructure</h3>
-    <p>How does this run at scale?</p>
-    <div class="field-row">
-      <div class="field-group"><label class="field-label" for="replicasProd">Prod Replicas</label><input type="text" id="replicasProd" value="3"></div>
-      <div class="field-group"><label class="field-label" for="cpuLimit">CPU Limit</label><input type="text" id="cpuLimit" value="500m"></div>
-    </div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(7)">Back</button><button class="btn btn-primary" onclick="nextStep(7)">Next</button></div>
-  </div>
-  <div class="step-card" data-step="8">
-    <h3>8. Scope Lock</h3>
-    <p>What ships in v1? What waits?</p>
-    <div class="field-group">
-      <label class="field-label">MVP Features</label>
-      <div class="dynamic-rows" id="mvpRows">
-        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CRUD for racks with auth" class="mvp-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-      </div>
-      <button class="add-row-btn" onclick="addMvpRow()">+ Add Feature</button>
-    </div>
-    <div class="field-group">
-      <label class="field-label">Deferred</label>
-      <div class="dynamic-rows" id="deferredRows">
-        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CSV export" class="deferred-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-      </div>
-      <button class="add-row-btn" onclick="addDeferredRow()">+ Add Deferred</button>
-    </div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(8)">Back</button><button class="btn btn-primary" onclick="generatePlan()">Generate PLAN.md</button></div>
-  </div>
-  <div id="planOutput" style="display:none">
-    <div class="plan-output">
-      <div class="plan-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="plan-title">PLAN.md</span></div>
-      <div class="plan-body" id="planBody"></div>
-      <div class="plan-actions">
-        <button class="plan-copy-btn" onclick="copyPlan()">Copy to Clipboard</button>
-        <button class="plan-copy-btn" onclick="downloadPlan()">Download PLAN.md</button>
-        <button class="plan-copy-btn" onclick="resetForm()">Start Over</button>
-      </div>
-    </div>
-  </div>
-</div>
-</section>
 
 <!-- ===== SECTION 5: POLICIES ===== -->
 <section id="policies">
@@ -609,98 +502,7 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
    FORM STATE
    ═══════════════════════════════════════════ */
 const STORAGE_KEY = 'cw-vibe-form';
-const STEPS = ['Identity','Roles','Schema','Endpoints','Flow','Stack','Infra','Scope'];
-let currentStep = 1;
-
-function loadState() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; } }
-function saveState(p) { localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...loadState(), ...p })); }
-
-function renderStepper() {
-  const t = document.getElementById('stepTrack');
-  t.innerHTML = STEPS.map((s, i) => { const n = i+1, cls = n < currentStep ? 'done' : n === currentStep ? 'active' : '';
-    return `<div class="step-indicator ${cls}"><div class="step-dot">${n < currentStep ? '&#10003;' : n}</div><div class="step-label">${s}</div></div>`; }).join('');
-  const p = document.getElementById('stepProgress');
-  if (p) p.innerHTML = currentStep <= 8 ? `Step <strong>${currentStep}</strong> of 8 — ${STEPS[currentStep-1]}` : 'Done — your PLAN.md is ready';
-}
-function showStep(n) { currentStep = n; document.querySelectorAll('.step-card').forEach(c => c.classList.toggle('active', +c.dataset.step === n)); renderStepper(); document.getElementById('planOutput').style.display='none'; document.getElementById('stepTrack').scrollIntoView({behavior:'smooth',block:'nearest'}); }
-function nextStep(f) { if(!validateStep(f))return; collectStep(f); if(f<8)showStep(f+1); }
-function prevStep(f) { collectStep(f); if(f>1)showStep(f-1); }
-function validateStep(n) { if(n===1){ if(!document.getElementById('appName').value.trim()||!document.getElementById('appDesc').value.trim()){shake(document.querySelector('[data-step="1"]'));return false;} } return true; }
-function shake(el){ el.style.animation='none'; el.offsetHeight; el.style.animation='shake 0.4s ease'; setTimeout(()=>el.style.animation='',400); }
-
-function collectStep(n) {
-  const d = {};
-  if(n===1){ d.appName=document.getElementById('appName').value.trim(); d.appDesc=document.getElementById('appDesc').value.trim(); d.teamName=document.getElementById('teamName').value.trim(); }
-  else if(n===2){ d.roles=collectRows('#rolesRows .roles-row',['role-name','role-who','role-perms'],['role','who','perms']); }
-  else if(n===3){ d.tables=collectRows('#tableRows .table-row',['tbl-name','tbl-fields','tbl-notes'],['name','fields','notes']); }
-  else if(n===4){ d.endpoints=collectRows('#endpointRows .endpoint-row',['ep-method','ep-path','ep-auth','ep-desc'],['method','path','auth','desc']); }
-  else if(n===5){ d.flowDesc=document.getElementById('flowDesc').value.trim(); d.flowNodes=[]; document.querySelectorAll('#flowRows .dynamic-row').forEach(r=>{const f=r.querySelector('.flow-from')?.value.trim(),t=r.querySelector('.flow-to')?.value.trim();if(f&&t)d.flowNodes.push({from:f,to:t});}); }
-  else if(n===6){ d.lang=chipVal('langOptions'); d.db=chipVal('dbOptions'); d.deploy=chipVal('deployOptions'); d.secAuth=document.getElementById('secAuth').value.trim(); d.secSecrets=document.getElementById('secSecrets').value.trim(); d.secClass=document.getElementById('secClass').value; }
-  else if(n===7){ d.envs=Array.from(document.querySelectorAll('#envOptions .stack-chip.selected')).map(c=>c.dataset.val); d.replicasDev=document.getElementById('replicasDev').value.trim(); d.replicasProd=document.getElementById('replicasProd').value.trim(); d.cpuLimit=document.getElementById('cpuLimit').value.trim(); d.memLimit=document.getElementById('memLimit').value.trim(); d.scalingStrategy=document.getElementById('scalingStrategy').value; d.infraNotes=document.getElementById('infraNotes').value.trim(); }
-  else if(n===8){ d.mvpFeatures=[]; document.querySelectorAll('#mvpRows .mvp-item').forEach(el=>{const v=el.value.trim();if(v)d.mvpFeatures.push(v);}); d.deferredFeatures=[]; document.querySelectorAll('#deferredRows .deferred-item').forEach(el=>{const v=el.value.trim();if(v)d.deferredFeatures.push(v);}); d.ghBranchProtect=document.getElementById('ghBranchProtect').checked; d.ghRequirePR=document.getElementById('ghRequirePR').checked; d.ghRequireCI=document.getElementById('ghRequireCI').checked; d.ghCodeowners=document.getElementById('ghCodeowners').checked; d.ghSignedCommits=document.getElementById('ghSignedCommits').checked; d.ghConventional=document.getElementById('ghConventional').checked; d.branchStrategy=document.getElementById('branchStrategy').value; }
-  saveState(d);
-}
-function collectRows(sel,classes,keys){ const rows=[]; document.querySelectorAll(sel).forEach(r=>{const o={};let has=false;classes.forEach((c,i)=>{const el=r.querySelector('.'+c);const v=el?(el.tagName==='SELECT'?el.value:el.value.trim()):'';o[keys[i]]=v;if(v)has=true;});if(has)rows.push(o);}); return rows; }
-function chipVal(id){ const s=document.querySelector(`#${id} .stack-chip.selected`); return s?s.dataset.val:''; }
-function selectChip(el){ el.parentElement.querySelectorAll('.stack-chip').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); }
-
-/* Dynamic rows */
-function addRoleRow(){ const c=document.getElementById('rolesRows'),r=document.createElement('div');r.className='dynamic-row roles-row';r.innerHTML='<input type="text" placeholder="Role" class="role-name"><input type="text" placeholder="Who" class="role-who"><input type="text" placeholder="Permissions" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
-function addTableRow(){ const c=document.getElementById('tableRows'),r=document.createElement('div');r.className='dynamic-row table-row';r.innerHTML='<input type="text" placeholder="Table name" class="tbl-name"><input type="text" placeholder="Fields (comma-separated)" class="tbl-fields"><input type="text" placeholder="Notes" class="tbl-notes"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
-function addEndpointRow(){ const c=document.getElementById('endpointRows'),r=document.createElement('div');r.className='dynamic-row endpoint-row';r.innerHTML='<select class="ep-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input type="text" placeholder="/api/resource" class="ep-path"><input type="text" placeholder="Auth role" class="ep-auth"><input type="text" placeholder="Description" class="ep-desc"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
-function addFlowRow(){ const c=document.getElementById('flowRows'),r=document.createElement('div');r.className='dynamic-row';r.style.gridTemplateColumns='1fr 40px 1fr 32px';r.innerHTML='<input type="text" placeholder="From" class="flow-from"><span style="text-align:center;color:var(--text-tertiary);font-size:var(--text-lg)">&rarr;</span><input type="text" placeholder="To" class="flow-to"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
-function addMvpRow(){ const c=document.getElementById('mvpRows'),r=document.createElement('div');r.className='dynamic-row';r.style.gridTemplateColumns='1fr 32px';r.innerHTML='<input type="text" placeholder="Feature description" class="mvp-item"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
-function addDeferredRow(){ const c=document.getElementById('deferredRows'),r=document.createElement('div');r.className='dynamic-row';r.style.gridTemplateColumns='1fr 32px';r.innerHTML='<input type="text" placeholder="Deferred item" class="deferred-item"><button class="remove-row" onclick="removeRow(this)">&times;</button>';c.appendChild(r); }
-function toggleChip(el){ el.classList.toggle('selected'); }
-function removeRow(b){ const r=b.closest('.dynamic-row'); if(r.parentElement.children.length>1)r.remove(); }
-
-/* PLAN.md Generator */
-function generatePlan() {
-  collectStep(8); const s=loadState();
-  let md=`# PLAN.md\n\n## App: ${s.appName||'unnamed'}\n## Purpose: ${s.appDesc||''}\n`;
-  if(s.teamName)md+=`## Team: ${s.teamName}\n`; md+='\n';
-  if(s.roles?.length){md+=`## Users & Roles\n| Role | Who | Permissions |\n|:-----|:----|:------------|\n`;s.roles.forEach(r=>md+=`| ${r.role} | ${r.who} | ${r.perms} |\n`);md+='\n';}
-  if(s.tables?.length){md+=`## Database Schema\n| Table | Fields | Notes |\n|:------|:-------|:------|\n`;s.tables.forEach(t=>md+=`| ${t.name} | ${t.fields} | ${t.notes} |\n`);md+='\n';}
-  if(s.endpoints?.length){md+=`## API Endpoints\n| Method | Path | Auth | Description |\n|:-------|:-----|:-----|:------------|\n`;s.endpoints.forEach(e=>md+=`| ${e.method} | ${e.path} | ${e.auth} | ${e.desc} |\n`);md+='\n';}
-  md+=`## Data Flow\n\`\`\`mermaid\nflowchart LR\n`;
-  if(s.flowNodes?.length)s.flowNodes.forEach(f=>md+=`    ${f.from} --> ${f.to}\n`);
-  else if(s.flowDesc){const p=s.flowDesc.split(/\s*[-\u2192>]+\s*/).filter(Boolean);for(let i=0;i<p.length-1;i++)md+=`    ${p[i].trim()} --> ${p[i+1].trim()}\n`;}
-  else md+=`    User --> App --> Database\n`;
-  md+=`\`\`\`\n\n## Stack\n`;
-  if(s.lang)md+=`- ${s.lang} \u2014 CW approved\n`; if(s.db&&s.db!=='None')md+=`- ${s.db}\n`; if(s.deploy)md+=`- ${s.deploy} \u2014 CW standard deployment\n`;
-  md+=`\n## Security\n`; if(s.secAuth)md+=`- Auth: ${s.secAuth}\n`; if(s.secSecrets)md+=`- Secrets: ${s.secSecrets}${s.appName?' ('+s.appName+')':''}\n`; if(s.secClass)md+=`- Data classification: ${s.secClass}\n`;
-  // Infrastructure
-  if(s.envs?.length||s.cpuLimit||s.memLimit){
-    md+=`\n## Infrastructure\n`;
-    if(s.envs?.length)md+=`- Environments: ${s.envs.join(', ')}\n`;
-    md+=`- Replicas: dev=${s.replicasDev||'1'}, prod=${s.replicasProd||'3'}\n`;
-    if(s.cpuLimit||s.memLimit)md+=`- Resource limits: CPU ${s.cpuLimit||'500m'}, Memory ${s.memLimit||'512Mi'}\n`;
-    if(s.scalingStrategy)md+=`- Scaling: ${s.scalingStrategy}\n`;
-    if(s.infraNotes)md+=`- Notes: ${s.infraNotes}\n`;
-  }
-  // Scope Lock
-  if(s.mvpFeatures?.length||s.deferredFeatures?.length){
-    md+=`\n## Scope Lock\n`;
-    md+=`> Features below are frozen for v1. Do not add scope without team approval.\n\n`;
-    if(s.mvpFeatures?.length){md+=`### MVP (v1)\n`;s.mvpFeatures.forEach(f=>md+=`- [x] ${f}\n`);md+='\n';}
-    if(s.deferredFeatures?.length){md+=`### Deferred (NOT in v1)\n`;s.deferredFeatures.forEach(f=>md+=`- [ ] ${f}\n`);md+='\n';}
-  }
-  // GitHub
-  const ghRules=[]; if(s.ghBranchProtect)ghRules.push('Branch protection on main'); if(s.ghRequirePR)ghRules.push('PR reviews required'); if(s.ghRequireCI)ghRules.push('CI must pass before merge'); if(s.ghCodeowners)ghRules.push('CODEOWNERS file'); if(s.ghSignedCommits)ghRules.push('Signed commits required'); if(s.ghConventional)ghRules.push('Conventional commit messages');
-  if(ghRules.length||s.branchStrategy){
-    md+=`\n## GitHub Practices\n`;
-    if(s.branchStrategy)md+=`- Branching: ${s.branchStrategy}\n`;
-    ghRules.forEach(r=>md+=`- ${r}\n`);
-  }
-  window._plan=md; document.getElementById('planBody').textContent=md; document.getElementById('planOutput').style.display='block';
-  document.querySelectorAll('.step-card').forEach(c=>c.classList.remove('active')); currentStep=9; renderStepper();
-  document.getElementById('planOutput').scrollIntoView({behavior:'smooth'});
-  const nm=(s.appName||'my-app').replace(/\s+/g,'-').toLowerCase(); document.getElementById('scaffoldName').textContent=nm; document.getElementById('scaffoldCd').textContent=nm;
-}
-function copyPlan(){ navigator.clipboard.writeText(window._plan||'').then(()=>{const b=document.querySelector('.plan-copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy to Clipboard',1500);}); }
-function downloadPlan(){ const b=new Blob([window._plan||''],{type:'text/markdown'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='PLAN.md';a.click(); }
 function copyScaffold(){ const nm=document.getElementById('scaffoldName').textContent; navigator.clipboard.writeText(`git clone https://github.com/rpatino-cw/cw-secure-template.git ${nm}\ncd ${nm}\nchmod +x setup.sh && ./setup.sh\nmake init`).then(()=>{const b=document.querySelector('#scaffold .copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);}); }
-function resetForm(){ localStorage.removeItem(STORAGE_KEY); location.reload(); }
 
 /* ═══════════════════════════════════════════
    GUIDED TOUR — 11 SCENARIOS
@@ -1182,7 +984,7 @@ renderTree(FILETREE, document.getElementById('tree'));
 
 // Nav scroll tracking
 function updateNav() {
-  const sections = ['demo','scaffold','pipeline','concepts','files','plan','policies','qa','team'];
+  const sections = ['demo','scaffold','pipeline','concepts','files','policies','qa','team'];
   let active = sections[0];
   sections.forEach(id => { const el=document.getElementById(id); if(el&&el.offsetParent!==null&&el.getBoundingClientRect().top<=100)active=id; });
   document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.section === active));
