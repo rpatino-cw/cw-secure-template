@@ -70,7 +70,9 @@ nav { position: sticky; top: 0; z-index: 100; background: oklch(97% 0.008 80 / 0
 .hero-cta:hover { transform: translateY(-2px); opacity: 0.9; }
 
 /* STEPPER */
-.step-track { display: flex; gap: 0; margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: var(--space-xs); }
+.step-track { display: flex; gap: 0; margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: var(--space-xs); position: sticky; top: 0; z-index: 50; background: var(--bg); padding-top: var(--space-sm); border-bottom: 1px solid var(--border-subtle); }
+.step-progress { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: var(--space-xs); letter-spacing: 0.04em; }
+.step-progress strong { color: var(--info); }
 .step-indicator { flex: 1; min-width: 80px; text-align: center; position: relative; cursor: default; }
 .step-indicator:not(:last-child)::after { content: ''; position: absolute; top: 18px; right: -1px; width: calc(100% - 40px); height: 2px; background: var(--border); left: calc(50% + 20px); transition: background var(--duration) var(--ease-out); }
 .step-indicator.done:not(:last-child)::after { background: var(--pass); }
@@ -292,6 +294,7 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 <div class="container">
   <h2>Generate Your PLAN.md</h2>
   <p class="subtitle">Describe the app you're about to build. At the end, you'll get a PLAN.md to copy into your project. This doesn't build anything — it creates the blueprint Claude follows.</p>
+  <div class="step-progress" id="stepProgress">Step <strong>1</strong> of 8</div>
   <div class="step-track" id="stepTrack"></div>
 
   <!-- Step 1: Identity -->
@@ -681,8 +684,10 @@ function renderStepper() {
   const t = document.getElementById('stepTrack');
   t.innerHTML = STEPS.map((s, i) => { const n = i+1, cls = n < currentStep ? 'done' : n === currentStep ? 'active' : '';
     return `<div class="step-indicator ${cls}"><div class="step-dot">${n < currentStep ? '&#10003;' : n}</div><div class="step-label">${s}</div></div>`; }).join('');
+  const p = document.getElementById('stepProgress');
+  if (p) p.innerHTML = currentStep <= 8 ? `Step <strong>${currentStep}</strong> of 8 — ${STEPS[currentStep-1]}` : 'Done — your PLAN.md is ready';
 }
-function showStep(n) { currentStep = n; document.querySelectorAll('.step-card').forEach(c => c.classList.toggle('active', +c.dataset.step === n)); renderStepper(); document.getElementById('planOutput').style.display='none'; }
+function showStep(n) { currentStep = n; document.querySelectorAll('.step-card').forEach(c => c.classList.toggle('active', +c.dataset.step === n)); renderStepper(); document.getElementById('planOutput').style.display='none'; document.getElementById('stepTrack').scrollIntoView({behavior:'smooth',block:'nearest'}); }
 function nextStep(f) { if(!validateStep(f))return; collectStep(f); if(f<8)showStep(f+1); }
 function prevStep(f) { collectStep(f); if(f>1)showStep(f-1); }
 function validateStep(n) { if(n===1){ if(!document.getElementById('appName').value.trim()||!document.getElementById('appDesc').value.trim()){shake(document.querySelector('[data-step="1"]'));return false;} } return true; }
