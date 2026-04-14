@@ -777,12 +777,14 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
     if (textCol) {
       gsap.from(textCol.children, {
-        opacity: 0, y: 30, stagger: 0.1, duration: 0.7, ease: 'expo.out', delay: 0.2
+        opacity: 0, y: 30, stagger: 0.1, duration: 0.7, ease: 'expo.out', delay: 0.2,
+        clearProps: 'opacity,transform'
       });
     }
     if (vizCol) {
       gsap.from(vizCol, {
-        opacity: 0, scale: 0.88, duration: 1, ease: 'expo.out', delay: 0.4
+        opacity: 0, scale: 0.88, duration: 1, ease: 'expo.out', delay: 0.4,
+        clearProps: 'opacity,transform'
       });
       gsap.to(vizCol, {
         y: -80, ease: 'none',
