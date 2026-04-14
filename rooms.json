@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "description": "Room assignments for multi-agent coordination. Each room has one owner agent. Edit this file to match your project structure.",
+  "rooms": {
+    "go-dev": {
+      "description": "Go application — endpoints, middleware, models, migrations",
+      "owns": ["go/"],
+      "color": "blue"
+    },
+    "py-dev": {
+      "description": "Python application — FastAPI, middleware, models, migrations",
+      "owns": ["python/"],
+      "color": "green"
+    },
+    "security": {
+      "description": "Guard hooks, security rules, incident response, pre-commit",
+      "owns": ["scripts/guard.sh", "scripts/guard-bash.sh", "scripts/git-hooks/", ".pre-commit-config.yaml", "SECURITY.md"],
+      "color": "red"
+    },
+    "devex": {
+      "description": "Setup, docs, Makefile, health checks, onboarding scripts",
+      "owns": ["scripts/doctor.sh", "scripts/security-fix.sh", "scripts/security-quiz.sh", "scripts/add-secret.sh", "scripts/add-config.sh", "scripts/init-project.sh", "setup.sh", "Makefile", "docs/", "security-dashboard.html"],
+      "color": "yellow"
+    },
+    "ci": {
+      "description": "GitHub Actions, branch protection, CODEOWNERS, PR template",
+      "owns": [".github/"],
+      "color": "purple"
+    }
+  },
+  "shared": {
+    "description": "Files that require a request to edit — no single owner",
+    "paths": ["CLAUDE.md", ".claude/rules/", ".claude/settings.json", ".env.example", ".gitignore", "README.md", "docker-compose.yml"],
+    "approver": "security"
+  }
+}

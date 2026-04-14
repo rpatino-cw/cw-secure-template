@@ -235,3 +235,9 @@ yarn-error.log*
 .pnpm-debug.log*
 package-lock.json
 yarn.lock
+
+# Room inbox/outbox (ephemeral agent messages)
+rooms/*/inbox/*.md
+rooms/*/outbox/*.md
+!rooms/*/inbox/.gitkeep
+!rooms/*/outbox/.gitkeep

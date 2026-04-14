@@ -52,6 +52,11 @@ help: ## Show all available commands
 	@echo "    make learn       Take a security quiz (15 questions)"
 	@echo "    make dashboard   Open the security dashboard"
 	@echo ""
+	@echo "  Multi-agent:"
+	@echo "    make rooms       Set up room-based coordination"
+	@echo "    make agent       Start Claude as a room agent (NAME=go-dev)"
+	@echo "    make room-status See pending requests across rooms"
+	@echo ""
 	@echo "  Setup:"
 	@echo "    make init        Personalize for your project (name, team, data)"
 	@echo "    make add-secret  Safely store an API key in .env"
@@ -136,6 +141,22 @@ learn:
 .PHONY: dashboard
 dashboard:
 	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "  Open security-dashboard.html in your browser"
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# MULTI-AGENT ROOMS (behind make help)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: rooms
+rooms: ## Set up room-based multi-agent coordination
+	@bash scripts/init-rooms.sh
+
+.PHONY: agent
+agent: ## Start a Claude session as a room agent (NAME=go-dev)
+	@bash scripts/start-agent.sh $(NAME)
+
+.PHONY: room-status
+room-status: ## Show pending requests across all rooms
+	@bash scripts/room-status.sh
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SETUP (behind make help)
