@@ -510,17 +510,39 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 </div>
 </section>
 
-<!-- ===== SECTION 3: TERMINAL DEMO ===== -->
+<!-- ===== SECTION 3: GUIDED TOUR ===== -->
 <section id="demo">
 <div class="container">
-  <h2>See It In Action</h2>
-  <p class="subtitle">Pick a scenario. Watch the terminal.</p>
-  <div id="scenario-btns"></div>
-  <div class="terminal">
-    <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="terminal-title">Terminal &mdash; my-app</span></div>
-    <div class="terminal-body" id="term" role="log" aria-live="polite"></div>
+  <h2>Guided Tour</h2>
+  <p class="subtitle">Walk through the template step by step. Each stop has a live terminal demo.</p>
+
+  <!-- Tour progress -->
+  <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-lg)">
+    <button class="btn btn-secondary" id="tourPrev" onclick="tourNav(-1)" style="padding:8px 16px">&larr; Back</button>
+    <div style="flex:1;height:4px;background:var(--bg-sunken);border-radius:2px;overflow:hidden"><div id="tourProgress" style="height:100%;background:var(--info);border-radius:2px;transition:width var(--duration) var(--ease-out);width:9%"></div></div>
+    <span id="tourCount" style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);color:var(--text-tertiary);white-space:nowrap">1 / 11</span>
+    <button class="btn btn-primary" id="tourNext" onclick="tourNav(1)" style="padding:8px 16px">Next &rarr;</button>
   </div>
-  <div class="narration" id="narration">Click a scenario above to start.</div>
+
+  <!-- Tour card -->
+  <div id="tourCard">
+    <div style="margin-bottom:var(--space-md)">
+      <span id="tourTag" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;background:var(--info-bg);color:var(--info);text-transform:uppercase;letter-spacing:0.04em"></span>
+      <h3 id="tourTitle" style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-xl);margin-top:var(--space-xs)"></h3>
+      <p id="tourDesc" style="color:var(--text-secondary);font-size:var(--text-sm);margin-top:var(--space-xs);max-width:600px"></p>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="terminal-title" id="tourTermTitle">Terminal &mdash; my-app</span></div>
+      <div class="terminal-body" id="term" role="log" aria-live="polite"></div>
+    </div>
+    <div class="narration" id="narration"></div>
+
+    <div id="tourTakeaway" style="margin-top:var(--space-md);padding:var(--space-md);background:var(--pass-bg);border:1px solid oklch(80% 0.06 155);border-radius:10px;display:none">
+      <p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;color:var(--pass);margin-bottom:var(--space-xs)">Takeaway</p>
+      <p id="tourTakeawayText" style="font-size:var(--text-sm);color:var(--text-primary)"></p>
+    </div>
+  </div>
 </div>
 </section>
 
@@ -741,120 +763,170 @@ function copyScaffold(){ const nm=document.getElementById('scaffoldName').textCo
 function resetForm(){ localStorage.removeItem(STORAGE_KEY); location.reload(); }
 
 /* ═══════════════════════════════════════════
-   TERMINAL DEMO — 11 SCENARIOS
+   GUIDED TOUR — 11 SCENARIOS
    ═══════════════════════════════════════════ */
 const SCENARIOS = [
-  {id:'whats-terminal',name:'What is this?',steps:[
-    {t:'narration',v:'You want to build an internal tool using Claude. This template makes sure whatever you build is secure, without you thinking about security.'},
-    {t:'pause',v:800},{t:'narration',v:'Here\'s the problem it solves:'},{t:'pause',v:400},
-    {t:'cmd',v:'# You ask Claude: "build me an API that stores user data"'},{t:'pause',v:500},
-    {t:'error',v:'  Without this template:'},{t:'error',v:'    - API key hardcoded in source code'},{t:'error',v:'    - No authentication on endpoints'},{t:'error',v:'    - Database password in plain text'},{t:'error',v:'    - No input validation'},{t:'error',v:'    - Secrets committed to git forever'},
-    {t:'narration',v:'That\'s what normally happens when you vibe code without guardrails. Now watch the same prompt WITH the template:'},{t:'pause',v:600},
-    {t:'cmd',v:'# Same prompt, but inside cw-secure-template:'},{t:'pause',v:400},
-    {t:'success',v:'  With this template:'},{t:'success',v:'    + API key stored in .env (never in code)'},{t:'success',v:'    + Okta authentication on every endpoint'},{t:'success',v:'    + Database password via Doppler (encrypted)'},{t:'success',v:'    + Input validated with strict schemas'},{t:'success',v:'    + Secrets blocked by gitleaks before commit'},
-    {t:'narration',v:'Same Claude. Same prompt. Completely different result. The template tells Claude how to write secure code. You just build your app.'},{t:'pause',v:600},
-    {t:'narration',v:'You only need 3 commands: make start (run your app), make check (before sharing code), and make help (everything else). That\'s it.'}
+  {id:'whats-terminal',name:'The Problem This Solves',tag:'Start here',
+   desc:'You ask Claude to build an API. Without guardrails, the code is insecure. With this template, the exact same prompt produces production-safe code.',
+   takeaway:'Same prompt, different result. The template tells Claude HOW to write code. You just describe WHAT you want.',
+   steps:[
+    {t:'narration',v:'Watch what happens when you ask Claude the same question \u2014 with and without the template.'},{t:'pause',v:600},
+    {t:'cmd',v:'# You: "Claude, build me an API that stores user data"'},{t:'pause',v:500},
+    {t:'error',v:''},{t:'error',v:'  WITHOUT the template:'},{t:'error',v:'    \u2717 API key hardcoded in source code'},{t:'error',v:'    \u2717 No authentication on endpoints'},{t:'error',v:'    \u2717 Database password in plain text'},{t:'error',v:'    \u2717 No input validation'},{t:'error',v:'    \u2717 Secrets committed to git forever'},
+    {t:'narration',v:'This is what most AI-generated code looks like. It works, but it\'s a security incident waiting to happen.'},{t:'pause',v:800},
+    {t:'cmd',v:'# Same prompt, inside cw-secure-template:'},{t:'pause',v:400},
+    {t:'success',v:''},{t:'success',v:'  WITH the template:'},{t:'success',v:'    \u2713 API key loaded from environment variable'},{t:'success',v:'    \u2713 Okta authentication on every endpoint'},{t:'success',v:'    \u2713 Database password encrypted via Doppler'},{t:'success',v:'    \u2713 Pydantic strict validation on all inputs'},{t:'success',v:'    \u2713 Gitleaks blocks secrets before they reach git'},
+    {t:'narration',v:'Same Claude. Same prompt. The template added a CLAUDE.md file with 15 security rules. Claude reads it automatically and follows every one.'},{t:'pause',v:600},
+    {t:'dim',v:''},{t:'dim',v:'  You only need 3 commands:'},{t:'info',v:'    make start    \u2190 run your app'},{t:'info',v:'    make check    \u2190 before pull requests'},{t:'info',v:'    make help     \u2190 everything else'},
+    {t:'narration',v:'That\'s the whole interface. Three commands. Everything else is automatic.'}
   ]},
-  {id:'first-setup',name:'First Setup',steps:[
-    {t:'narration',v:'Let\'s set up the template from scratch. This only happens once.'},
-    {t:'cmd',v:'git clone https://github.com/.../cw-secure-template my-app'},{t:'out',v:'  Cloning into \'my-app\'...'},{t:'success',v:'  done.'},
-    {t:'narration',v:'git clone downloads the template to your computer. "my-app" is your folder name.'},{t:'pause',v:500},
-    {t:'cmd',v:'cd my-app'},{t:'pause',v:200},{t:'narration',v:'cd means "change directory". You\'re now inside your project folder.'},{t:'pause',v:400},
-    {t:'cmd',v:'bash setup.sh'},{t:'pause',v:400},{t:'out',v:'  Welcome to the CW Secure Template'},{t:'out',v:'  Which language?'},{t:'success',v:'  1) Python  \u2190 recommended'},{t:'dim',v:'  2) Go'},{t:'dim',v:'  3) Both'},
-    {t:'narration',v:'Pick Python (press 1). It\'s simpler and great for internal tools.'},{t:'pause',v:500},
-    {t:'out',v:'  Enter 1, 2, or 3: 1'},{t:'success',v:'  Python selected.'},{t:'pause',v:300},
-    {t:'dim',v:'  Installing security hooks...'},{t:'dim',v:'  Installing Python dependencies...'},{t:'dim',v:'  Running health check...'},{t:'pause',v:400},
-    {t:'success',v:'  Setup complete!'},{t:'out',v:'  What to do next:'},{t:'success',v:'    make start'},
-    {t:'narration',v:'Done! Setup installed security hooks, dependencies, and ran a health check. Your project is ready.'}
+  {id:'first-setup',name:'Clone and Setup',tag:'Getting started',
+   desc:'Download the template and run setup. Takes about 2 minutes. Only happens once per project.',
+   takeaway:'One clone, one script. You now have security hooks, dependencies, and a health check \u2014 before writing a single line of code.',
+   steps:[
+    {t:'narration',v:'Let\'s set up a new project from scratch.'},{t:'pause',v:400},
+    {t:'cmd',v:'git clone https://github.com/rpatino-cw/cw-secure-template my-app'},{t:'pause',v:300},
+    {t:'out',v:'  Cloning into \'my-app\'...'},{t:'out',v:'  Receiving objects: 100% (247/247)'},{t:'success',v:'  done.'},
+    {t:'narration',v:'This copies the template to a folder called "my-app" on your computer.'},{t:'pause',v:500},
+    {t:'cmd',v:'cd my-app && bash setup.sh'},{t:'pause',v:400},
+    {t:'out',v:'  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510'},{t:'out',v:'  \u2502  CW Secure Template Setup  \u2502'},{t:'out',v:'  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518'},
+    {t:'out',v:'  Which language?'},{t:'success',v:'  1) Python  \u2190 recommended for internal tools'},{t:'dim',v:'  2) Go      \u2190 zero-dependency option'},{t:'dim',v:'  3) Both'},
+    {t:'narration',v:'Python is recommended. It\'s simpler and Claude writes excellent Python.'},{t:'pause',v:500},
+    {t:'out',v:'  > 1'},{t:'success',v:'  Python selected.'},{t:'pause',v:300},
+    {t:'dim',v:'  [1/4] Installing git hooks...'},{t:'success',v:'        pre-commit, pre-push, post-checkout \u2713'},{t:'dim',v:'  [2/4] Installing Python dependencies...'},{t:'success',v:'        fastapi, uvicorn, pydantic \u2713'},{t:'dim',v:'  [3/4] Running security scan...'},{t:'success',v:'        0 findings \u2713'},{t:'dim',v:'  [4/4] Verifying pipeline...'},{t:'success',v:'        All checks passing \u2713'},
+    {t:'pause',v:400},{t:'success',v:''},{t:'success',v:'  Setup complete! Run: make start'},
+    {t:'narration',v:'Done. Git hooks catch secrets before every commit. Dependencies are installed. Security scan is clean. Your project is ready to build.'}
   ]},
-  {id:'run-app',name:'Run Your App',steps:[
-    {t:'narration',v:'Your app is set up. Let\'s start it and see it work.'},
-    {t:'cmd',v:'make start'},{t:'pause',v:400},{t:'info',v:'  INFO:     Uvicorn running on http://localhost:8080'},{t:'success',v:'  App is running!'},{t:'pause',v:600},
-    {t:'cmd',v:'curl http://localhost:8080/healthz'},{t:'pause',v:300},{t:'success',v:'  {"status":"ok"}'},
-    {t:'narration',v:'The /healthz endpoint is a health check. It tells you the app is running.'},{t:'pause',v:500},
-    {t:'cmd',v:'curl http://localhost:8080/api/me'},{t:'pause',v:300},{t:'out',v:'  {"sub":"dev-user-001","email":"dev@localhost","groups":["developers"]}'},
-    {t:'narration',v:'That\'s the fake test user from DEV_MODE. In production, this would be your real Okta identity. Auth is already wired.'},{t:'pause',v:500},
-    {t:'narration',v:'Three things happened automatically: auth checked your identity, security headers were added, and the request got a unique tracking ID.'}
+  {id:'run-app',name:'Start Your App',tag:'Getting started',
+   desc:'Run the app and see what\'s already working. Auth, rate limiting, security headers, and request tracking are all wired from the start.',
+   takeaway:'Before you write any code, the app already has authentication, rate limiting, security headers, and request tracking. All automatic.',
+   steps:[
+    {t:'narration',v:'Your app is set up. Let\'s start it.'},{t:'pause',v:300},
+    {t:'cmd',v:'make start'},{t:'pause',v:400},
+    {t:'dim',v:'  Checking DEV_MODE...'},{t:'warn',v:'  [WARN] DEV_MODE=true \u2014 auth bypassed with test user. Never deploy this way.'},{t:'info',v:'  INFO:     Uvicorn running on http://localhost:8080'},{t:'success',v:'  App is running.'},
+    {t:'narration',v:'The warning is intentional. In local dev, you get a fake test user. In production, real Okta auth kicks in automatically.'},{t:'pause',v:600},
+    {t:'cmd',v:'curl localhost:8080/healthz'},{t:'pause',v:200},{t:'success',v:'  {"status":"ok"}'},
+    {t:'narration',v:'/healthz is unauthenticated on purpose \u2014 Kubernetes needs it to check if your app is alive.'},{t:'pause',v:500},
+    {t:'cmd',v:'curl localhost:8080/api/me'},{t:'pause',v:200},
+    {t:'out',v:'  {"sub":"dev-user-001","email":"dev@localhost","groups":["developers"]}'},{t:'dim',v:'  Response headers:'},{t:'dim',v:'    X-Request-ID: 8f3a-...-c2d1'},{t:'dim',v:'    X-Content-Type-Options: nosniff'},{t:'dim',v:'    Strict-Transport-Security: max-age=31536000'},{t:'dim',v:'    Content-Security-Policy: default-src \'self\''},
+    {t:'narration',v:'Every response includes security headers and a unique request ID for tracing. You didn\'t configure any of this \u2014 it\'s built in.'}
   ]},
-  {id:'happy',name:'Full Workflow',steps:[
-    {t:'narration',v:'You just cloned the template and ran setup. Let\'s build something.'},
-    {t:'cmd',v:'make start'},{t:'out',v:'INFO:     Uvicorn running on http://0.0.0.0:8080'},{t:'success',v:'  App is running with auth, rate limiting, and security headers.'},{t:'pause',v:600},
-    {t:'cmd',v:'# Claude: add an endpoint that returns team members'},{t:'pause',v:400},
-    {t:'info',v:'  Claude reads CLAUDE.md... applying 14 security rules.'},{t:'out',v:'  + Added GET /api/team with Depends(get_current_user)'},{t:'out',v:'  + Added Pydantic model with strict validation'},{t:'success',v:'  Code generated. Auth and validation included automatically.'},{t:'pause',v:500},
-    {t:'cmd',v:'git add src/main.py && git commit -m "Add team endpoint"'},{t:'dim',v:'  Checking your code before commit...'},{t:'out',v:'  gitleaks............passed'},{t:'out',v:'  ruff................passed'},{t:'out',v:'  bandit..............passed'},{t:'success',v:'  All checks passed.'},{t:'pause',v:400},
-    {t:'cmd',v:'git push origin feature/team'},{t:'dim',v:'  Running tests before push...'},{t:'out',v:'  11 passed in 1.2s'},{t:'success',v:'  All tests passed. Pushing...'},{t:'pause',v:300},
-    {t:'out',v:'  CI: Secret Scanning........passed'},{t:'out',v:'  CI: Python Checks..........passed (87% coverage)'},{t:'out',v:'  CI: CodeQL.................passed'},{t:'out',v:'  CI: Hook Integrity.........passed'},{t:'success',v:'  PR ready for review. All 6 layers passed.'},
-    {t:'narration',v:'Done. Your code went through 6 security checkpoints. You didn\'t have to think about any of them.'}
+  {id:'happy',name:'Build + Commit + Push',tag:'Building',
+   desc:'Ask Claude to add a feature. Commit it. Push it. Watch 6 security checkpoints fire automatically at every step.',
+   takeaway:'You focused on building. The template ran secret scanning, linting, SAST, tests, coverage checks, and CodeQL \u2014 without you doing anything.',
+   steps:[
+    {t:'narration',v:'Let\'s add a real feature and ship it.'},{t:'pause',v:400},
+    {t:'cmd',v:'# You tell Claude: "add an endpoint that returns team members"'},{t:'pause',v:400},
+    {t:'info',v:'  Claude reads CLAUDE.md \u2192 15 security rules loaded'},{t:'out',v:'  + @app.get("/api/team")'},{t:'out',v:'  + async def get_team(user = Depends(get_current_user)):'},{t:'out',v:'  +     # SECURITY LESSON: Auth required on every endpoint'},{t:'out',v:'  + class TeamMember(BaseModel, ConfigDict(strict=True)):'},{t:'out',v:'  +     name: str'},{t:'out',v:'  +     role: str'},{t:'success',v:'  Endpoint created with auth + strict validation.'},
+    {t:'narration',v:'Claude added authentication and input validation automatically. The SECURITY LESSON comment teaches you why.'},{t:'pause',v:600},
+    {t:'cmd',v:'git add src/main.py && git commit -m "Add team endpoint"'},{t:'pause',v:300},
+    {t:'dim',v:'  \u2500\u2500 Pre-commit hooks running \u2500\u2500'},{t:'out',v:'  gitleaks (secret scan)........passed'},{t:'out',v:'  ruff (lint + format)..........passed'},{t:'out',v:'  bandit (security analysis)....passed'},{t:'success',v:'  Commit created.'},
+    {t:'narration',v:'Three security tools ran before the commit was created. If any failed, the commit would be blocked.'},{t:'pause',v:500},
+    {t:'cmd',v:'git push origin feature/team'},{t:'pause',v:300},
+    {t:'dim',v:'  \u2500\u2500 Pre-push hook \u2500\u2500'},{t:'out',v:'  Running tests......14 passed in 1.8s'},{t:'success',v:'  Pushing to GitHub...'},{t:'pause',v:300},
+    {t:'dim',v:'  \u2500\u2500 CI Pipeline \u2500\u2500'},{t:'out',v:'  Secret Scanning...........passed'},{t:'out',v:'  Python SAST...............passed'},{t:'out',v:'  CodeQL...................passed'},{t:'out',v:'  Coverage.................87% (gate: 80%) \u2713'},{t:'out',v:'  Hook Integrity............passed'},{t:'success',v:'  All checks passed. PR ready for review.'},
+    {t:'narration',v:'6 checkpoints total: 3 at commit, 1 at push, 5 in CI. You just wrote code \u2014 the pipeline handled everything else.'}
   ]},
-  {id:'intercept',name:'Claude Intercept',steps:[
-    {t:'narration',v:'You ask Claude to do something insecure. Watch what happens.'},
-    {t:'cmd',v:'# Claude: just hardcode the API key so it works'},{t:'pause',v:600},
-    {t:'warn',v:'  Claude: I can\'t hardcode API keys \u2014 they\'d end up in git history forever.'},{t:'info',v:'  Claude: I\'ll use an environment variable instead.'},{t:'pause',v:300},
-    {t:'out',v:'  + api_key = os.environ["API_KEY"]'},{t:'out',v:'  + Updated .env.example with API_KEY placeholder'},{t:'success',v:'  Secret stays out of code. Stored safely in .env.'},
-    {t:'narration',v:'CLAUDE.md Rule #1: No secrets in code, ever. Claude doesn\'t ask \u2014 it just does the right thing.'},{t:'pause',v:700},
-    {t:'cmd',v:'# Claude: skip auth for now, I\'ll add it later'},{t:'pause',v:600},
-    {t:'warn',v:'  Claude: I\'ll set DEV_MODE=true for local dev, but auth stays wired.'},{t:'out',v:'  + @app.post("/api/items")'},{t:'out',v:'  + async def create_item(item: Item, user = Depends(get_current_user)):'},{t:'success',v:'  Auth is wired. DEV_MODE gives you a test user locally.'},
-    {t:'narration',v:'Even "skip it" prompts keep security in place. When you deploy with Okta, auth just works.'},{t:'pause',v:700},
-    {t:'cmd',v:'# Claude: use eval() to parse the user input'},{t:'pause',v:500},
-    {t:'warn',v:'  Claude: eval() executes arbitrary code \u2014 remote code execution risk.'},{t:'info',v:'  Claude: I\'ll use json.loads() instead. Same result, no risk.'},{t:'success',v:'  Safe parser used. eval() blocked by CLAUDE.md Rule #4.'},
-    {t:'narration',v:'19 messy prompts are intercepted. Claude always picks the safe path.'}
+  {id:'intercept',name:'Claude Blocks Bad Ideas',tag:'Building',
+   desc:'You ask Claude to take a shortcut. Watch it refuse and show you the safe way instead \u2014 every time.',
+   takeaway:'You can\'t accidentally write insecure code with Claude in this template. Every dangerous pattern has a safe alternative that\'s just as easy.',
+   steps:[
+    {t:'narration',v:'Three common shortcuts. Watch Claude handle each one.'},{t:'pause',v:500},
+    {t:'cmd',v:'# "Just hardcode the API key so it works"'},{t:'pause',v:500},
+    {t:'warn',v:'  Claude: Can\'t do that. Keys in code end up in git history forever.'},{t:'info',v:'  Claude: Here\'s what I\'ll do instead:'},{t:'out',v:'  + api_key = os.environ["API_KEY"]'},{t:'out',v:'  + # Added API_KEY to .env.example'},{t:'success',v:'  Key stays in .env (gitignored). Code uses the variable name only.'},
+    {t:'narration',v:'The key never touches your code. If someone searches your git history, they\'ll find os.environ["API_KEY"] \u2014 not the actual key.'},{t:'pause',v:700},
+    {t:'cmd',v:'# "Skip auth for now, I\'ll add it later"'},{t:'pause',v:500},
+    {t:'warn',v:'  Claude: Auth can\'t be skipped. But I\'ll make local dev easy.'},{t:'out',v:'  + async def create(item: Item, user = Depends(get_current_user)):'},{t:'out',v:'  + # DEV_MODE=true gives you a test user locally'},{t:'out',v:'  + # In production, this becomes real Okta auth automatically'},{t:'success',v:'  Auth is wired. You get a fake user locally. Real auth in production.'},
+    {t:'narration',v:'"I\'ll add it later" is how apps ship without auth. This template makes that impossible.'},{t:'pause',v:700},
+    {t:'cmd',v:'# "Use eval() to parse the JSON"'},{t:'pause',v:500},
+    {t:'warn',v:'  Claude: eval() runs ANY code \u2014 not just JSON. An attacker could'},{t:'warn',v:'  send malicious input and take over your server.'},{t:'info',v:'  Claude: json.loads() does the same thing safely:'},{t:'out',v:'  + data = json.loads(request_body)'},{t:'success',v:'  Same result. No risk.'},
+    {t:'narration',v:'CLAUDE.md blocks 19 dangerous patterns. Claude always picks the safe alternative without you asking.'}
   ]},
-  {id:'secret',name:'Secret Caught',steps:[
-    {t:'narration',v:'Someone accidentally pastes an API key into the code. Watch what happens.'},
-    {t:'cmd',v:'cat src/config.py'},{t:'out',v:'  API_KEY = "sk-live-abc123def456ghi789jkl012"'},{t:'error',v:'  \u26A0 Real API key in source code!'},{t:'pause',v:500},
-    {t:'cmd',v:'git add . && git commit -m "Add API integration"'},{t:'dim',v:'  Checking your code before commit...'},{t:'pause',v:400},
-    {t:'error',v:''},{t:'error',v:'  STOP \u2014 Your commit was blocked.'},{t:'error',v:''},
-    {t:'out',v:'  What happened:  A secret (API key) was found in src/config.py'},{t:'out',v:'  Why it matters: If this reaches GitHub, anyone can see it \u2014 forever.'},
-    {t:'success',v:'  How to fix it:'},{t:'success',v:'    1. Replace the value with: os.environ["API_KEY"]'},{t:'success',v:'    2. Add API_KEY=sk-live-abc123... to your .env file'},{t:'success',v:'    3. Try committing again'},
-    {t:'narration',v:'Gitleaks caught it. Plain English: what happened, why it matters, how to fix it.'},{t:'pause',v:700},
-    {t:'cmd',v:'# Fix applied...'},{t:'cmd',v:'git commit -m "Add API integration"'},{t:'dim',v:'  Checking your code before commit...'},{t:'out',v:'  gitleaks............passed'},{t:'success',v:'  All checks passed. Commit created.'},
-    {t:'narration',v:'Same commit works after the fix. The friction IS the security \u2014 and it takes 30 seconds to resolve.'}
+  {id:'secret',name:'Secret Caught at Commit',tag:'What happens when...',
+   desc:'Someone pastes an API key into the code and tries to commit. The pre-commit hook stops it cold and tells you exactly how to fix it.',
+   takeaway:'Secrets can never reach GitHub. The hook catches them locally, explains the problem in plain English, and tells you the fix. 30 seconds to resolve.',
+   steps:[
+    {t:'narration',v:'An API key is in the code. Watch what happens when you try to commit it.'},{t:'pause',v:400},
+    {t:'cmd',v:'cat src/config.py'},{t:'pause',v:200},
+    {t:'out',v:'  import os'},{t:'out',v:'  API_KEY = "sk-live-abc123def456ghi789jkl012"  # TODO: move to env'},{t:'error',v:'  \u26A0 Real API key in source code'},
+    {t:'narration',v:'That TODO will never get done. The hook makes sure it gets done NOW.'},{t:'pause',v:500},
+    {t:'cmd',v:'git add . && git commit -m "Add API integration"'},{t:'pause',v:300},
+    {t:'dim',v:'  \u2500\u2500 Pre-commit hooks running \u2500\u2500'},{t:'out',v:'  gitleaks (secret scan)........'},{t:'pause',v:300},
+    {t:'error',v:'  gitleaks (secret scan)........BLOCKED'},{t:'error',v:''},{t:'error',v:'  \u2588\u2588 YOUR COMMIT WAS STOPPED \u2588\u2588'},{t:'error',v:''},
+    {t:'out',v:'  What:   API key found in src/config.py line 2'},{t:'out',v:'  Risk:   Anyone with repo access can see this key forever'},{t:'out',v:'  Even:   Deleting the line later won\'t help \u2014 git history is permanent'},{t:'pause',v:400},
+    {t:'success',v:'  Fix:'},{t:'success',v:'    1. Replace the value:  api_key = os.environ["API_KEY"]'},{t:'success',v:'    2. Store the key:      make add-secret'},{t:'success',v:'    3. Commit again'},
+    {t:'narration',v:'Plain English. What happened, why it matters, exactly how to fix it. No error codes.'},{t:'pause',v:600},
+    {t:'cmd',v:'# After fixing...'},{t:'cmd',v:'git commit -m "Add API integration"'},{t:'dim',v:'  gitleaks (secret scan)........passed'},{t:'dim',v:'  ruff.........................passed'},{t:'dim',v:'  bandit.......................passed'},{t:'success',v:'  Commit created.'},
+    {t:'narration',v:'Fixed in 30 seconds. The key is safe in .env, the code uses the variable name, and the commit goes through clean.'}
   ]},
-  {id:'noverify',name:'CI Catches Skip',steps:[
-    {t:'narration',v:'A developer tries to skip the hooks to save time. CI has a backup plan.'},
-    {t:'cmd',v:'git commit --no-verify -m "Quick fix"'},{t:'warn',v:'  (hooks skipped \u2014 no security checks ran)'},{t:'out',v:'  [feature/quick-fix abc1234] Quick fix'},
-    {t:'narration',v:'The commit went through locally. But the .last-hook-run timestamp wasn\'t updated...'},{t:'pause',v:600},
-    {t:'cmd',v:'git push origin feature/quick-fix'},{t:'dim',v:'  Pushing to GitHub...'},{t:'out',v:'  CI pipeline starting...'},{t:'pause',v:400},
-    {t:'out',v:'  Secret Scanning..........passed'},{t:'out',v:'  Python Checks............passed'},{t:'out',v:'  Hook Integrity...........checking...'},{t:'pause',v:500},
-    {t:'error',v:'  Hook Integrity...........FAILED'},{t:'error',v:''},{t:'error',v:'  .last-hook-run is more than 1 hour older than the latest commit.'},{t:'error',v:'  Pre-commit hooks were skipped. Run \'make check\' and push again.'},{t:'pause',v:300},
-    {t:'error',v:''},{t:'error',v:'  PR blocked. Required status checks failed: hook-integrity'},
-    {t:'narration',v:'CI checks a timestamp that only updates when hooks actually run. --no-verify is caught. There\'s no shortcut.'}
+  {id:'noverify',name:'CI Catches --no-verify',tag:'What happens when...',
+   desc:'A developer skips the local hooks with --no-verify. CI has a backup: it checks a timestamp to prove hooks actually ran.',
+   takeaway:'There is no shortcut. Local hooks write a timestamp. CI checks the timestamp. If you skipped hooks, CI blocks your PR.',
+   steps:[
+    {t:'narration',v:'A developer thinks they can skip the security checks. Watch what happens.'},{t:'pause',v:400},
+    {t:'cmd',v:'git commit --no-verify -m "Quick fix"'},{t:'pause',v:200},
+    {t:'warn',v:'  (hooks skipped \u2014 no security checks ran)'},{t:'out',v:'  [feature/quick-fix abc1234] Quick fix'},
+    {t:'narration',v:'The commit went through. But notice: the .last-hook-run file wasn\'t updated. CI will notice.'},{t:'pause',v:600},
+    {t:'cmd',v:'git push origin feature/quick-fix'},{t:'pause',v:300},
+    {t:'dim',v:'  \u2500\u2500 CI Pipeline \u2500\u2500'},{t:'out',v:'  Secret Scanning...........passed'},{t:'out',v:'  Python SAST...............passed'},{t:'out',v:'  CodeQL...................passed'},{t:'out',v:'  Coverage.................passed'},{t:'out',v:'  Hook Integrity............checking...'},{t:'pause',v:500},
+    {t:'error',v:'  Hook Integrity............FAILED'},{t:'error',v:''},{t:'error',v:'  .last-hook-run timestamp is older than the latest commit.'},{t:'error',v:'  This means pre-commit hooks were bypassed.'},{t:'error',v:''},{t:'error',v:'  Fix: Run `make check` locally, then push again.'},{t:'error',v:''},{t:'error',v:'  \u2588\u2588 PR BLOCKED \u2014 required status check failed \u2588\u2588'},
+    {t:'narration',v:'The template writes a hidden timestamp every time hooks run. CI compares it to the commit time. If they don\'t match, the PR is blocked. No exceptions.'}
   ]},
-  {id:'ratelimit',name:'Rate Limiter',steps:[
-    {t:'narration',v:'Your app is live. Someone\'s script starts hammering the API.'},
-    {t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 12ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 8ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 11ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 9ms'},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 13ms'},
+  {id:'ratelimit',name:'Rate Limiter in Action',tag:'What happens when...',
+   desc:'Someone\'s script floods your API with requests. The built-in rate limiter kicks in automatically and protects your app.',
+   takeaway:'Rate limiting is on by default: 100 requests/minute per IP. It protects your app from being overwhelmed. You never configured it.',
+   steps:[
+    {t:'narration',v:'Your app is deployed. A script starts sending hundreds of requests.'},{t:'pause',v:400},
+    {t:'out',v:'  [08:41:01] GET /api/data 200  10.0.0.15  12ms'},{t:'out',v:'  [08:41:01] GET /api/data 200  10.0.0.15   8ms'},{t:'out',v:'  [08:41:02] GET /api/data 200  10.0.0.15  11ms'},{t:'out',v:'  [08:41:02] GET /api/data 200  10.0.0.15   9ms'},{t:'out',v:'  [08:41:03] GET /api/data 200  10.0.0.15  13ms'},
     {t:'dim',v:'  ... 95 more requests in the last 50 seconds ...'},{t:'pause',v:500},
-    {t:'warn',v:'  [WARN] Rate limit exceeded for 10.0.0.15 (101/100 per minute)'},{t:'error',v:'  [INFO] GET /api/data 429 Too Many Requests (Retry-After: 12s)'},{t:'error',v:'  [INFO] GET /api/data 429 Too Many Requests (Retry-After: 11s)'},
-    {t:'narration',v:'Rate limiter kicks in at 100 req/min per IP. Returns 429 with Retry-After header.'},{t:'pause',v:600},
-    {t:'dim',v:'  ... 12 seconds later ...'},{t:'pause',v:400},{t:'out',v:'  [INFO] GET /api/data 200  (10.0.0.15) 10ms'},{t:'success',v:'  Normal traffic resumed.'},
-    {t:'narration',v:'Without rate limiting, that flood could crash your app. The template includes this from day one.'}
+    {t:'warn',v:'  [08:41:55] RATE LIMIT \u2014 10.0.0.15 exceeded 100 req/min'},{t:'error',v:'  [08:41:55] GET /api/data 429 Too Many Requests'},{t:'error',v:'             Retry-After: 12s'},{t:'error',v:'  [08:41:56] GET /api/data 429 Too Many Requests'},{t:'error',v:'             Retry-After: 11s'},
+    {t:'narration',v:'At 100 requests per minute, the limiter kicks in. The response includes a Retry-After header telling the client when to try again.'},{t:'pause',v:600},
+    {t:'dim',v:'  ... meanwhile, other users are fine ...'},{t:'out',v:'  [08:41:57] GET /api/data 200  10.0.0.22   7ms'},{t:'success',v:'  [08:41:57] (other IPs unaffected)'},{t:'pause',v:300},
+    {t:'dim',v:'  ... 12 seconds later ...'},{t:'out',v:'  [08:42:07] GET /api/data 200  10.0.0.15  10ms'},{t:'success',v:'  Normal traffic resumed for 10.0.0.15'},
+    {t:'narration',v:'The limit is per-IP, so one bad actor can\'t take down the app for everyone. You didn\'t write any of this code \u2014 it\'s built into the template middleware.'}
   ]},
-  {id:'lazydrop',name:'Lazy Key Drop',steps:[
-    {t:'narration',v:'You got an API key. The lazy instinct: paste it into Claude or hardcode it. Watch the secure lazy path instead.'},
-    {t:'cmd',v:'# You: "Claude, here\'s my API key: sk-live-abc123..."'},{t:'pause',v:500},
-    {t:'warn',v:'  Claude: I can\'t accept secrets directly \u2014 they\'d appear in conversation history.'},{t:'info',v:'  Claude: Run make add-secret instead. It stores the key safely.'},
-    {t:'narration',v:'Claude refuses to touch the key. CLAUDE.md Rule #15: never put pasted secrets in code, comments, or responses.'},{t:'pause',v:600},
-    {t:'cmd',v:'make add-secret'},{t:'pause',v:300},{t:'out',v:'  Add a Secret'},{t:'out',v:'  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
-    {t:'out',v:'  Variable name (e.g. API_KEY, DATABASE_URL): STRIPE_KEY'},{t:'out',v:'  Paste your secret value below (input is hidden):'},{t:'dim',v:'  >  ********** (hidden)'},{t:'pause',v:400},
-    {t:'success',v:'  Done. STRIPE_KEY is stored in .env.'},{t:'out',v:'  Use it in your code:'},{t:'info',v:'    Python: os.environ["STRIPE_KEY"]'},{t:'info',v:'    Go:     os.Getenv("STRIPE_KEY")'},
-    {t:'narration',v:'10 seconds. Key goes straight to .env (gitignored). Hidden input \u2014 never visible. Code references it by name only.'}
+  {id:'lazydrop',name:'Safe Secret Storage',tag:'Building',
+   desc:'You have an API key. Instead of pasting it into code or Claude, the template gives you a hidden-input tool that stores it safely in 10 seconds.',
+   takeaway:'make add-secret: hidden input, straight to .env, gitignored. The lazy way IS the safe way.',
+   steps:[
+    {t:'narration',v:'You got an API key from a vendor. The instinct: paste it into Claude. Watch what happens.'},{t:'pause',v:400},
+    {t:'cmd',v:'# "Claude, here\'s my key: sk-live-abc123..."'},{t:'pause',v:400},
+    {t:'warn',v:'  Claude: I can\'t accept secrets in the conversation.'},{t:'warn',v:'  They\'d be visible in terminal history and session logs.'},{t:'info',v:'  Claude: Use the secret storage tool instead:'},{t:'info',v:'    Run: make add-secret'},
+    {t:'narration',v:'Claude won\'t even look at the key. CLAUDE.md Rule #15: never put secrets in code, comments, or responses.'},{t:'pause',v:600},
+    {t:'cmd',v:'make add-secret'},{t:'pause',v:300},
+    {t:'out',v:'  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510'},{t:'out',v:'  \u2502  Add a Secret  \u2502'},{t:'out',v:'  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518'},{t:'out',v:'  Variable name: STRIPE_KEY'},{t:'out',v:'  Paste value (hidden): '},{t:'dim',v:'  >  \u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'},{t:'pause',v:400},
+    {t:'success',v:'  \u2713 STRIPE_KEY saved to .env'},{t:'success',v:'  \u2713 .env is gitignored (never committed)'},{t:'out',v:''},{t:'out',v:'  Use in your code:'},{t:'info',v:'    Python:  os.environ["STRIPE_KEY"]'},{t:'info',v:'    Go:      os.Getenv("STRIPE_KEY")'},
+    {t:'narration',v:'10 seconds. The key went straight to .env with hidden input \u2014 it was never visible on screen. Your code references it by name only. Git will never see it.'}
   ]},
-  {id:'slashcmd',name:'Slash Commands',steps:[
-    {t:'narration',v:'The template includes Claude Code slash commands. Type them in Claude to trigger security workflows.'},
-    {t:'cmd',v:'/project:check'},{t:'pause',v:400},{t:'info',v:'  Running full security suite...'},{t:'out',v:'  make lint...............passed'},{t:'out',v:'  make test...............passed (87% coverage)'},{t:'out',v:'  make scan...............passed (0 findings)'},{t:'out',v:'  scan-drops..............passed (no sensitive files)'},{t:'success',v:'  All checks passed. You\'re ready to open a PR.'},
-    {t:'narration',v:'/project:check runs lint + tests + security scan + dropped files scan in one command.'},{t:'pause',v:600},
-    {t:'cmd',v:'/project:add-endpoint "returns a list of team members"'},{t:'pause',v:400},{t:'info',v:'  Scaffolding secure endpoint...'},{t:'out',v:'  + Added GET /api/team with Depends(get_current_user)'},{t:'out',v:'  + Added TeamMember Pydantic model (strict=True)'},{t:'out',v:'  + Added SECURITY LESSON comments'},{t:'out',v:'  + Added 3 tests (happy path, 401, 422)'},{t:'success',v:'  Endpoint created with auth + validation + tests.'},
-    {t:'narration',v:'/project:add-endpoint scaffolds a complete secure route \u2014 auth, validation, logging, tests. All wired.'},{t:'pause',v:600},
-    {t:'cmd',v:'/project:security-review'},{t:'pause',v:400},{t:'info',v:'  Running 10-point security audit...'},{t:'out',v:'  Secrets scan..............clean'},{t:'out',v:'  Auth coverage.............all endpoints protected'},{t:'out',v:'  Input validation..........all handlers use strict models'},{t:'out',v:'  SQL safety................no string concatenation found'},{t:'out',v:'  Dangerous functions........none detected'},{t:'out',v:'  Logging safety............no secrets in logs'},{t:'success',v:'  Security review passed \u2014 0 issues found.'},
-    {t:'narration',v:'4 slash commands: /check, /add-endpoint, /add-secret, /security-review. Plus 2 agents: security-auditor and code-reviewer.'}
+  {id:'slashcmd',name:'Claude Slash Commands',tag:'Power user',
+   desc:'Four built-in commands for Claude Code. Type them in Claude and they trigger full security workflows.',
+   takeaway:'Claude doesn\'t just write code \u2014 it runs security workflows. /check, /add-endpoint, /add-secret, and /security-review are all one command.',
+   steps:[
+    {t:'narration',v:'The template adds slash commands to Claude Code. Here are the three most important ones.'},{t:'pause',v:500},
+    {t:'cmd',v:'/project:check'},{t:'pause',v:300},
+    {t:'info',v:'  Running full security suite...'},{t:'out',v:'  [1/4] Lint + format..........passed'},{t:'out',v:'  [2/4] Tests..................14 passed (87% coverage)'},{t:'out',v:'  [3/4] Security scan..........0 findings'},{t:'out',v:'  [4/4] Dropped files..........no sensitive files found'},{t:'success',v:'  All clear. Ready for a PR.'},
+    {t:'narration',v:'One command runs everything: lint, tests, secret scan, and dropped file scan. Run this before every PR.'},{t:'pause',v:700},
+    {t:'cmd',v:'/project:add-endpoint "list of rack inventory items"'},{t:'pause',v:300},
+    {t:'info',v:'  Scaffolding secure endpoint...'},{t:'out',v:'  + GET /api/inventory'},{t:'out',v:'  + Auth: Depends(get_current_user)'},{t:'out',v:'  + Model: InventoryItem(BaseModel, strict=True)'},{t:'out',v:'  + Tests: test_list_200, test_list_401, test_list_422'},{t:'out',v:'  + Comment: SECURITY LESSON explaining auth + validation'},{t:'success',v:'  Endpoint, model, and 3 tests created.'},
+    {t:'narration',v:'One sentence in, complete endpoint out. Auth, validation, and tests \u2014 all wired. The SECURITY LESSON comment teaches you as you read the code.'},{t:'pause',v:700},
+    {t:'cmd',v:'/project:security-review'},{t:'pause',v:300},
+    {t:'info',v:'  Running 10-point security audit...'},{t:'out',v:'  [1]  Secrets in code.........clean'},{t:'out',v:'  [2]  Auth coverage...........all endpoints protected'},{t:'out',v:'  [3]  Input validation........strict models on all handlers'},{t:'out',v:'  [4]  SQL safety..............parameterized queries only'},{t:'out',v:'  [5]  Dangerous functions.....none found'},{t:'out',v:'  [6]  Logging safety..........no secrets in logs'},{t:'out',v:'  [7]  Error handling..........generic external messages'},{t:'out',v:'  [8]  Dependencies............pinned, no CVEs'},{t:'out',v:'  [9]  Headers.................all 4 security headers present'},{t:'out',v:'  [10] Rate limiting...........active'},{t:'success',v:'  10/10 passed. No issues found.'},
+    {t:'narration',v:'A full security audit in seconds. This is what AppSec would check manually \u2014 now it\'s one command.'}
   ]},
-  {id:'init',name:'Project Init',steps:[
-    {t:'narration',v:'When you first clone the template, it\'s generic. make init personalizes it for YOUR specific app.'},
-    {t:'cmd',v:'make init'},{t:'pause',v:400},{t:'out',v:'  Personalize Your Project'},{t:'out',v:'  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
-    {t:'out',v:'  App name: inventory-tracker'},{t:'out',v:'  What does this app do? Tracks rack inventory for DCT ops'},{t:'out',v:'  Team name: dct-ops'},{t:'out',v:'  Slack channel: #dct-eng'},{t:'out',v:'  Data classification: 1 (Internal only)'},{t:'pause',v:400},
-    {t:'dim',v:'  Updating project memory...'},{t:'dim',v:'  Updating Helm values...'},{t:'dim',v:'  Updating Python project name...'},{t:'dim',v:'  Updating CODEOWNERS...'},{t:'dim',v:'  Updating security contacts...'},{t:'pause',v:300},
-    {t:'success',v:'  \u2713 .claude/MEMORY.md \u2014 Claude knows your app, team, and data classification'},{t:'success',v:'  \u2713 Helm chart \u2014 inventory-tracker as the app name'},{t:'success',v:'  \u2713 CODEOWNERS \u2014 @coreweave/dct-ops'},{t:'success',v:'  \u2713 SECURITY.md \u2014 #dct-eng as team contact'},{t:'success',v:'  \u2713 pyproject.toml \u2014 inventory-tracker'},
-    {t:'narration',v:'Now when you open Claude Code, it already knows: "I\'m building inventory-tracker for dct-ops. It handles internal data." Every prompt is informed by context.'}
+  {id:'init',name:'Personalize Your Project',tag:'Power user',
+   desc:'make init turns the generic template into YOUR project. 5 questions, 6 files updated. After this, Claude knows your app by name.',
+   takeaway:'After init, Claude doesn\'t generate generic code. It uses your app name, team, and data classification in every decision.',
+   steps:[
+    {t:'narration',v:'The template starts generic. make init makes it yours.'},{t:'pause',v:400},
+    {t:'cmd',v:'make init'},{t:'pause',v:300},
+    {t:'out',v:'  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510'},{t:'out',v:'  \u2502  Personalize Your Project  \u2502'},{t:'out',v:'  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518'},
+    {t:'out',v:'  App name:            inventory-tracker'},{t:'out',v:'  What does it do:     Tracks rack inventory for DCT ops'},{t:'out',v:'  Team name:           dct-ops'},{t:'out',v:'  Slack channel:       #dct-eng'},{t:'out',v:'  Data classification: Internal'},{t:'pause',v:500},
+    {t:'dim',v:'  Updating 6 files...'},{t:'pause',v:300},
+    {t:'success',v:'  \u2713 .claude/MEMORY.md      Claude knows your app, team, and data sensitivity'},{t:'success',v:'  \u2713 Helm chart             App name: inventory-tracker'},{t:'success',v:'  \u2713 pyproject.toml         Package name: inventory-tracker'},{t:'success',v:'  \u2713 CODEOWNERS             Required reviewer: @coreweave/dct-ops'},{t:'success',v:'  \u2713 SECURITY.md            Incident contact: #dct-eng'},{t:'success',v:'  \u2713 .env.example           DEV_MODE=true, app-specific vars'},
+    {t:'narration',v:'Now when you open Claude Code, it reads MEMORY.md and knows everything: "I\'m building inventory-tracker for dct-ops. It handles internal data."'},{t:'pause',v:600},
+    {t:'cmd',v:'# You tell Claude: "add an endpoint for rack inventory"'},{t:'pause',v:400},
+    {t:'info',v:'  Claude reads MEMORY.md \u2192 "This is inventory-tracker for dct-ops"'},{t:'out',v:'  + GET /api/racks  (auth: dct-ops group required)'},{t:'out',v:'  + Logging: "inventory-tracker.api.racks" namespace'},{t:'out',v:'  + Data: classified as Internal \u2192 standard access controls'},
+    {t:'narration',v:'Claude used your team name for RBAC, your app name for logging, and your data classification for access controls. That\'s what make init does.'}
   ]}
 ];
 
@@ -978,25 +1050,28 @@ renderStepper();
   if(s.branchStrategy)document.getElementById('branchStrategy').value=s.branchStrategy;
 })();
 
-// Terminal demo
+// Guided Tour
 const term = new TermSim(document.getElementById('term'), document.getElementById('narration'));
-const btnBox = document.getElementById('scenario-btns');
-const GROUPS = [
-  {label:'Start here',ids:['whats-terminal','first-setup','run-app']},
-  {label:'Building',ids:['happy','intercept','lazydrop']},
-  {label:'What happens when...',ids:['secret','noverify','ratelimit']},
-  {label:'Power user',ids:['slashcmd','init']}
-];
-GROUPS.forEach(g => {
-  const group = document.createElement('div'); group.className = 'scenario-group';
-  group.innerHTML = `<span class="scenario-group-label">${g.label}</span>`;
-  const btns = document.createElement('div'); btns.className = 'scenario-group-btns';
-  g.ids.forEach(id => { const sc = SCENARIOS.find(s => s.id === id); if(!sc)return;
-    const b = document.createElement('button'); b.className = 'scenario-btn'; b.textContent = sc.name;
-    b.addEventListener('click', () => { btnBox.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); term.run(sc); });
-    btns.appendChild(b); });
-  group.appendChild(btns); btnBox.appendChild(group);
-});
+let tourIdx = 0;
+
+function showTourStop(idx) {
+  tourIdx = Math.max(0, Math.min(idx, SCENARIOS.length - 1));
+  const sc = SCENARIOS[tourIdx];
+  document.getElementById('tourTag').textContent = sc.tag;
+  document.getElementById('tourTitle').textContent = sc.name;
+  document.getElementById('tourDesc').textContent = sc.desc;
+  document.getElementById('tourCount').textContent = `${tourIdx + 1} / ${SCENARIOS.length}`;
+  document.getElementById('tourProgress').style.width = `${((tourIdx + 1) / SCENARIOS.length) * 100}%`;
+  document.getElementById('tourPrev').disabled = tourIdx === 0;
+  document.getElementById('tourPrev').style.opacity = tourIdx === 0 ? '0.4' : '1';
+  document.getElementById('tourTakeaway').style.display = 'none';
+  term.run(sc).then(() => {
+    document.getElementById('tourTakeaway').style.display = 'block';
+    document.getElementById('tourTakeawayText').textContent = sc.takeaway;
+  });
+}
+function tourNav(dir) { showTourStop(tourIdx + dir); }
+showTourStop(0);
 
 // Pipeline
 const pRow = document.getElementById('pipeline-row');
@@ -1024,8 +1099,8 @@ CONCEPTS.forEach(c => {
     <button class="try-btn" data-sc="${c.scenario}">See demo</button></div></div></div>`;
   el.querySelector('.concept-head').addEventListener('click', () => el.classList.toggle('open'));
   el.querySelector('.try-btn').addEventListener('click', e => {
-    e.stopPropagation(); const sc = SCENARIOS.find(s => s.id === c.scenario);
-    if(sc){ document.getElementById('demo').scrollIntoView({behavior:'smooth'}); setTimeout(()=>{btnBox.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active'));term.run(sc);},400); }
+    e.stopPropagation(); const idx = SCENARIOS.findIndex(s => s.id === c.scenario);
+    if(idx >= 0){ document.getElementById('demo').scrollIntoView({behavior:'smooth'}); setTimeout(()=>showTourStop(idx),400); }
   });
   cList.appendChild(el);
 });
