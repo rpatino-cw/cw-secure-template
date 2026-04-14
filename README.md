@@ -19,7 +19,9 @@
 
 ---
 
-**Same prompt. Secure code. Zero extra work.**
+<p align="center">
+  <img src="docs/screenshots/guardrails.gif" alt="Guardrails animation — messy prompts corrected by six defense layers" width="280">
+</p>
 
 Your team prompts Claude to build internal tools. This template makes every line of code production-safe — authentication, secret management, input validation, and tests are enforced automatically. Six layers of defense between your code and production. Nothing ships without passing all of them.
 
