@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Guardrails — CW Secure Template</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --text: #c8c8d4;
+    --text-dim: #5a5a72;
+    --accent: #f4f4f8;
+
+    --alice: #e8b4b8;
+    --alice-glow: #e8b4b830;
+    --bob: #b4d4e8;
+    --bob-glow: #b4d4e830;
+    --charlie: #d4e8b4;
+    --charlie-glow: #d4e8b430;
+
+    --guard: #f59e0b;
+    --guard-glow: #f59e0b20;
+    --block: #ef4444;
+    --pass: #22c55e;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .scene {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 40px;
+    position: relative;
+  }
+
+  /* --- Header --- */
+  .header {
+    text-align: left;
+    margin-bottom: 80px;
+  }
+  .header h1 {
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .header p {
+    margin-top: 16px;
+    font-size: 1.1rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* --- The Board --- */
+  .board {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    gap: 0;
+    position: relative;
+    min-height: 600px;
+  }
+
+  /* --- Developer Lanes --- */
+  .devs {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding-top: 60px;
+  }
+  .dev {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    opacity: 0;
+    cursor: default;
+  }
+  .dev-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dev-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .dev-task {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+  }
+  .dev[data-who="alice"] .dev-dot { background: var(--alice); }
+  .dev[data-who="bob"] .dev-dot { background: var(--bob); }
+  .dev[data-who="charlie"] .dev-dot { background: var(--charlie); }
+  .dev[data-who="alice"] .dev-name { color: var(--alice); }
+  .dev[data-who="bob"] .dev-name { color: var(--bob); }
+  .dev[data-who="charlie"] .dev-name { color: var(--charlie); }
+
+  /* --- File Tree (center) --- */
+  .file-tree {
+    position: relative;
+    padding: 0 40px;
+  }
+  .file-tree-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .file-group {
+    margin-bottom: 6px;
+  }
+  .file-group-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    padding: 6px 12px;
+  }
+  .file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px 8px 28px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--text);
+    border: 1px solid transparent;
+    transition: border-color 0.3s, background 0.3s;
+    position: relative;
+    opacity: 0;
+  }
+  .file .lock {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    opacity: 0;
+  }
+  .file.editing {
+    border-color: var(--border);
+    background: var(--surface);
+  }
+  .file .owner-tag {
+    font-size: 0.6rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    opacity: 0;
+  }
+
+  /* --- Guard Wall (right side) --- */
+  .guard-wall {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 60px;
+  }
+  .guard-wall-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--guard);
+    margin-bottom: 8px;
+    opacity: 0;
+  }
+  .guard-layer {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--guard);
+    background: var(--guard-glow);
+    opacity: 0;
+  }
+  .guard-layer-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--guard);
+  }
+  .guard-layer-desc {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  /* --- Event Log --- */
+  .event-log {
+    margin-top: 80px;
+    border-top: 1px solid var(--border);
+    padding-top: 40px;
+  }
+  .event-log-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .events {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 320px;
+    overflow: hidden;
+  }
+  .event {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .event-time {
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    width: 50px;
+    flex-shrink: 0;
+  }
+  .event-icon {
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .event-pass { background: #22c55e10; border: 1px solid #22c55e30; }
+  .event-pass .event-icon { color: var(--pass); }
+  .event-block { background: #ef444410; border: 1px solid #ef444430; }
+  .event-block .event-icon { color: var(--block); }
+  .event-guard { background: #f59e0b10; border: 1px solid #f59e0b30; }
+  .event-guard .event-icon { color: var(--guard); }
+
+  .event-who {
+    font-weight: 600;
+    width: 64px;
+    flex-shrink: 0;
+  }
+  .event-msg { color: var(--text); }
+
+  /* --- Particles (flying edits) --- */
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* --- Status bar --- */
+  .status-bar {
+    margin-top: 60px;
+    display: flex;
+    gap: 40px;
+    padding: 24px 0;
+    border-top: 1px solid var(--border);
+  }
+  .stat {
+    opacity: 0;
+  }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .stat-value.blocked { color: var(--block); }
+  .stat-value.passed { color: var(--pass); }
+
+  /* --- Responsive --- */
+  @media (max-width: 900px) {
+    .board { grid-template-columns: 1fr; gap: 40px; }
+    .devs, .guard-wall { flex-direction: row; flex-wrap: wrap; }
+    .file-tree { padding: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="scene">
+
+  <div class="header">
+    <h1>Three developers.<br>One codebase.<br>Zero collisions.</h1>
+    <p>Watch Alice, Bob, and Charlie vibe code simultaneously. The guardrails keep every edit in its lane — no overwritten files, no broken imports, no stepped-on features.</p>
+  </div>
+
+  <div class="board">
+    <!-- Developers -->
+    <div class="devs">
+      <div class="dev" data-who="alice">
+        <div class="dev-dot"></div>
+        <div>
+          <div class="dev-name">Alice</div>
+          <div class="dev-task">adding user auth</div>
+        </div>
+      </div>
+      <div class="dev" data-who="bob">
+        <div class="dev-dot"></div>
+        <div>
+          <div class="dev-name">Bob</div>
+          <div class="dev-task">building payments API</div>
+        </div>
+      </div>
+      <div class="dev" data-who="charlie">
+        <div class="dev-dot"></div>
+        <div>
+          <div class="dev-name">Charlie</div>
+          <div class="dev-task">reports dashboard</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Tree -->
+    <div class="file-tree">
+      <div class="file-tree-label">Project Files</div>
+
+      <div class="file-group">
+        <div class="file-group-name">routes/</div>
+        <div class="file" data-file="routes/users.py"><span>users.py</span><span class="owner-tag" style="color:var(--alice)">Alice</span><span class="lock"></span></div>
+        <div class="file" data-file="routes/payments.py"><span>payments.py</span><span class="owner-tag" style="color:var(--bob)">Bob</span><span class="lock"></span></div>
+        <div class="file" data-file="routes/reports.py"><span>reports.py</span><span class="owner-tag" style="color:var(--charlie)">Charlie</span><span class="lock"></span></div>
+      </div>
+
+      <div class="file-group">
+        <div class="file-group-name">services/</div>
+        <div class="file" data-file="services/auth_service.py"><span>auth_service.py</span><span class="owner-tag" style="color:var(--alice)">Alice</span><span class="lock"></span></div>
+        <div class="file" data-file="services/payment_service.py"><span>payment_service.py</span><span class="owner-tag" style="color:var(--bob)">Bob</span><span class="lock"></span></div>
+        <div class="file" data-file="services/report_service.py"><span>report_service.py</span><span class="owner-tag" style="color:var(--charlie)">Charlie</span><span class="lock"></span></div>
+      </div>
+
+      <div class="file-group">
+        <div class="file-group-name">models/</div>
+        <div class="file" data-file="models/user.py"><span>user.py</span><span class="owner-tag" style="color:var(--alice)">Alice</span><span class="lock"></span></div>
+        <div class="file" data-file="models/payment.py"><span>payment.py</span><span class="owner-tag" style="color:var(--bob)">Bob</span><span class="lock"></span></div>
+        <div class="file" data-file="models/report.py"><span>report.py</span><span class="owner-tag" style="color:var(--charlie)">Charlie</span><span class="lock"></span></div>
+      </div>
+
+      <div class="file-group">
+        <div class="file-group-name">config/</div>
+        <div class="file" data-file="config/settings.py"><span>settings.py</span><span class="lock"></span></div>
+        <div class="file" data-file="main.py"><span>main.py</span><span class="lock"></span></div>
+      </div>
+    </div>
+
+    <!-- Guard Wall -->
+    <div class="guard-wall">
+      <div class="guard-wall-label">Enforcement</div>
+      <div class="guard-layer" data-layer="1">
+        <div class="guard-layer-name">Layer 1 — Rules</div>
+        <div class="guard-layer-desc">14 rule files. Anti-override protocol.</div>
+      </div>
+      <div class="guard-layer" data-layer="2">
+        <div class="guard-layer-name">Layer 2 — Deny List</div>
+        <div class="guard-layer-desc">Runtime blocks. Can't bypass.</div>
+      </div>
+      <div class="guard-layer" data-layer="3">
+        <div class="guard-layer-name">Layer 3 — Hook</div>
+        <div class="guard-layer-desc">Pre-write inspection. Code-level.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Log -->
+  <div class="event-log">
+    <div class="event-log-label">Live Event Log</div>
+    <div class="events" id="events"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="status-bar">
+    <div class="stat">
+      <div class="stat-value passed" id="stat-edits">0</div>
+      <div class="stat-label">Clean edits</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value blocked" id="stat-blocks">0</div>
+      <div class="stat-label">Violations blocked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-conflicts">0</div>
+      <div class="stat-label">Collisions prevented</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+// --- Entrance ---
+const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+tl.from(".header h1", { opacity: 0, y: 30, duration: 0.8 })
+  .from(".header p", { opacity: 0, y: 20, duration: 0.6 }, "-=0.4")
+  .to(".dev", { opacity: 1, x: 0, stagger: 0.15, duration: 0.5 }, "-=0.2")
+  .to(".file", { opacity: 1, stagger: 0.04, duration: 0.3 }, "-=0.3")
+  .to(".guard-wall-label", { opacity: 1, duration: 0.4 }, "-=0.2")
+  .to(".guard-layer", { opacity: 1, y: 0, stagger: 0.12, duration: 0.5 }, "-=0.2")
+  .to(".stat", { opacity: 1, stagger: 0.1, duration: 0.4 }, "-=0.2");
+
+// --- State ---
+let editCount = 0;
+let blockCount = 0;
+let conflictCount = 0;
+let clock = 0;
+const fileLocks = {};
+
+const devs = [
+  { name: "Alice", color: "var(--alice)", glow: "var(--alice-glow)", who: "alice" },
+  { name: "Bob", color: "var(--bob)", glow: "var(--bob-glow)", who: "bob" },
+  { name: "Charlie", color: "var(--charlie)", glow: "var(--charlie-glow)", who: "charlie" },
+];
+
+const scenarios = [
+  // Normal edits — each dev works on their own files
+  { dev: 0, file: "routes/users.py", type: "pass", msg: "Edit routes/users.py — add login endpoint" },
+  { dev: 1, file: "routes/payments.py", type: "pass", msg: "Edit routes/payments.py — add charge endpoint" },
+  { dev: 2, file: "routes/reports.py", type: "pass", msg: "Edit routes/reports.py — add export route" },
+
+  // Bob tries to edit Alice's file
+  { dev: 1, file: "routes/users.py", type: "block", msg: "BLOCKED — users.py has uncommitted changes (Alice)", layer: 3 },
+
+  // More normal work
+  { dev: 0, file: "services/auth_service.py", type: "pass", msg: "Edit services/auth_service.py — add token validation" },
+  { dev: 1, file: "services/payment_service.py", type: "pass", msg: "Edit services/payment_service.py — add Stripe call" },
+  { dev: 2, file: "models/report.py", type: "pass", msg: "Edit models/report.py — add date range field" },
+
+  // Charlie tries to put SQL in a route
+  { dev: 2, file: "routes/reports.py", type: "guard", msg: "REDIRECTED — raw SQL belongs in repositories/, not routes/", layer: 1 },
+
+  // Alice tries to hardcode a secret
+  { dev: 0, file: "config/settings.py", type: "block", msg: "BLOCKED — hardcoded secret detected: sk-live-...", layer: 3 },
+
+  // Normal work continues
+  { dev: 0, file: "models/user.py", type: "pass", msg: "Edit models/user.py — add password_hash field" },
+  { dev: 1, file: "models/payment.py", type: "pass", msg: "Edit models/payment.py — add amount validation" },
+
+  // Bob tries to overwrite main.py with Write tool
+  { dev: 1, file: "main.py", type: "block", msg: "BLOCKED — Write on existing file. Use Edit instead.", layer: 3 },
+
+  // Charlie tries to skip auth
+  { dev: 2, file: "routes/reports.py", type: "guard", msg: "ENFORCED — endpoint requires auth middleware. Added Depends(get_current_user)", layer: 1 },
+
+  // More clean work
+  { dev: 0, file: "services/auth_service.py", type: "pass", msg: "Edit services/auth_service.py — add bcrypt hashing" },
+  { dev: 2, file: "services/report_service.py", type: "pass", msg: "Edit services/report_service.py — add PDF export" },
+
+  // Alice tries to push --force
+  { dev: 0, file: null, type: "block", msg: "BLOCKED — git push --force denied by runtime", layer: 2 },
+
+  // Bob tries to edit CLAUDE.md
+  { dev: 1, file: null, type: "block", msg: "BLOCKED — CLAUDE.md is a protected guardrail file", layer: 3 },
+
+  // Final clean batch
+  { dev: 0, file: "routes/users.py", type: "pass", msg: "Edit routes/users.py — add password reset" },
+  { dev: 1, file: "routes/payments.py", type: "pass", msg: "Edit routes/payments.py — add refund endpoint" },
+  { dev: 2, file: "routes/reports.py", type: "pass", msg: "Edit routes/reports.py — add chart data endpoint" },
+];
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+
+function addEvent(scenario) {
+  const events = $("#events");
+  const dev = devs[scenario.dev];
+  const el = document.createElement("div");
+  const typeClass = scenario.type === "pass" ? "event-pass" : scenario.type === "block" ? "event-block" : "event-guard";
+  const icon = scenario.type === "pass" ? "✓" : scenario.type === "block" ? "✗" : "⚡";
+
+  el.className = `event ${typeClass}`;
+  el.innerHTML = `
+    <span class="event-time">${formatTime(clock)}</span>
+    <span class="event-icon">${icon}</span>
+    <span class="event-who" style="color:${dev.color}">${dev.name}</span>
+    <span class="event-msg">${scenario.msg}</span>
+  `;
+  events.prepend(el);
+
+  gsap.fromTo(el, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" });
+
+  // Fade old events
+  const all = events.children;
+  for (let i = 5; i < all.length; i++) {
+    gsap.to(all[i], { opacity: Math.max(0, 0.4 - (i - 5) * 0.1), duration: 0.3 });
+  }
+  if (all.length > 10) all[all.length - 1].remove();
+}
+
+function highlightFile(scenario) {
+  const dev = devs[scenario.dev];
+  const fileEl = $(`.file[data-file="${scenario.file}"]`);
+  if (!fileEl) return;
+
+  const borderColor = scenario.type === "pass" ? dev.color :
+                      scenario.type === "block" ? "var(--block)" : "var(--guard)";
+
+  gsap.to(fileEl, {
+    borderColor: borderColor,
+    background: scenario.type === "block" ? "#ef444410" : scenario.type === "guard" ? "#f59e0b10" : dev.glow,
+    duration: 0.3,
+  });
+
+  // Show owner tag
+  const tag = fileEl.querySelector(".owner-tag");
+  if (tag && scenario.type === "pass") {
+    tag.style.color = dev.color;
+    tag.textContent = dev.name;
+    gsap.to(tag, { opacity: 1, duration: 0.3 });
+  }
+
+  // Show lock on block
+  const lock = fileEl.querySelector(".lock");
+  if (lock && scenario.type === "block") {
+    lock.textContent = "🔒";
+    gsap.fromTo(lock, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3 });
+  }
+
+  // Flash the file then settle
+  gsap.to(fileEl, {
+    borderColor: scenario.type === "pass" ? "var(--border)" : borderColor,
+    background: scenario.type === "pass" ? "var(--surface)" : (scenario.type === "block" ? "#ef444408" : "#f59e0b08"),
+    delay: 1.5,
+    duration: 0.6,
+  });
+}
+
+function pulseLayer(layerNum) {
+  const layer = $(`.guard-layer[data-layer="${layerNum}"]`);
+  if (!layer) return;
+
+  gsap.timeline()
+    .to(layer, { borderColor: "var(--block)", background: "#ef444420", scale: 1.04, duration: 0.15 })
+    .to(layer, { borderColor: "var(--guard)", background: "var(--guard-glow)", scale: 1, duration: 0.5, ease: "power2.out" });
+}
+
+function pulseDevCard(devIndex) {
+  const devEl = $$(`.dev`)[devIndex];
+  gsap.timeline()
+    .to(devEl, { scale: 1.03, duration: 0.15 })
+    .to(devEl, { scale: 1, duration: 0.3, ease: "power2.out" });
+}
+
+function updateStats(scenario) {
+  if (scenario.type === "pass") {
+    editCount++;
+    gsap.to("#stat-edits", { textContent: editCount, duration: 0.01, snap: { textContent: 1 } });
+    gsap.fromTo("#stat-edits", { scale: 1.2 }, { scale: 1, duration: 0.3 });
+  } else if (scenario.type === "block") {
+    if (scenario.msg.includes("uncommitted")) {
+      conflictCount++;
+      gsap.to("#stat-conflicts", { textContent: conflictCount, duration: 0.01, snap: { textContent: 1 } });
+      gsap.fromTo("#stat-conflicts", { scale: 1.2 }, { scale: 1, duration: 0.3 });
+    }
+    blockCount++;
+    gsap.to("#stat-blocks", { textContent: blockCount, duration: 0.01, snap: { textContent: 1 } });
+    gsap.fromTo("#stat-blocks", { scale: 1.2, color: "#ff6b6b" }, { scale: 1, color: "var(--block)", duration: 0.4 });
+  } else if (scenario.type === "guard") {
+    blockCount++;
+    gsap.to("#stat-blocks", { textContent: blockCount, duration: 0.01, snap: { textContent: 1 } });
+  }
+}
+
+// --- Main Loop ---
+let idx = 0;
+
+function runNext() {
+  if (idx >= scenarios.length) {
+    // Loop back
+    setTimeout(() => {
+      editCount = 0; blockCount = 0; conflictCount = 0; clock = 0; idx = 0;
+      $("#stat-edits").textContent = "0";
+      $("#stat-blocks").textContent = "0";
+      $("#stat-conflicts").textContent = "0";
+      // Reset file visuals
+      $$(".file").forEach(f => {
+        gsap.to(f, { borderColor: "transparent", background: "transparent", duration: 0.3 });
+        const tag = f.querySelector(".owner-tag");
+        if (tag) gsap.to(tag, { opacity: 0, duration: 0.2 });
+        const lock = f.querySelector(".lock");
+        if (lock) { lock.textContent = ""; gsap.set(lock, { opacity: 0 }); }
+      });
+      $("#events").innerHTML = "";
+      runNext();
+    }, 4000);
+    return;
+  }
+
+  const scenario = scenarios[idx];
+  clock += Math.floor(Math.random() * 8) + 3;
+
+  pulseDevCard(scenario.dev);
+  addEvent(scenario);
+  if (scenario.file) highlightFile(scenario);
+  if (scenario.layer) pulseLayer(scenario.layer);
+  updateStats(scenario);
+
+  idx++;
+
+  const delay = scenario.type === "block" ? 2200 : scenario.type === "guard" ? 2000 : 1200;
+  setTimeout(runNext, delay);
+}
+
+// Start after entrance animation
+tl.eventCallback("onComplete", () => {
+  setTimeout(runNext, 800);
+});
+</script>
+</body>
+</html>
