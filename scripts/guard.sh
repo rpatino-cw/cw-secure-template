@@ -240,5 +240,49 @@ if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
   fi
 fi
 
+# --- Guard 9: Room enforcement — agents can only edit files in their room ---
+if [[ -n "${AGENT_ROOM:-}" && -n "$FILE_PATH" ]]; then
+  ROOMS_CONFIG="$(git rev-parse --show-toplevel 2>/dev/null)/rooms.json"
+  if [[ -f "$ROOMS_CONFIG" ]]; then
+    # Get the list of paths this agent owns
+    ALLOWED=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    config = json.load(f)
+room = config.get('rooms', {}).get(sys.argv[2], {})
+for p in room.get('owns', []):
+    print(p)
+" "$ROOMS_CONFIG" "$AGENT_ROOM" 2>/dev/null || echo "")
+
+    if [[ -n "$ALLOWED" ]]; then
+      IN_ROOM=false
+      while IFS= read -r owned_path; do
+        [[ -z "$owned_path" ]] && continue
+        if [[ "$FILE_PATH" == *"$owned_path"* ]]; then
+          IN_ROOM=true
+          break
+        fi
+      done <<< "$ALLOWED"
+
+      # Also check inbox/outbox (agents can always write to rooms/)
+      if [[ "$FILE_PATH" == *"rooms/"* ]]; then
+        IN_ROOM=true
+      fi
+
+      if [[ "$IN_ROOM" == false ]]; then
+        echo "BLOCKED: Agent '$AGENT_ROOM' cannot edit $FILE_PATH" >&2
+        echo "" >&2
+        echo "You own: $ALLOWED" >&2
+        echo "" >&2
+        echo "To request a change in this file, write to the owning room's inbox:" >&2
+        echo "  rooms/{owner}/inbox/NNN-from-${AGENT_ROOM}.md" >&2
+        echo "" >&2
+        echo "Run 'make room-status' to see all rooms and their owners." >&2
+        exit 2
+      fi
+    fi
+  fi
+fi
+
 # All checks passed
 exit 0
