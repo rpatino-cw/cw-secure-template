@@ -33,6 +33,26 @@ app.include_router(teams_router, prefix="/api")
 def health(): return {"status": "ok"}
 ```
 
+### Foundation Gate — Infrastructure Before Features
+Before ANY endpoint or business logic, the entry point must wire up these in order:
+1. Config/settings loaded from environment
+2. Logger initialized
+3. Database connection established
+4. Middleware registered (auth, rate limit, CORS, headers)
+5. Routes mounted
+
+If any of these are missing, DO NOT write feature code. Set up infrastructure first.
+
+### Violations to Block
+- Entry point longer than 50 lines → logic leaked in, extract
+- Route handler defined inline in entry point → move to `routes/`
+- Middleware defined inline → move to `middleware/`
+- Business logic of any kind → move to `services/`
+- Model definition → move to `models/`
+- Database query → move to `repositories/`
+- Missing health check endpoint (`/healthz`) → add it
+- `os.getenv()` scattered throughout → centralize in config, reference config here
+
 ### Rules
 - Entry point is under 50 lines. If it's longer, you're putting logic here
 - Every route is imported from `routes/`, not defined inline

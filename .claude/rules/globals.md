@@ -34,6 +34,14 @@ MAX_UPLOAD_SIZE = 10 * 1024 * 1024  # 10MB
 PASSWORD_MIN_LENGTH = 12
 ```
 
+### Violations to Block
+- `os.getenv()` or `os.environ` scattered across multiple files → centralize in ONE config file
+- Secret value hardcoded in any file → refuse, redirect to `make add-secret`
+- Config file importing from `routes/`, `services/`, or `models/` → config depends on NOTHING
+- Missing default for an optional env var → add a sensible default
+- Missing startup check for a required env var → fail fast at startup, not at request time
+- Magic numbers or strings in business logic → extract to constants
+
 ### Rules
 - Config reads from environment. Constants are literal values. Don't mix them
 - One file for env-based config (`settings.py`), one for constants (`constants.py`)

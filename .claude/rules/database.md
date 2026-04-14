@@ -39,6 +39,23 @@ NEVER this:  INSERT INTO users (password) VALUES ('plaintext')
 ALWAYS this: INSERT INTO users (password_hash) VALUES (bcrypt.hash(password))
 ```
 
+### Dependency Direction
+```
+repositories/ imports from → models/ (for return types)
+repositories/ NEVER imports from → routes/, services/
+```
+
+Repositories know HOW to get data. They don't know WHY.
+
+### Violations to Block
+- String concatenation in ANY query → parameterized only, always
+- Hardcoded connection string anywhere → must read from env/config
+- Database query in a route handler → must go through repository + service
+- `SELECT *` → name every column explicitly
+- Schema change without a migration file → all schema changes go through migrations
+- `cursor.execute()` or `session.execute()` in a service file → must be in repository
+- Plain text password in an INSERT → must hash first
+
 ### Rules
 - One repository file per table/entity: `repositories/user_repo.py`
 - Repositories return model objects, not raw rows
