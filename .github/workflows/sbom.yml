@@ -28,7 +28,7 @@ jobs:
           format: spdx-json
 
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: sbom-go.spdx.json
 
@@ -51,6 +51,6 @@ jobs:
           format: spdx-json
 
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: sbom-python.spdx.json
