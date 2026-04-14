@@ -2,33 +2,27 @@
 
 ## Branch Discipline
 
-Never commit directly to main. All work happens on feature branches.
+### Two Modes
 
-### Rules
-- Before any code change, check the current branch with `git branch --show-current`
-- If on `main`, create a feature branch first: `make branch NAME=descriptive-name`
-- If `AGENT_ROOM` is set, branches auto-prefix with the room name (e.g., `go/add-auth`)
-- When work is done, open a PR: `make pr` — this runs all checks and creates the PR
-- Never suggest `git push` to main — always `git push -u origin <branch>`
+**Trunk mode (default):** Everyone works on main. Pre-push checks ARE the quality gate.
+No branches, no PRs, no merging. Best for small teams.
 
-### Branch naming
-- Agents: `{room}/description` (e.g., `go/add-login`, `python/fix-validation`)
-- Humans: `feature/description` or `fix/description`
-- Keep it short, lowercase, hyphenated
+**Branch mode (opt-in):** Set `BRANCH_MODE=1` in `.env`. Direct pushes to main are blocked.
+All changes go through feature branches + PRs. Best for larger teams or compliance.
 
-### Before committing
-1. Run `make check` — tests + lint + security + room-lint must all pass
-2. Commit with a clear message: `git commit -m "Add login endpoint with auth"`
-3. Push: `git push -u origin <branch>`
-4. Open PR: `make pr`
+### Trunk Mode (default)
+- Work on main — the pre-push hook runs tests, security, room-lint, and agent review
+- If checks pass, push goes through. If they fail, fix and retry.
+- No branches to manage, no PRs to open, no merging
 
-### CI gates on PRs to main
-All of these must pass before merge:
-- Secret scanning (gitleaks)
-- Lint (golangci-lint / ruff)
-- Security scan (gosec / bandit)
-- Tests with 80% coverage
-- Dependency audit
-- Hook integrity (CLAUDE.md sections intact, pre-commit not weakened)
-- Middleware wiring verified
-- CodeQL analysis
+### Branch Mode (opt-in)
+- Create branches: `make branch NAME=my-feature`
+- If `AGENT_ROOM` is set, branches auto-prefix: `go/add-auth`, `python/fix-api`
+- Open PRs: `make pr` — runs all checks, pushes, opens PR
+- CI gates must pass before merge
+
+### Starting an agent with a branch
+```bash
+make agent NAME=go                    # trunk mode — stays on main
+make agent NAME=go BRANCH=add-login   # branch mode — creates go/add-login
+```

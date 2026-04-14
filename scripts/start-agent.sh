@@ -50,19 +50,19 @@ if [ "$INBOX_COUNT" -gt 0 ]; then
 fi
 echo "  Guard: edits outside your room will be blocked"
 
-# Auto-create a branch for this agent if on main
+# Branch: stay on current branch (trunk mode default)
+# Use BRANCH env var to opt into branch mode: make agent NAME=go BRANCH=add-auth
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-if [ "$CURRENT_BRANCH" = "main" ]; then
-  BRANCH_NAME="${ROOM_NAME}/work"
+if [ -n "${BRANCH:-}" ]; then
+  BRANCH_NAME="${ROOM_NAME}/${BRANCH}"
   if git rev-parse --verify "$BRANCH_NAME" >/dev/null 2>&1; then
     git checkout "$BRANCH_NAME" --quiet
-    echo "  Branch: $BRANCH_NAME (existing)"
   else
     git checkout -b "$BRANCH_NAME" --quiet
-    echo "  Branch: $BRANCH_NAME (created)"
   fi
+  echo "  Branch: $BRANCH_NAME"
 else
-  echo "  Branch: $CURRENT_BRANCH"
+  echo "  Branch: $CURRENT_BRANCH (trunk mode)"
 fi
 echo ""
 

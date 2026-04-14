@@ -159,8 +159,8 @@ rooms: ## Set up room-based multi-agent coordination
 	@bash scripts/init-rooms.sh
 
 .PHONY: agent
-agent: ## Start a Claude session as a room agent (NAME=go-dev)
-	@bash scripts/start-agent.sh $(NAME)
+agent: ## Start a Claude session as a room agent (NAME=go-dev, BRANCH=optional)
+	@BRANCH=$(BRANCH) bash scripts/start-agent.sh $(NAME)
 
 .PHONY: room-status
 room-status: ## Show pending requests across all rooms

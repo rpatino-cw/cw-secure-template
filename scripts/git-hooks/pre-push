@@ -15,27 +15,31 @@ echo -e "${DIM}  Pre-push checks...${NC}"
 
 FAILED=0
 
-# ── 0. Block direct pushes to main ──
+# ── 0. Branch mode: block direct pushes to main ──
+# Trunk mode (default): main pushes allowed — pre-push checks ARE the gate
+# Branch mode (opt-in): set BRANCH_MODE=1 in .env or env to require PRs
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-REMOTE_REF=""
-while read local_ref local_sha remote_ref remote_sha; do
-  REMOTE_REF="$remote_ref"
-done
 
-if [[ "$CURRENT_BRANCH" == "main" || "$REMOTE_REF" == *"refs/heads/main"* ]]; then
-  # Allow if this is the initial setup (no remote commits yet)
-  REMOTE_COUNT=$(git rev-list --count origin/main 2>/dev/null || echo "0")
-  if [ "$REMOTE_COUNT" -gt 0 ]; then
-    echo -e "  ${RED}${BOLD}STOP — Cannot push directly to main.${NC}"
-    echo ""
-    echo -e "  ${BOLD}How to fix:${NC}"
-    echo "    1. Create a branch:  ${GREEN}make branch NAME=my-feature${NC}"
-    echo "    2. Push the branch:  ${GREEN}git push -u origin my-feature${NC}"
-    echo "    3. Open a PR:        ${GREEN}make pr${NC}"
-    echo ""
-    echo -e "  ${DIM}All changes to main go through pull requests with CI gates.${NC}"
-    echo ""
-    exit 1
+if [ "${BRANCH_MODE:-}" = "1" ]; then
+  REMOTE_REF=""
+  while read local_ref local_sha remote_ref remote_sha; do
+    REMOTE_REF="$remote_ref"
+  done
+
+  if [[ "$CURRENT_BRANCH" == "main" || "$REMOTE_REF" == *"refs/heads/main"* ]]; then
+    REMOTE_COUNT=$(git rev-list --count origin/main 2>/dev/null || echo "0")
+    if [ "$REMOTE_COUNT" -gt 0 ]; then
+      echo -e "  ${RED}${BOLD}STOP — Branch mode is on. Cannot push directly to main.${NC}"
+      echo ""
+      echo -e "  ${BOLD}How to fix:${NC}"
+      echo "    1. Create a branch:  ${GREEN}make branch NAME=my-feature${NC}"
+      echo "    2. Push the branch:  ${GREEN}git push -u origin my-feature${NC}"
+      echo "    3. Open a PR:        ${GREEN}make pr${NC}"
+      echo ""
+      echo -e "  ${DIM}Disable branch mode: remove BRANCH_MODE=1 from .env${NC}"
+      echo ""
+      exit 1
+    fi
   fi
 fi
 
