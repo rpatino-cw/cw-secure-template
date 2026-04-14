@@ -154,6 +154,20 @@ footer { padding: var(--space-lg) 0; text-align: center; font-size: var(--text-x
   .card-grid, .pipeline-grid { grid-template-columns: 1fr; }
   .nav-links { display: none; }
 }
+
+/* GSAP scroll progress */
+.gsap-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--info);
+  z-index: 200;
+  pointer-events: none;
+  transform-origin: left center;
+  transform: scaleX(0);
+}
 </style>
 </head>
 <body>
@@ -668,6 +682,143 @@ window.addEventListener('scroll', () => {
     if (href) link.style.color = href === '#' + active ? 'var(--text-primary)' : '';
   });
 }, { passive: true });
+</script>
+
+<!-- GSAP ScrollTrigger -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12/dist/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+
+  /* ── Scroll progress bar ── */
+  const bar = document.createElement('div');
+  bar.className = 'gsap-progress';
+  document.body.prepend(bar);
+  gsap.to(bar, {
+    scaleX: 1, ease: 'none',
+    scrollTrigger: { trigger: 'body', start: 'top top', end: 'bottom bottom', scrub: 0.3 }
+  });
+
+  /* ── Nav slide down ── */
+  gsap.from('nav', { y: -30, opacity: 0, duration: 0.5, ease: 'expo.out' });
+
+  /* ── Hero ── */
+  const heroFlex = document.querySelector('.hero .container');
+  if (heroFlex) {
+    const textCol = heroFlex.querySelector('div:first-child');
+    const vizCol = heroFlex.querySelector('div:last-child');
+
+    if (textCol) {
+      gsap.from(textCol.children, {
+        opacity: 0, y: 30, stagger: 0.1, duration: 0.7, ease: 'expo.out', delay: 0.2
+      });
+    }
+    if (vizCol) {
+      gsap.from(vizCol, {
+        opacity: 0, scale: 0.88, duration: 1, ease: 'expo.out', delay: 0.4
+      });
+      gsap.to(vizCol, {
+        y: -80, ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true }
+      });
+    }
+  }
+
+  /* ── Section headings reveal ── */
+  document.querySelectorAll('section:not(.hero)').forEach(sec => {
+    const h2 = sec.querySelector('h2');
+    const sub = sec.querySelector('.subtitle');
+    if (h2) gsap.from(h2, {
+      scrollTrigger: { trigger: h2, start: 'top 87%' },
+      opacity: 0, y: 40, duration: 0.65, ease: 'expo.out'
+    });
+    if (sub) gsap.from(sub, {
+      scrollTrigger: { trigger: sub, start: 'top 87%' },
+      opacity: 0, y: 25, duration: 0.6, ease: 'expo.out', delay: 0.1
+    });
+  });
+
+  /* ── Terminal blocks slide from left (skip CTA section — handled separately) ── */
+  document.querySelectorAll('.terminal').forEach(t => {
+    if (t.closest('section[style*="text-align:center"]')) return;
+    gsap.from(t, {
+      scrollTrigger: { trigger: t, start: 'top 85%' },
+      opacity: 0, x: -40, duration: 0.7, ease: 'expo.out'
+    });
+  });
+
+  /* ── Body text paragraphs ── */
+  document.querySelectorAll('.body-text').forEach(p => {
+    gsap.from(p, {
+      scrollTrigger: { trigger: p, start: 'top 90%' },
+      opacity: 0, y: 20, duration: 0.5, ease: 'power3.out'
+    });
+  });
+
+  /* ── Framework h3s from left ── */
+  document.querySelectorAll('#framework h3').forEach(h => {
+    gsap.from(h, {
+      scrollTrigger: { trigger: h, start: 'top 88%' },
+      opacity: 0, x: -30, duration: 0.55, ease: 'expo.out'
+    });
+  });
+
+  /* ── Agent cards ── */
+  gsap.from('.card-grid .card', {
+    scrollTrigger: { trigger: '.card-grid', start: 'top 85%' },
+    opacity: 0, y: 50, scale: 0.94, stagger: 0.12, duration: 0.65, ease: 'expo.out'
+  });
+
+  /* ── Tables ── */
+  document.querySelectorAll('.clean-table').forEach(tbl => {
+    gsap.from(tbl, {
+      scrollTrigger: { trigger: tbl, start: 'top 88%' },
+      opacity: 0, y: 25, duration: 0.5, ease: 'power3.out'
+    });
+  });
+
+  /* ── Pipeline cards — THE STAR ── */
+  const cards = gsap.utils.toArray('.pipeline-card');
+  const pipeTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: '.pipeline-grid',
+      start: 'top 82%',
+      end: 'bottom 40%',
+      scrub: 0.6
+    }
+  });
+  cards.forEach((card, i) => {
+    pipeTl.from(card, { opacity: 0, y: 70, scale: 0.92, duration: 0.4 }, i * 0.1);
+    const num = card.querySelector('.pipeline-num');
+    if (num) {
+      pipeTl.fromTo(num,
+        { scale: 1.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.25, ease: 'back.out(2)' },
+        i * 0.1 + 0.15
+      );
+    }
+  });
+
+  /* ── FAQ stagger ── */
+  gsap.from('#faq-list .faq', {
+    scrollTrigger: { trigger: '#faq', start: 'top 80%' },
+    opacity: 0, y: 25, stagger: 0.06, duration: 0.45, ease: 'power3.out'
+  });
+
+  /* ── Final CTA — animate each child with its own tween to avoid conflicts ── */
+  const cta = document.querySelector('section[style*="text-align:center"]');
+  if (cta) {
+    const ctaKids = gsap.utils.toArray(cta.querySelector('.container').children);
+    ctaKids.forEach((el, i) => {
+      gsap.from(el, {
+        scrollTrigger: { trigger: cta, start: 'top 80%' },
+        opacity: 0, y: 35, duration: 0.6, delay: i * 0.1, ease: 'expo.out'
+      });
+    });
+  }
+}
 </script>
 </body>
 </html>
