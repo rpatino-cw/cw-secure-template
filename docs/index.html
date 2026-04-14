@@ -173,11 +173,16 @@ footer { padding: var(--space-lg) 0; text-align: center; font-size: var(--text-x
 
 <!-- HERO -->
 <section class="hero">
-<div class="container">
-  <h1>Same prompt. Secure code. Zero extra work.</h1>
-  <p class="hero-sub">Your team prompts Claude to build internal tools. This template makes every line production-safe — six layers of defense between your code and production. Nothing ships without passing all of them.</p>
-  <a href="https://github.com/rpatino-cw/cw-secure-template" class="hero-cta" target="_blank">Get the Template</a>
-  <a href="#demo" class="hero-cta">See It Work</a>
+<div class="container" style="display:flex;gap:var(--space-xl);align-items:center;flex-wrap:wrap">
+  <div style="flex:1;min-width:280px">
+    <h1>Same prompt. Secure code. Zero extra work.</h1>
+    <p class="hero-sub">Your team prompts Claude to build internal tools. This template makes every line production-safe — six layers of defense between your code and production. Nothing ships without passing all of them.</p>
+    <a href="https://github.com/rpatino-cw/cw-secure-template" class="hero-cta" target="_blank">Get the Template</a>
+    <a href="#demo" class="hero-cta">See It Work</a>
+  </div>
+  <div style="flex:0 0 220px;height:480px;border-radius:12px;overflow:hidden;border:1px solid oklch(20% 0.02 260)">
+    <iframe src="guardrails.html" style="width:100%;height:100%;border:none" title="Guardrails animation — messy prompts corrected at every stage"></iframe>
+  </div>
 </div>
 </section>
 

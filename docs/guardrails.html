@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardrails — How CW Secure Template Protects Your Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:#08080f;color:#c8cad8;font-family:'JetBrains Mono',monospace;display:flex;flex-direction:column;align-items:center;justify-content:center}
+canvas{display:block}
+#hud{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+
+/* Stage labels on each side */
+.stage-label{position:absolute;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);opacity:0.25}
+.stage-label.active{opacity:1}
+.stage-label .name{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(11px,1.4vw,15px);letter-spacing:0.04em;color:#c8cad8;margin-bottom:2px}
+.stage-label .desc{font-size:clamp(9px,1vw,11px);color:#3a3d52;font-weight:400;line-height:1.4}
+.stage-label.active .name{color:#f0f4ff}
+.stage-label.caught .name{color:#f7768e}
+.stage-label.caught .desc{color:#f7768e}
+.stage-label.fixed .name{color:#5eead4}
+.stage-label.fixed .desc{color:rgba(94,234,212,0.5)}
+
+/* Catch popup */
+.catch-popup{position:absolute;font-size:clamp(9px,1.1vw,12px);font-weight:600;padding:6px 14px;border-radius:6px;opacity:0;transform:translateY(6px);transition:all 0.35s cubic-bezier(0.16,1,0.3,1);white-space:nowrap;pointer-events:none}
+.catch-popup.problem{background:rgba(247,118,142,0.12);border:1px solid rgba(247,118,142,0.3);color:#f7768e}
+.catch-popup.fixed{background:rgba(94,234,212,0.12);border:1px solid rgba(94,234,212,0.3);color:#5eead4}
+.catch-popup.show{opacity:1;transform:translateY(0)}
+
+/* Top/bottom labels */
+#top-label{position:absolute;font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(12px,1.6vw,18px);letter-spacing:0.08em;text-transform:uppercase;transition:all 0.6s}
+#bottom-label{position:absolute;font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(12px,1.6vw,18px);letter-spacing:0.08em;text-transform:uppercase;opacity:0;transition:all 0.6s}
+#bottom-label.show{opacity:1}
+
+#restart-hint{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);font-size:10px;color:#2a2d42;letter-spacing:0.04em}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud">
+  <div id="top-label"></div>
+  <div id="bottom-label"></div>
+</div>
+<div id="restart-hint">click anywhere to replay with a different prompt</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const hud = document.getElementById('hud');
+const topLabel = document.getElementById('top-label');
+const bottomLabel = document.getElementById('bottom-label');
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+let W, H;
+
+// Pipeline stages — the app development journey
+const STAGES = [
+  {
+    name: 'Write Code',
+    desc: 'You prompt Claude',
+    problem: 'api_key = "sk-live-abc..."',
+    fix: 'os.environ["API_KEY"]',
+    guard: 'CLAUDE.md'
+  },
+  {
+    name: 'Add Endpoint',
+    desc: '/project:add-endpoint',
+    problem: 'No auth on /api/users',
+    fix: 'Depends(get_current_user)',
+    guard: 'Smart Rules'
+  },
+  {
+    name: 'Commit',
+    desc: 'git commit',
+    problem: 'Secret in src/config.py:14',
+    fix: 'Blocked. Run: make add-secret',
+    guard: 'Pre-commit Hooks'
+  },
+  {
+    name: 'Push',
+    desc: 'git push',
+    problem: '2 tests failing',
+    fix: '14 passed, 87% coverage',
+    guard: 'Pre-push Tests'
+  },
+  {
+    name: 'Pull Request',
+    desc: 'CI pipeline',
+    problem: 'SQL injection in query.py',
+    fix: 'Parameterized query applied',
+    guard: 'CodeQL + SAST'
+  },
+  {
+    name: 'Merge',
+    desc: 'Branch protection',
+    problem: 'No reviewer approval',
+    fix: 'Approved by @security-team',
+    guard: 'Branch Protection'
+  }
+];
+
+// Messy prompts that rotate each run
+const MESSY_PROMPTS = [
+  '"Build me an API that stores user data"',
+  '"Add a login page, just make it work"',
+  '"Connect to the database and show records"',
+  '"Add an endpoint for admin actions"',
+  '"Push this to production ASAP"',
+  '"Just hardcode the key for now"',
+];
+
+let run = 0;
+
+// Layout
+let laneX, laneW, laneTop, laneBot, gateH, gateGap;
+
+function resize() {
+  W = Math.min(window.innerWidth, 700);
+  H = Math.min(window.innerHeight, 920);
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+  laneW = W * 0.18;
+  laneX = (W - laneW) / 2;
+  laneTop = H * 0.1;
+  laneBot = H * 0.9;
+  gateH = 3;
+  gateGap = (laneBot - laneTop) / STAGES.length;
+}
+resize();
+
+// Animation state
+let ball = {};
+let trail = [];
+let particles = [];
+let stageStates = []; // 'waiting' | 'approaching' | 'caught' | 'fixing' | 'passed'
+let currentStage = -1;
+let stageTimer = 0;
+let phase = 'start'; // start | rolling | complete
+let globalTimer = 0;
+let labelEls = [];
+let popupEls = [];
+
+function createHUD() {
+  // Clear old
+  labelEls.forEach(e => e.el.remove());
+  popupEls.forEach(e => e.el.remove());
+  labelEls = [];
+  popupEls = [];
+
+  STAGES.forEach((s, i) => {
+    const y = laneTop + gateGap * i + gateGap * 0.5;
+    const isLeft = i % 2 === 0;
+
+    // Stage label
+    const label = document.createElement('div');
+    label.className = 'stage-label';
+    label.innerHTML = `<div class="name">${s.guard}</div><div class="desc">${s.name} &mdash; ${s.desc}</div>`;
+    if (isLeft) {
+      label.style.right = (W - laneX + 20) + 'px';
+      label.style.textAlign = 'right';
+    } else {
+      label.style.left = (laneX + laneW + 20) + 'px';
+    }
+    label.style.top = y + 'px';
+    label.style.transform = 'translateY(-50%)';
+    hud.appendChild(label);
+    labelEls.push({ el: label, idx: i, side: isLeft ? 'left' : 'right' });
+
+    // Problem popup
+    const prob = document.createElement('div');
+    prob.className = 'catch-popup problem';
+    prob.textContent = s.problem;
+    prob.style.top = (y - 28) + 'px';
+    if (isLeft) {
+      prob.style.right = (W - laneX + 20) + 'px';
+    } else {
+      prob.style.left = (laneX + laneW + 20) + 'px';
+    }
+    hud.appendChild(prob);
+
+    // Fix popup
+    const fix = document.createElement('div');
+    fix.className = 'catch-popup fixed';
+    fix.textContent = s.fix;
+    fix.style.top = (y + 8) + 'px';
+    if (isLeft) {
+      fix.style.right = (W - laneX + 20) + 'px';
+    } else {
+      fix.style.left = (laneX + laneW + 20) + 'px';
+    }
+    hud.appendChild(fix);
+
+    popupEls.push({ prob, fix, idx: i });
+  });
+
+  // Position top/bottom labels
+  topLabel.style.left = '50%';
+  topLabel.style.transform = 'translateX(-50%)';
+  topLabel.style.top = (laneTop - 32) + 'px';
+
+  bottomLabel.style.left = '50%';
+  bottomLabel.style.transform = 'translateX(-50%)';
+  bottomLabel.style.top = (laneBot + 14) + 'px';
+}
+
+function initRun() {
+  const prompt = MESSY_PROMPTS[run % MESSY_PROMPTS.length];
+  ball = {
+    x: laneX + laneW / 2,
+    y: laneTop - 16,
+    vy: 0,
+    r: Math.min(laneW * 0.12, 8),
+    wobble: 0,
+    wobbleAmp: 2 + Math.random() * 2,
+    wobbleFreq: 0.04 + Math.random() * 0.03,
+  };
+  trail = [];
+  particles = [];
+  stageStates = STAGES.map(() => 'waiting');
+  currentStage = -1;
+  stageTimer = 0;
+  phase = 'start';
+  globalTimer = 0;
+
+  topLabel.textContent = prompt;
+  topLabel.style.color = '#f7768e';
+  bottomLabel.className = '';
+  bottomLabel.textContent = 'SECURE CODE SHIPPED';
+  bottomLabel.style.color = '#5eead4';
+
+  // Reset HUD
+  labelEls.forEach(l => {
+    l.el.className = 'stage-label';
+  });
+  popupEls.forEach(p => {
+    p.prob.className = 'catch-popup problem';
+    p.fix.className = 'catch-popup fixed';
+  });
+}
+
+function advanceStage() {
+  currentStage++;
+  if (currentStage >= STAGES.length) {
+    phase = 'complete';
+    bottomLabel.className = 'show';
+    spawnBurst(ball.x, ball.y, '#5eead4', 30);
+    return;
+  }
+  stageStates[currentStage] = 'approaching';
+  stageTimer = 0;
+  labelEls[currentStage].el.classList.add('active');
+}
+
+function spawnBurst(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1 + Math.random() * 4;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1,
+      decay: 0.015 + Math.random() * 0.025,
+      size: 1 + Math.random() * 2.5,
+      color
+    });
+  }
+}
+
+function tick() {
+  globalTimer++;
+
+  if (phase === 'start') {
+    if (globalTimer > 40) {
+      phase = 'rolling';
+      advanceStage();
+    }
+    return;
+  }
+
+  if (phase === 'complete') {
+    ball.vy *= 0.92;
+    ball.y += ball.vy;
+    if (globalTimer > 250 + STAGES.length * 120) {
+      run++;
+      initRun();
+    }
+    return;
+  }
+
+  // Rolling through stages
+  if (currentStage >= 0 && currentStage < STAGES.length) {
+    const targetY = laneTop + gateGap * currentStage + gateGap * 0.5;
+    const state = stageStates[currentStage];
+    stageTimer++;
+
+    if (state === 'approaching') {
+      // Move ball toward gate
+      const dy = targetY - ball.y;
+      ball.vy += dy * 0.008;
+      ball.vy *= 0.92;
+      ball.y += ball.vy;
+
+      // Wobble (messy prompt energy)
+      ball.wobble += ball.wobbleFreq;
+      const wobbleX = Math.sin(ball.wobble) * ball.wobbleAmp;
+      ball.x = laneX + laneW / 2 + wobbleX;
+
+      if (Math.abs(dy) < 8 && stageTimer > 15) {
+        stageStates[currentStage] = 'caught';
+        stageTimer = 0;
+        labelEls[currentStage].el.classList.add('caught');
+        popupEls[currentStage].prob.classList.add('show');
+        spawnBurst(ball.x, ball.y, '#f7768e', 10);
+        ball.vy = 0;
+      }
+    }
+
+    if (state === 'caught') {
+      // Pause — show the problem
+      // Ball shakes
+      ball.x = laneX + laneW / 2 + Math.sin(stageTimer * 0.5) * 3 * Math.max(0, 1 - stageTimer / 30);
+
+      if (stageTimer > 50) {
+        stageStates[currentStage] = 'fixing';
+        stageTimer = 0;
+        popupEls[currentStage].prob.classList.remove('show');
+      }
+    }
+
+    if (state === 'fixing') {
+      // Show the fix
+      if (stageTimer === 1) {
+        labelEls[currentStage].el.classList.remove('caught');
+        labelEls[currentStage].el.classList.add('fixed');
+        popupEls[currentStage].fix.classList.add('show');
+        spawnBurst(ball.x, ball.y, '#5eead4', 12);
+      }
+
+      // Ball settles to center
+      ball.x += (laneX + laneW / 2 - ball.x) * 0.1;
+
+      if (stageTimer > 50) {
+        stageStates[currentStage] = 'passed';
+        popupEls[currentStage].fix.classList.remove('show');
+        // Reduce wobble after each gate (getting more aligned)
+        ball.wobbleAmp *= 0.65;
+        advanceStage();
+      }
+    }
+  }
+
+  // Trail
+  if (globalTimer % 3 === 0) {
+    trail.push({ x: ball.x, y: ball.y, a: 1 });
+  }
+  trail.forEach(t => t.a *= 0.97);
+  trail = trail.filter(t => t.a > 0.01);
+
+  // Particles
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.96; p.vy *= 0.96;
+    p.life -= p.decay;
+  });
+  particles = particles.filter(p => p.life > 0);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Lane
+  ctx.fillStyle = '#0c0d18';
+  ctx.beginPath();
+  ctx.roundRect(laneX, laneTop, laneW, laneBot - laneTop, 8);
+  ctx.fill();
+
+  // Lane center line (subtle)
+  ctx.strokeStyle = '#12142266';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 8]);
+  ctx.beginPath();
+  ctx.moveTo(laneX + laneW / 2, laneTop + 12);
+  ctx.lineTo(laneX + laneW / 2, laneBot - 12);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Gate lines
+  STAGES.forEach((s, i) => {
+    const y = laneTop + gateGap * (i + 1);
+    if (i < STAGES.length - 1) {
+      const state = stageStates[i];
+      const isPassed = state === 'passed';
+      const isCaught = state === 'caught';
+
+      ctx.strokeStyle = isCaught ? 'rgba(247,118,142,0.4)'
+        : isPassed ? 'rgba(94,234,212,0.3)'
+        : '#1a1d2e';
+      ctx.lineWidth = isPassed || isCaught ? 2 : 1;
+      ctx.beginPath();
+      ctx.moveTo(laneX + 6, y);
+      ctx.lineTo(laneX + laneW - 6, y);
+      ctx.stroke();
+
+      // Gate glow
+      if (isPassed) {
+        ctx.shadowColor = '#5eead4';
+        ctx.shadowBlur = 8;
+        ctx.strokeStyle = 'rgba(94,234,212,0.15)';
+        ctx.beginPath();
+        ctx.moveTo(laneX + 6, y);
+        ctx.lineTo(laneX + laneW - 6, y);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    }
+  });
+
+  // Trail
+  for (let i = 1; i < trail.length; i++) {
+    const t = trail[i], prev = trail[i - 1];
+    // Color shifts from red (messy) to green (corrected) based on position
+    const progress = Math.min(1, (t.y - laneTop) / (laneBot - laneTop));
+    const r = Math.round(247 - progress * 153);
+    const g = Math.round(118 + progress * 116);
+    const b = Math.round(142 + progress * 70);
+    ctx.strokeStyle = `rgba(${r},${g},${b},${t.a * 0.35})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(prev.x, prev.y);
+    ctx.lineTo(t.x, t.y);
+    ctx.stroke();
+  }
+
+  // Particles
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life * 0.6;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+
+  // Ball
+  if (ball.y >= laneTop - 20) {
+    // Ball shadow/glow
+    const progress = Math.min(1, Math.max(0, (ball.y - laneTop) / (laneBot - laneTop)));
+    const glowR = Math.round(247 - progress * 153);
+    const glowG = Math.round(118 + progress * 116);
+    const glowB = Math.round(142 + progress * 70);
+    ctx.shadowColor = `rgb(${glowR},${glowG},${glowB})`;
+    ctx.shadowBlur = 14;
+
+    ctx.fillStyle = '#f0f4ff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Inner gradient
+    const grad = ctx.createRadialGradient(ball.x - ball.r * 0.3, ball.y - ball.r * 0.3, 0, ball.x, ball.y, ball.r);
+    grad.addColorStop(0, 'rgba(255,255,255,0.5)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Target zone at bottom
+  const targetY = laneBot - 10;
+  const arrived = phase === 'complete';
+  const pulse = arrived ? 0.5 + Math.sin(globalTimer * 0.06) * 0.5 : 0.08;
+  ctx.fillStyle = `rgba(94,234,212,${pulse * 0.12})`;
+  ctx.beginPath();
+  ctx.roundRect(laneX + 4, targetY - 6, laneW - 8, 12, 3);
+  ctx.fill();
+  if (arrived) {
+    ctx.strokeStyle = `rgba(94,234,212,${pulse * 0.6})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(laneX + 4, targetY - 6, laneW - 8, 12, 3);
+    ctx.stroke();
+  }
+}
+
+function loop() {
+  tick();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// Click to replay
+canvas.addEventListener('click', () => { run++; initRun(); });
+
+window.addEventListener('resize', () => {
+  resize();
+  createHUD();
+  initRun();
+});
+
+createHUD();
+initRun();
+loop();
+</script>
+</body>
+</html>
