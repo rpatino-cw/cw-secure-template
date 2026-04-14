@@ -67,6 +67,10 @@ Run `/arch-enforcer` in Claude Code — pick Go or Python framework, Claude lock
 <details>
 <summary>Multi-agent rooms</summary>
 
+<p align="center">
+  <img src="docs/screenshots/agents-animation.gif" alt="Agent coordination — Go and Python agents passing notes instead of overwriting code" width="600">
+</p>
+
 Multiple Claude agents work on the same codebase without conflicts. Each agent owns a directory — `guard.sh` hard-blocks edits outside your room.
 
 ```bash
