@@ -165,6 +165,10 @@ room-status: ## Show pending requests across all rooms
 room-lint: ## Validate room config (runs automatically on push)
 	@bash scripts/room-lint.sh
 
+.PHONY: review
+review: ## AI code review on your unpushed changes
+	@bash scripts/agent-review.sh
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # SETUP (behind make help)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

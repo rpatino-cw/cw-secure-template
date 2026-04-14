@@ -68,6 +68,12 @@ if [ -f rooms.json ]; then
     fi
 fi
 
+# ── 4. Agent code review ──
+echo -e "  ${DIM}Agent code review...${NC}"
+if ! bash scripts/agent-review.sh; then
+    FAILED=1
+fi
+
 # ── Result ──
 if [ "$FAILED" -ne 0 ]; then
     echo ""
