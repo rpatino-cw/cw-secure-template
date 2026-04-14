@@ -104,6 +104,12 @@
             "command": "bash scripts/guard.sh",
             "timeout": 5000,
             "statusMessage": "Checking guardrails..."
+          },
+          {
+            "type": "command",
+            "command": "bash scripts/activity-log.sh",
+            "timeout": 3000,
+            "statusMessage": "Logging activity..."
           }
         ]
       },

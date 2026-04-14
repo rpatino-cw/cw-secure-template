@@ -12,12 +12,19 @@ If the environment variable `AGENT_ROOM` is set, that is your room name.
 Read `rooms/{AGENT_ROOM}/AGENT.md` for your full ownership list and rules.
 If `AGENT_ROOM` is not set, ask the user which room you're working in before editing any files.
 
+### Activity Feed (automatic)
+
+A hook auto-logs every edit to `rooms/activity.md` and injects warnings into your context.
+If you see `<agent-activity>` warnings about another agent editing the same file or directory,
+**stop and coordinate** — send a request to their inbox instead of editing.
+
 ### Before Every Edit
 
 1. Check if the file you're about to edit is owned by another room (see `rooms.json`)
 2. If it belongs to another room → **do NOT edit it**. Write a request to their inbox instead.
 3. If it's in the `shared` list → send a request to the approver room.
-4. If it's in YOUR room → edit freely.
+4. If `<agent-activity>` warned another agent is in the same area → coordinate first.
+5. If it's in YOUR room and no conflicts → edit freely.
 
 ### Before Every Response
 

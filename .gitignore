@@ -236,8 +236,9 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
-# Room inbox/outbox (ephemeral agent messages)
+# Room coordination (ephemeral agent messages and activity)
 rooms/*/inbox/*.md
 rooms/*/outbox/*.md
+rooms/activity.md
 !rooms/*/inbox/.gitkeep
 !rooms/*/outbox/.gitkeep
