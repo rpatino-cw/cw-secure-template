@@ -57,6 +57,9 @@ help: ## Show all available commands
 	@echo "    make agent       Start Claude as a room agent (NAME=go-dev)"
 	@echo "    make room-status See pending requests across rooms"
 	@echo ""
+	@echo "  Docs:"
+	@echo "    make readme      Simplify README via Claude Code"
+	@echo ""
 	@echo "  Setup:"
 	@echo "    make init        Personalize for your project (name, team, data)"
 	@echo "    make add-secret  Safely store an API key in .env"
@@ -184,3 +187,11 @@ endif
 
 .PHONY: lint-fix
 lint-fix: fix
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# README (behind make help)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: readme
+readme: ## Simplify README via Claude Code
+	@claude -p "Read README.md. Rewrite it: keep the one-liner clone command, the 5 make commands, and requirements. Move everything else into <details> dropdowns. No section should exceed 10 lines when collapsed. Write the result back to README.md." --allowedTools Edit,Read

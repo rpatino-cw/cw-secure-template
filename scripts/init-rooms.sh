@@ -21,9 +21,13 @@ ROOMS_DIR="$REPO_ROOT/rooms"
 # ─── Preflight ────────────────────────────────────────────
 
 if [ ! -f "$CONFIG" ]; then
-  echo "  Error: rooms.json not found at $CONFIG"
-  echo "  Create one first — see rooms.json.example"
-  exit 1
+  echo "  No rooms.json found — auto-detecting project structure..."
+  echo ""
+  python3 "$REPO_ROOT/scripts/auto-rooms.py" --write
+  if [ ! -f "$CONFIG" ]; then
+    echo "  Auto-detection failed. Create rooms.json manually."
+    exit 1
+  fi
 fi
 
 if ! command -v jq &>/dev/null; then
