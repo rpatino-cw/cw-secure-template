@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 380" font-family="'SF Mono', 'Fira Code', Menlo, monospace" font-size="14">
+  <style>
+    .bg { fill: #0d1117; }
+    .bar { fill: #161b22; }
+    .dot-r { fill: #ff5f57; }
+    .dot-y { fill: #febc2e; }
+    .dot-g { fill: #28c840; }
+    .title { fill: #8b949e; font-size: 13px; }
+    .cmd { fill: #e6edf3; }
+    .dim { fill: #8b949e; }
+    .pass { fill: #3fb950; }
+    .out { fill: #58a6ff; }
+    .bold { fill: #f0f6fc; font-weight: bold; }
+    .label { fill: #d2a8ff; }
+  </style>
+
+  <rect class="bg" width="840" height="380" rx="10"/>
+  <rect class="bar" width="840" height="38" rx="10"/>
+  <rect class="bg" x="0" y="28" width="840" height="10"/>
+  <circle class="dot-r" cx="20" cy="19" r="6"/>
+  <circle class="dot-y" cx="40" cy="19" r="6"/>
+  <circle class="dot-g" cx="60" cy="19" r="6"/>
+  <text class="title" x="420" y="23" text-anchor="middle">What's already built — you configure nothing</text>
+
+  <!-- Row 1 -->
+  <g opacity="0">
+    <text class="pass" y="72" x="30">&#10003;</text>
+    <text class="bold" y="72" x="56">Auth middleware</text>
+    <text class="dim" y="72" x="280">Okta OIDC pre-wired, DEV_MODE for local</text>
+    <animate attributeName="opacity" from="0" to="1" begin="0.3s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 2 -->
+  <g opacity="0">
+    <text class="pass" y="100" x="30">&#10003;</text>
+    <text class="bold" y="100" x="56">Rate limiting</text>
+    <text class="dim" y="100" x="280">100 req/min per IP, configurable</text>
+    <animate attributeName="opacity" from="0" to="1" begin="0.6s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 3 -->
+  <g opacity="0">
+    <text class="pass" y="128" x="30">&#10003;</text>
+    <text class="bold" y="128" x="56">Secret pipeline</text>
+    <text class="dim" y="128" x="280">Hidden input &#8594; .env &#8594; Doppler in prod</text>
+    <animate attributeName="opacity" from="0" to="1" begin="0.9s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 4 -->
+  <g opacity="0">
+    <text class="pass" y="156" x="30">&#10003;</text>
+    <text class="bold" y="156" x="56">Git hooks</text>
+    <text class="dim" y="156" x="280">Secret scan + lint + security on every commit</text>
+    <animate attributeName="opacity" from="0" to="1" begin="1.2s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 5 -->
+  <g opacity="0">
+    <text class="pass" y="184" x="30">&#10003;</text>
+    <text class="bold" y="184" x="56">8 CI checks</text>
+    <text class="dim" y="184" x="280">Secrets, CodeQL, coverage, slop detection</text>
+    <animate attributeName="opacity" from="0" to="1" begin="1.5s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 6 -->
+  <g opacity="0">
+    <text class="pass" y="212" x="30">&#10003;</text>
+    <text class="bold" y="212" x="56">2 AI agents</text>
+    <text class="dim" y="212" x="280">Security auditor + code reviewer</text>
+    <animate attributeName="opacity" from="0" to="1" begin="1.8s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 7 -->
+  <g opacity="0">
+    <text class="pass" y="240" x="30">&#10003;</text>
+    <text class="bold" y="240" x="56">Auto-learning memory</text>
+    <text class="dim" y="240" x="280">Claude remembers your project across sessions</text>
+    <animate attributeName="opacity" from="0" to="1" begin="2.1s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 8 -->
+  <g opacity="0">
+    <text class="pass" y="268" x="30">&#10003;</text>
+    <text class="bold" y="268" x="56">Kubernetes deploy</text>
+    <text class="dim" y="268" x="280">Helm chart, 4 envs, secure defaults</text>
+    <animate attributeName="opacity" from="0" to="1" begin="2.4s" dur="0.3s" fill="freeze"/>
+  </g>
+  <!-- Row 9 -->
+  <g opacity="0">
+    <text class="pass" y="296" x="30">&#10003;</text>
+    <text class="bold" y="296" x="56">Docker images</text>
+    <text class="dim" y="296" x="280">Multi-stage, non-root, Chainguard base</text>
+    <animate attributeName="opacity" from="0" to="1" begin="2.7s" dur="0.3s" fill="freeze"/>
+  </g>
+
+  <!-- Bottom -->
+  <g opacity="0">
+    <text class="bold" y="344" x="30">Clone it. It's all there. Zero config.</text>
+    <animate attributeName="opacity" from="0" to="1" begin="3.5s" dur="0.5s" fill="freeze"/>
+  </g>
+</svg>

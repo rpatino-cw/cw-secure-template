@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 440" font-family="'SF Mono', 'Fira Code', Menlo, monospace" font-size="14">
+  <style>
+    .bg { fill: #0d1117; }
+    .bar { fill: #161b22; }
+    .dot-r { fill: #ff5f57; }
+    .dot-y { fill: #febc2e; }
+    .dot-g { fill: #28c840; }
+    .title { fill: #8b949e; font-size: 13px; }
+    .cmd { fill: #e6edf3; }
+    .dim { fill: #8b949e; }
+    .bad { fill: #f85149; }
+    .good { fill: #3fb950; }
+    .out { fill: #58a6ff; }
+    .warn { fill: #d29922; }
+    .bold { fill: #f0f6fc; font-weight: bold; }
+    .strike { fill: #f85149; text-decoration: line-through; }
+    .box-bad { fill: #1c1012; stroke: #f85149; stroke-width: 1.5; rx: 6; }
+    .box-good { fill: #0d1a12; stroke: #3fb950; stroke-width: 1.5; rx: 6; }
+    .box-teach { fill: #0d1520; stroke: #58a6ff; stroke-width: 1.5; rx: 6; }
+    .arrow { fill: none; stroke: #d29922; stroke-width: 2; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#d29922"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="840" height="440" rx="10"/>
+  <rect class="bar" width="840" height="38" rx="10"/>
+  <rect class="bg" x="0" y="28" width="840" height="10"/>
+  <circle class="dot-r" cx="20" cy="19" r="6"/>
+  <circle class="dot-y" cx="40" cy="19" r="6"/>
+  <circle class="dot-g" cx="60" cy="19" r="6"/>
+  <text class="title" x="420" y="23" text-anchor="middle">Claude catches mistakes and teaches you why</text>
+
+  <!-- Step 1: You write bad code -->
+  <g opacity="0">
+    <text class="dim" y="62" x="20">You write:</text>
+    <animate attributeName="opacity" from="0" to="1" begin="0.5s" dur="0.3s" fill="freeze"/>
+  </g>
+  <g opacity="0">
+    <rect class="box-bad" x="20" y="72" width="800" height="36"/>
+    <text class="bad" y="95" x="32">password = "sk-abc123secret"</text>
+    <text class="bad" y="95" x="680">&#10008; SECRET IN CODE</text>
+    <animate attributeName="opacity" from="0" to="1" begin="1s" dur="0.6s" fill="freeze"/>
+  </g>
+
+  <!-- Arrow down -->
+  <g opacity="0">
+    <line class="arrow" x1="420" y1="114" x2="420" y2="134"/>
+    <animate attributeName="opacity" from="0" to="1" begin="2s" dur="0.3s" fill="freeze"/>
+  </g>
+
+  <!-- Step 2: Claude blocks it -->
+  <g opacity="0">
+    <rect class="box-teach" x="20" y="140" width="800" height="100"/>
+    <text class="out" y="163" x="32" font-weight="bold">Claude:</text>
+    <text class="cmd" y="163" x="110">I can't put that in your code. Here's why:</text>
+    <text class="dim" y="187" x="32">If this gets pushed to GitHub, anyone can steal your API key.</text>
+    <text class="dim" y="211" x="32">Even in a private repo, teammates and CI logs would see it.</text>
+    <text class="warn" y="227" x="32">Let me store it safely instead...</text>
+    <animate attributeName="opacity" from="0" to="1" begin="2.8s" dur="0.6s" fill="freeze"/>
+  </g>
+
+  <!-- Arrow down -->
+  <g opacity="0">
+    <line class="arrow" x1="420" y1="246" x2="420" y2="266"/>
+    <animate attributeName="opacity" from="0" to="1" begin="4s" dur="0.3s" fill="freeze"/>
+  </g>
+
+  <!-- Step 3: Claude fixes it -->
+  <g opacity="0">
+    <rect class="box-good" x="20" y="272" width="800" height="80"/>
+    <text class="good" y="295" x="32">password = os.environ["API_KEY"]</text>
+    <text class="good" y="295" x="680">&#10003; READS FROM .ENV</text>
+    <text class="dim" y="323" x="32"># Stored via: make add-secret (hidden input, never in git)</text>
+    <text class="good" y="340" x="680">&#10003; SAFE</text>
+    <animate attributeName="opacity" from="0" to="1" begin="4.8s" dur="0.6s" fill="freeze"/>
+  </g>
+
+  <!-- Lesson learned -->
+  <g opacity="0">
+    <text class="bold" y="392" x="20">You learned something. Your code is safe. You didn't slow down.</text>
+    <animate attributeName="opacity" from="0" to="1" begin="6s" dur="0.5s" fill="freeze"/>
+  </g>
+
+  <g opacity="0">
+    <text class="dim" y="420" x="20">Every blocked pattern comes with an explanation and an automatic fix.</text>
+    <animate attributeName="opacity" from="0" to="1" begin="7s" dur="0.5s" fill="freeze"/>
+  </g>
+</svg>

@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 360" font-family="'SF Mono', 'Fira Code', Menlo, monospace" font-size="14">
+  <style>
+    .bg { fill: #0d1117; }
+    .bar { fill: #161b22; }
+    .dot-r { fill: #ff5f57; }
+    .dot-y { fill: #febc2e; }
+    .dot-g { fill: #28c840; }
+    .title { fill: #8b949e; font-size: 13px; }
+    .cmd { fill: #e6edf3; }
+    .dim { fill: #8b949e; }
+    .pass { fill: #3fb950; }
+    .out { fill: #58a6ff; }
+    .bold { fill: #f0f6fc; font-weight: bold; }
+    .person { fill: #d2a8ff; }
+    .box { fill: #161b22; stroke: #30363d; stroke-width: 1.5; rx: 8; }
+    .box-center { fill: #0d1a12; stroke: #3fb950; stroke-width: 1.5; rx: 8; }
+    .arrow { fill: none; stroke: #484f58; stroke-width: 2; marker-end: url(#arr); }
+    .arrow-g { fill: none; stroke: #3fb950; stroke-width: 2; marker-end: url(#arrg); }
+  </style>
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#484f58"/></marker>
+    <marker id="arrg" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#3fb950"/></marker>
+  </defs>
+
+  <rect class="bg" width="840" height="360" rx="10"/>
+  <rect class="bar" width="840" height="38" rx="10"/>
+  <rect class="bg" x="0" y="28" width="840" height="10"/>
+  <circle class="dot-r" cx="20" cy="19" r="6"/>
+  <circle class="dot-y" cx="40" cy="19" r="6"/>
+  <circle class="dot-g" cx="60" cy="19" r="6"/>
+  <text class="title" x="420" y="23" text-anchor="middle">How teams vibe code together</text>
+
+  <!-- Person boxes (left side) -->
+  <g opacity="0">
+    <rect class="box" x="30" y="70" width="200" height="54"/>
+    <text class="person" y="92" x="50">Alice</text>
+    <text class="dim" y="112" x="50">"add users endpoint"</text>
+    <animate attributeName="opacity" from="0" to="1" begin="0.5s" dur="0.5s" fill="freeze"/>
+  </g>
+  <g opacity="0">
+    <rect class="box" x="30" y="140" width="200" height="54"/>
+    <text class="person" y="162" x="50">Bob</text>
+    <text class="dim" y="182" x="50">"add payments API"</text>
+    <animate attributeName="opacity" from="0" to="1" begin="1s" dur="0.5s" fill="freeze"/>
+  </g>
+  <g opacity="0">
+    <rect class="box" x="30" y="210" width="200" height="54"/>
+    <text class="person" y="232" x="50">Charlie</text>
+    <text class="dim" y="252" x="50">"add reports page"</text>
+    <animate attributeName="opacity" from="0" to="1" begin="1.5s" dur="0.5s" fill="freeze"/>
+  </g>
+
+  <!-- Arrows to center -->
+  <g opacity="0">
+    <line class="arrow" x1="236" y1="97" x2="330" y2="167"/>
+    <line class="arrow" x1="236" y1="167" x2="330" y2="167"/>
+    <line class="arrow" x1="236" y1="237" x2="330" y2="167"/>
+    <animate attributeName="opacity" from="0" to="1" begin="2.2s" dur="0.4s" fill="freeze"/>
+  </g>
+
+  <!-- Center: Same rules -->
+  <g opacity="0">
+    <rect class="box-center" x="336" y="130" width="180" height="76"/>
+    <text class="pass" y="158" x="370" font-weight="bold">Same rules</text>
+    <text class="pass" y="178" x="354">Same structure</text>
+    <text class="pass" y="196" x="360">Same patterns</text>
+    <animate attributeName="opacity" from="0" to="1" begin="2.8s" dur="0.5s" fill="freeze"/>
+  </g>
+
+  <!-- Arrows to right -->
+  <g opacity="0">
+    <line class="arrow-g" x1="522" y1="167" x2="600" y2="167"/>
+    <animate attributeName="opacity" from="0" to="1" begin="3.6s" dur="0.4s" fill="freeze"/>
+  </g>
+
+  <!-- Right: Result -->
+  <g opacity="0">
+    <rect class="box" x="606" y="80" width="210" height="180"/>
+    <text class="bold" y="110" x="626">Result:</text>
+    <text class="cmd" y="138" x="626">routes/users.py</text>
+    <text class="cmd" y="160" x="626">routes/payments.py</text>
+    <text class="cmd" y="182" x="626">routes/reports.py</text>
+    <text class="dim" y="210" x="626">All follow the same</text>
+    <text class="dim" y="230" x="626">conventions. Automatically.</text>
+    <text class="pass" y="248" x="626">&#10003;</text>
+    <animate attributeName="opacity" from="0" to="1" begin="4.2s" dur="0.5s" fill="freeze"/>
+  </g>
+
+  <!-- Bottom line -->
+  <g opacity="0">
+    <text class="bold" y="304" x="20">3 people. 3 prompts. 1 consistent codebase.</text>
+    <animate attributeName="opacity" from="0" to="1" begin="5.2s" dur="0.5s" fill="freeze"/>
+  </g>
+  <g opacity="0">
+    <text class="dim" y="332" x="20">CI + code reviewer agent enforce it. No one can break the pattern.</text>
+    <animate attributeName="opacity" from="0" to="1" begin="6s" dur="0.5s" fill="freeze"/>
+  </g>
+</svg>

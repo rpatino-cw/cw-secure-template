@@ -59,88 +59,41 @@ One question — Python or Go. Then you're building.
 
 <br>
 
-## Core Commands
+## 3 Commands. That's It.
 
-```
-make start         Run your app
-make check         Run all checks before a PR
-make add-secret    Safely store a database URL or API key
-make doctor        Is everything working? Find out
-make learn         15-question security quiz — learn by building
-```
-
-In Claude Code:
-
-```
-/project:add-endpoint       New API route — auth, validation, tests included
-/project:check              Full quality + security scan
-/project:security-review    10-point audit with exact fixes
-```
+<p align="center">
+  <img src="docs/terminal/commands.svg" alt="The 3 commands: make start, make check, make add-secret" width="720">
+</p>
 
 <br>
 
-## Claude Teaches You As You Build
+## Claude Catches Mistakes and Teaches You Why
 
-This isn't just guardrails. Claude explains every pattern it uses:
-
-```python
-# SECURITY LESSON: Never put user input directly in a SQL query.
-# This uses parameterized queries — the database treats input as data, not code.
-# Without this, an attacker could type '; DROP TABLE users; --' as their name.
-cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-```
-
-Blocked commits tell you **what happened, why it matters, and how to fix it** — in plain English. You learn backend development while building a real app.
+<p align="center">
+  <img src="docs/terminal/claude-teaches.svg" alt="Claude blocks bad code, explains why, and fixes it automatically" width="720">
+</p>
 
 <br>
 
-## Teams
+## Vibe Code With Your Team
 
-Everyone clones the same template. Same rules, same commands, same structure. The CI pipeline and code reviewer agent enforce consistency. Your app looks like one person built it, even if five people are prompting.
-
-- **Shared rules** — one `CLAUDE.md`, everyone follows it
-- **Code reviewer agent** — reviews every PR against the same conventions
-- **CODEOWNERS** — no solo merges
-- **PR template** — 10-point checklist
+<p align="center">
+  <img src="docs/terminal/teams.svg" alt="3 people, 3 prompts, 1 consistent codebase" width="720">
+</p>
 
 <br>
 
-## What Ships With It
+## What's Already Built
 
-- **Pre-wired middleware** — auth (Okta OIDC), rate limiting, request tracking, security headers
-- **Git hooks** — secret scanning, linting, security checks on every commit. Can't be disabled
-- **8 CI checks** — secrets, CodeQL, coverage gate, dependency audit, slop detection, hook integrity
-- **2 AI agents** — security auditor + code reviewer
-- **Auto-learning memory** — Claude remembers your project across sessions
-- **Kubernetes deployment** — Helm chart with 4 environment configs
-- **Docker** — multi-stage, non-root, Chainguard base images
+<p align="center">
+  <img src="docs/terminal/whats-included.svg" alt="9 features included — zero config" width="720">
+</p>
 
 <br>
 
 ## Requirements
 
-| Need | Install |
-|:-----|:--------|
-| Git | `brew install git` |
-| Python 3.11+ or Go 1.21+ | `brew install python@3.11` or `brew install go` |
-| pre-commit | `pip install pre-commit` |
-| gitleaks | `brew install gitleaks` |
-
-<br>
-
-## FAQ
-
-**Do I need to be a developer?**
-No. Claude walks you through everything — database setup, secret storage, endpoint creation. You learn by building.
-
-**Can my team use this?**
-That's the point. Everyone gets the same guardrails. CI enforces consistency across all contributors.
-
-**What if Claude overwrites my code?**
-It can't. Force push, hard reset, and hook bypass are all denied. Dropped file detection catches the rest.
-
-**Will it slow me down?**
-No. You don't configure anything. The structure is already there. You just build.
+`brew install git gitleaks` and Python 3.11+ or Go 1.21+. [Full setup guide](docs/getting-started.md).
 
 ---
 
