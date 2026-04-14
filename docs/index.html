@@ -708,58 +708,38 @@ section {
   .tm-arrow, .tm-arrow2 { display: none; }
 }
 
-/* ═══ LIVE DEMO — Dark Section ═══ */
+/* ═══ LIVE DEMO — Light theme, matches page ═══ */
 .live-demo {
-  background: #0a0a0f;
-  color: #c8c8d4;
-  padding: clamp(48px, 8vw, 80px) 0;
-  --d-bg: #0a0a0f;
-  --d-surface: #12121a;
-  --d-border: #1e1e2e;
-  --d-text: #c8c8d4;
-  --d-dim: #5a5a72;
-  --d-accent: #f4f4f8;
-  --d-alice: #e8b4b8;
-  --d-bob: #b4d4e8;
-  --d-charlie: #d4e8b4;
-  --d-guard: #f59e0b;
-  --d-block: #ef4444;
-  --d-pass: #22c55e;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
-.live-demo .wrap { max-width: 1080px; }
-
 .live-demo h2 {
-  font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem);
-  font-weight: 700;
-  color: var(--d-accent);
-  letter-spacing: -0.02em;
   margin-bottom: 8px;
 }
 
 .live-demo .demo-sub {
-  color: var(--d-dim);
-  font-size: 1rem;
+  color: var(--text-mid);
+  font-size: 1.05rem;
   margin-bottom: clamp(32px, 4vw, 48px);
   max-width: 560px;
-  line-height: 1.6;
 }
 
 .demo-board {
   display: grid;
-  grid-template-columns: 180px 1fr 180px;
-  gap: 0;
+  grid-template-columns: 170px 1fr 170px;
+  gap: 12px;
   position: relative;
-  min-height: 520px;
+  min-height: 460px;
 }
 
-/* Devs column */
 .demo-devs {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding-top: 48px;
+  gap: 16px;
+  padding-top: 40px;
 }
 
 .demo-dev {
@@ -767,9 +747,9 @@ section {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  border-radius: 8px;
-  background: var(--d-surface);
-  border: 1px solid var(--d-border);
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
   opacity: 0;
 }
 
@@ -780,45 +760,44 @@ section {
   flex-shrink: 0;
 }
 
-.demo-dev[data-who="alice"] .demo-dev-dot { background: var(--d-alice); }
-.demo-dev[data-who="bob"] .demo-dev-dot { background: var(--d-bob); }
-.demo-dev[data-who="charlie"] .demo-dev-dot { background: var(--d-charlie); }
-.demo-dev[data-who="alice"] .demo-dev-name { color: var(--d-alice); }
-.demo-dev[data-who="bob"] .demo-dev-name { color: var(--d-bob); }
-.demo-dev[data-who="charlie"] .demo-dev-name { color: var(--d-charlie); }
+.demo-dev[data-who="alice"] .demo-dev-dot { background: var(--blue); }
+.demo-dev[data-who="bob"] .demo-dev-dot { background: var(--green); }
+.demo-dev[data-who="charlie"] .demo-dev-dot { background: var(--amber); }
+.demo-dev[data-who="alice"] .demo-dev-name { color: var(--blue); }
+.demo-dev[data-who="bob"] .demo-dev-name { color: var(--green); }
+.demo-dev[data-who="charlie"] .demo-dev-name { color: var(--amber-deep); }
 
 .demo-dev-name {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .demo-dev-task {
   font-size: 0.65rem;
-  color: var(--d-dim);
-  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
   margin-top: 2px;
 }
 
-/* File tree */
 .demo-files {
   position: relative;
-  padding: 0 32px;
+  padding: 0 20px;
 }
 
 .demo-files-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--d-dim);
-  margin-bottom: 12px;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 10px;
 }
 
 .demo-fg-name {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.7rem;
-  color: var(--d-dim);
+  color: var(--text-dim);
   padding: 5px 10px;
 }
 
@@ -826,11 +805,11 @@ section {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 10px 7px 24px;
-  border-radius: 5px;
-  font-family: 'JetBrains Mono', monospace;
+  padding: 6px 10px 6px 22px;
+  border-radius: 6px;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.75rem;
-  color: var(--d-text);
+  color: var(--text);
   border: 1px solid transparent;
   transition: border-color 0.3s, background 0.3s;
   opacity: 0;
@@ -844,72 +823,81 @@ section {
   opacity: 0;
 }
 
-.demo-file .dlock {
-  font-size: 0.6rem;
-  opacity: 0;
-}
+.demo-file .dlock { font-size: 0.6rem; opacity: 0; }
 
-/* Guard wall */
 .demo-guard {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-top: 48px;
+  padding-top: 40px;
 }
 
 .demo-guard-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.65rem;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--d-guard);
-  margin-bottom: 6px;
+  letter-spacing: 0.1em;
+  color: var(--amber-deep);
+  margin-bottom: 4px;
   opacity: 0;
 }
 
 .demo-guard-layer {
   padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--d-guard);
-  background: #f59e0b10;
+  border-radius: 8px;
+  border: 1px solid var(--amber);
+  background: var(--amber-bg);
   opacity: 0;
 }
 
 .demo-guard-layer-name {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--d-guard);
+  font-weight: 500;
+  color: var(--amber-deep);
 }
 
 .demo-guard-layer-desc {
   font-size: 0.6rem;
-  color: var(--d-dim);
-  margin-top: 3px;
+  color: var(--text-dim);
+  margin-top: 2px;
   line-height: 1.4;
 }
 
-/* Event log */
+/* Event log — terminal-styled to match the terminal section */
 .demo-log {
-  margin-top: 48px;
-  border-top: 1px solid var(--d-border);
-  padding-top: 32px;
+  margin-top: 40px;
+  background: var(--term-bg);
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.demo-log-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--d-dim);
-  margin-bottom: 12px;
+.demo-log-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: oklch(12% 0.01 260);
+}
+
+.demo-log-bar span:nth-child(1) { width: 10px; height: 10px; border-radius: 50%; background: oklch(60% 0.2 25); }
+.demo-log-bar span:nth-child(2) { width: 10px; height: 10px; border-radius: 50%; background: oklch(72% 0.17 85); }
+.demo-log-bar span:nth-child(3) { width: 10px; height: 10px; border-radius: 50%; background: oklch(60% 0.16 155); }
+
+.demo-log-title {
+  flex: 1;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--term-dim);
 }
 
 .demo-events {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  max-height: 260px;
+  gap: 2px;
+  padding: 16px;
+  max-height: 220px;
   overflow: hidden;
 }
 
@@ -917,53 +905,50 @@ section {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border-radius: 5px;
-  font-family: 'JetBrains Mono', monospace;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 0.7rem;
 }
 
-.demo-ev-time { color: var(--d-dim); font-size: 0.6rem; width: 40px; flex-shrink: 0; }
-.demo-ev-icon { width: 16px; text-align: center; flex-shrink: 0; }
-.demo-ev-who { font-weight: 600; width: 56px; flex-shrink: 0; }
-.demo-ev-msg { color: var(--d-text); }
+.demo-ev-time { color: var(--term-dim); font-size: 0.6rem; width: 36px; flex-shrink: 0; }
+.demo-ev-icon { width: 14px; text-align: center; flex-shrink: 0; }
+.demo-ev-who { font-weight: 500; width: 52px; flex-shrink: 0; }
+.demo-ev-msg { color: var(--term-text); }
 
-.demo-ev-pass { background: #22c55e08; border: 1px solid #22c55e20; }
-.demo-ev-pass .demo-ev-icon { color: var(--d-pass); }
-.demo-ev-block { background: #ef444408; border: 1px solid #ef444420; }
-.demo-ev-block .demo-ev-icon { color: var(--d-block); }
-.demo-ev-guard { background: #f59e0b08; border: 1px solid #f59e0b20; }
-.demo-ev-guard .demo-ev-icon { color: var(--d-guard); }
+.demo-ev-pass { background: oklch(25% 0.04 155 / 0.3); }
+.demo-ev-pass .demo-ev-icon { color: var(--term-green); }
+.demo-ev-block { background: oklch(25% 0.04 25 / 0.3); }
+.demo-ev-block .demo-ev-icon { color: oklch(65% 0.2 25); }
+.demo-ev-guard { background: oklch(25% 0.04 65 / 0.3); }
+.demo-ev-guard .demo-ev-icon { color: oklch(72% 0.17 65); }
 
-/* Stats */
+/* Stats row */
 .demo-stats {
-  margin-top: 40px;
   display: flex;
   gap: 40px;
-  padding: 20px 0;
-  border-top: 1px solid var(--d-border);
+  padding: 24px 0 0;
 }
 
 .demo-stat { opacity: 0; }
 
 .demo-stat-val {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: var(--d-accent);
-  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: 'Fraunces', serif;
 }
 
-.demo-stat-val.s-pass { color: var(--d-pass); }
-.demo-stat-val.s-block { color: var(--d-block); }
+.demo-stat-val.s-pass { color: var(--green); }
+.demo-stat-val.s-block { color: var(--red); }
 
 .demo-stat-lbl {
   font-size: 0.7rem;
-  color: var(--d-dim);
-  margin-top: 3px;
+  color: var(--text-dim);
+  margin-top: 2px;
 }
 
 @media (max-width: 900px) {
-  .demo-board { grid-template-columns: 1fr; gap: 32px; }
+  .demo-board { grid-template-columns: 1fr; gap: 24px; }
   .demo-devs, .demo-guard { flex-direction: row; flex-wrap: wrap; }
   .demo-files { padding: 0; }
   .demo-stats { flex-wrap: wrap; }
@@ -1269,14 +1254,14 @@ section {
       <div class="demo-files">
         <div class="demo-files-label">Project Files</div>
         <div><div class="demo-fg-name">routes/</div>
-          <div class="demo-file" data-file="routes/users.py"><span>users.py</span><span class="dtag" style="color:var(--d-alice)">Alice</span><span class="dlock"></span></div>
-          <div class="demo-file" data-file="routes/payments.py"><span>payments.py</span><span class="dtag" style="color:var(--d-bob)">Bob</span><span class="dlock"></span></div>
-          <div class="demo-file" data-file="routes/reports.py"><span>reports.py</span><span class="dtag" style="color:var(--d-charlie)">Charlie</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="routes/users.py"><span>users.py</span><span class="dtag" style="color:var(--blue)">Alice</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="routes/payments.py"><span>payments.py</span><span class="dtag" style="color:var(--green)">Bob</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="routes/reports.py"><span>reports.py</span><span class="dtag" style="color:var(--amber-deep)">Charlie</span><span class="dlock"></span></div>
         </div>
         <div><div class="demo-fg-name">services/</div>
-          <div class="demo-file" data-file="services/auth.py"><span>auth_service.py</span><span class="dtag" style="color:var(--d-alice)">Alice</span><span class="dlock"></span></div>
-          <div class="demo-file" data-file="services/payment.py"><span>payment_service.py</span><span class="dtag" style="color:var(--d-bob)">Bob</span><span class="dlock"></span></div>
-          <div class="demo-file" data-file="services/report.py"><span>report_service.py</span><span class="dtag" style="color:var(--d-charlie)">Charlie</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="services/auth.py"><span>auth_service.py</span><span class="dtag" style="color:var(--blue)">Alice</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="services/payment.py"><span>payment_service.py</span><span class="dtag" style="color:var(--green)">Bob</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="services/report.py"><span>report_service.py</span><span class="dtag" style="color:var(--amber-deep)">Charlie</span><span class="dlock"></span></div>
         </div>
         <div><div class="demo-fg-name">config/</div>
           <div class="demo-file" data-file="config/settings.py"><span>settings.py</span><span class="dlock"></span></div>
@@ -1302,9 +1287,12 @@ section {
       </div>
     </div>
 
-    <!-- Event log -->
+    <!-- Event log — styled as terminal -->
     <div class="demo-log">
-      <div class="demo-log-label">Live Event Log</div>
+      <div class="demo-log-bar">
+        <span></span><span></span><span></span>
+        <div class="demo-log-title">live event log</div>
+      </div>
       <div class="demo-events" id="demoEvents"></div>
     </div>
 
@@ -1506,9 +1494,9 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
   const D = {
     devs: [
-      { name: 'Alice', color: 'var(--d-alice)', glow: '#e8b4b820', who: 'alice' },
-      { name: 'Bob', color: 'var(--d-bob)', glow: '#b4d4e820', who: 'bob' },
-      { name: 'Charlie', color: 'var(--d-charlie)', glow: '#d4e8b420', who: 'charlie' },
+      { name: 'Alice', color: 'var(--blue)', glow: 'var(--blue-bg)', who: 'alice' },
+      { name: 'Bob', color: 'var(--green)', glow: 'var(--green-bg)', who: 'bob' },
+      { name: 'Charlie', color: 'var(--amber-deep)', glow: 'var(--amber-bg)', who: 'charlie' },
     ],
     scenarios: [
       { dev: 0, file: 'routes/users.py', type: 'pass', msg: 'Edit routes/users.py — add login endpoint' },
@@ -1550,8 +1538,8 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     const d=D.devs[sc.dev];
     const f=section.querySelector('.demo-file[data-file="'+sc.file+'"]');
     if(!f) return;
-    const bc=sc.type==='pass'?d.color:sc.type==='block'?'var(--d-block)':'var(--d-guard)';
-    const bg=sc.type==='pass'?d.glow:sc.type==='block'?'#ef444410':'#f59e0b10';
+    const bc=sc.type==='pass'?d.color:sc.type==='block'?'var(--red)':'var(--amber)';
+    const bg=sc.type==='pass'?d.glow:sc.type==='block'?'var(--red-bg)':'var(--amber-bg)';
     gsap.to(f,{borderColor:bc,background:bg,duration:0.3});
     const tag=f.querySelector('.dtag');
     if(tag&&sc.type==='pass'){tag.style.color=d.color;tag.textContent=d.name;gsap.to(tag,{opacity:1,duration:0.3});}
@@ -1563,7 +1551,7 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   function pulseL(n) {
     const l=section.querySelector('.demo-guard-layer[data-layer="'+n+'"]');
     if(!l) return;
-    gsap.timeline().to(l,{borderColor:'var(--d-block)',background:'#ef444418',scale:1.03,duration:0.12}).to(l,{borderColor:'var(--d-guard)',background:'#f59e0b10',scale:1,duration:0.4});
+    gsap.timeline().to(l,{borderColor:'var(--red)',background:'var(--red-bg)',scale:1.03,duration:0.12}).to(l,{borderColor:'var(--amber)',background:'var(--amber-bg)',scale:1,duration:0.4});
   }
 
   function pulseDev(i) {
@@ -1576,7 +1564,7 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     else{
       if(sc.msg.includes('uncommitted')){D.conflicts++;document.getElementById('dConflicts').textContent=D.conflicts;}
       D.blocks++;const el=document.getElementById('dBlocks');el.textContent=D.blocks;
-      gsap.fromTo(el,{scale:1.15,color:'#ff6b6b'},{scale:1,color:'var(--d-block)',duration:0.3});
+      gsap.fromTo(el,{scale:1.15,color:'oklch(60% 0.25 25)'},{scale:1,color:'var(--red)',duration:0.3});
     }
   }
 
