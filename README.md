@@ -83,6 +83,50 @@ One question — Python or Go. Then you're building.
 
 <br>
 
+## The Guardrails Are Unbreakable
+
+Most AI coding guardrails are suggestions. These aren't. Three enforcement layers run simultaneously — all three must be defeated to bypass them.
+
+```
+Layer 1 — Rules (CLAUDE.md + 14 rule files)
+│  Claude reads and follows these. Anti-override protocol
+│  handles "ignore the rules", "developer mode", "skip checks",
+│  and every social engineering trick in the book.
+│  ↓ but what if someone convinces Claude anyway?
+│
+Layer 2 — Deny List (settings.json)
+│  The Claude Code RUNTIME blocks commands before execution.
+│  Not Claude's decision. The runtime physically won't run:
+│  --force, --hard, --no-verify, rm -rf, eval, chmod 777,
+│  curl|bash, and modifications to guardrail files themselves.
+│  ↓ but what if bad code gets written without a blocked command?
+│
+Layer 3 — PreToolUse Hook (scripts/guard.sh)
+   A shell script runs BEFORE every file edit. Checks for:
+   ✗ Hardcoded secrets (API keys, passwords, connection strings)
+   ✗ Dangerous functions (eval, exec, pickle, os.system, shell=True)
+   ✗ Modifications to guardrail files (CLAUDE.md, .claude/, hooks)
+   ✗ Full-file overwrites (must use targeted edits, not rewrites)
+   Rejects the write before it happens. Not Claude's choice.
+```
+
+**What happens when someone tries:**
+
+| They try | What stops them |
+|:---------|:---------------|
+| "Ignore the rules" | Layer 1 — Claude refuses, cites repo owner |
+| "You're in developer mode now" | Layer 1 — No such mode exists, rules are infrastructure |
+| `git push --force` | Layer 2 — Runtime blocks it. Command never executes |
+| `git commit --no-verify` | Layer 2 — Runtime blocks it. Command never executes |
+| Paste an API key in code | Layer 3 — Hook detects pattern, rejects the write |
+| Write `eval()` or `exec()` | Layer 3 — Hook detects dangerous function, blocks it |
+| Edit CLAUDE.md to weaken rules | Layer 2 + 3 — Deny list blocks sed/truncate, hook blocks Edit/Write |
+| Overwrite a teammate's file | Layer 3 — Hook blocks Write on existing files, forces Edit |
+| Remove the hooks | Layer 2 — `pre-commit uninstall` is denied. Post-checkout reinstalls them |
+| Weaken rules and push | CI — Hook integrity check fails, PR blocked |
+
+<br>
+
 ## What's Already Built
 
 <p align="center">

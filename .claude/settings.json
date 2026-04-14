@@ -38,12 +38,33 @@
       "Bash(git push --force *)",
       "Bash(git push -f *)",
       "Bash(git reset --hard *)",
+      "Bash(git reset --mixed *)",
+      "Bash(git checkout -- *)",
+      "Bash(git restore --staged *)",
       "Bash(git commit --no-verify *)",
-      "Bash(rm -rf /)*",
+      "Bash(git commit -n *)",
+      "Bash(git rebase *)",
+      "Bash(git stash drop *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
       "Bash(chmod 777 *)",
+      "Bash(chmod 666 *)",
       "Bash(curl * | bash)",
+      "Bash(curl * | sh)",
       "Bash(wget * | bash)",
-      "Bash(eval *)"
+      "Bash(wget * | sh)",
+      "Bash(eval *)",
+      "Bash(python -c *)",
+      "Bash(node -e *)",
+      "Bash(sed -i * CLAUDE.md)",
+      "Bash(sed -i * .claude/*)",
+      "Bash(> CLAUDE.md)",
+      "Bash(> .claude/*)",
+      "Bash(truncate * CLAUDE.md)",
+      "Bash(git config *)",
+      "Bash(pre-commit uninstall *)",
+      "Bash(mv CLAUDE.md *)",
+      "Bash(mv .claude *)"
     ],
     "ask": [
       "Bash(git push *)",
@@ -65,6 +86,19 @@
     "DEV_MODE": "true"
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_FILE_PATH=\"$CLAUDE_FILE_PATH\" CLAUDE_TOOL_NAME=\"$CLAUDE_TOOL_NAME\" CLAUDE_CONTENT=\"$CLAUDE_CONTENT\" bash scripts/guard.sh",
+            "timeout": 5000,
+            "statusMessage": "Checking guardrails..."
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "hooks": [
