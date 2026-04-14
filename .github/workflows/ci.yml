@@ -171,6 +171,68 @@ jobs:
           done
 
   # ──────────────────────────────────────
+  # Commit Signing — verify GPG/SSH signatures
+  # ──────────────────────────────────────
+  commit-signing:
+    name: Commit Signing Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify all PR commits are signed
+        run: |
+          UNSIGNED=0
+          TOTAL=0
+
+          # Check every commit in this PR (base..HEAD)
+          for COMMIT in $(git rev-list origin/${{ github.base_ref }}..HEAD); do
+            TOTAL=$((TOTAL + 1))
+            # %G? returns: G=good, U=untrusted-good, X=expired-good,
+            #              Y=expired-key-good, R=revoked, E=cannot-check,
+            #              B=bad, N=no-signature
+            SIG_STATUS=$(git log --format='%G?' -1 "$COMMIT")
+            COMMIT_SHORT=$(git log --format='%h %s' -1 "$COMMIT")
+
+            case "$SIG_STATUS" in
+              G|U|X|Y)
+                echo "  [SIGNED]   $COMMIT_SHORT"
+                ;;
+              *)
+                echo "  [UNSIGNED] $COMMIT_SHORT (status: $SIG_STATUS)"
+                UNSIGNED=$((UNSIGNED + 1))
+                ;;
+            esac
+          done
+
+          echo ""
+          echo "Checked $TOTAL commit(s): $((TOTAL - UNSIGNED)) signed, $UNSIGNED unsigned."
+
+          if [ "$UNSIGNED" -gt 0 ]; then
+            echo ""
+            echo "::error::$UNSIGNED commit(s) are not signed. All commits must be GPG or SSH signed."
+            echo ""
+            echo "To set up commit signing:"
+            echo "  1. Generate a GPG key:   gpg --full-generate-key"
+            echo "  2. List keys:            gpg --list-secret-keys --keyid-format=long"
+            echo "  3. Configure git:"
+            echo "       git config --global user.signingkey <YOUR_KEY_ID>"
+            echo "       git config --global commit.gpgsign true"
+            echo "  4. Add public key to GitHub: https://github.com/settings/keys"
+            echo ""
+            echo "  Alternatively, use SSH signing (Git 2.34+):"
+            echo "       git config --global gpg.format ssh"
+            echo "       git config --global user.signingkey ~/.ssh/id_ed25519.pub"
+            echo "       git config --global commit.gpgsign true"
+            echo ""
+            echo "  Then re-sign your commits:"
+            echo "       git rebase --exec 'git commit --amend --no-edit -S' origin/main"
+            exit 1
+          fi
+
+  # ──────────────────────────────────────
   # CodeQL — deep static analysis
   # ──────────────────────────────────────
   codeql:

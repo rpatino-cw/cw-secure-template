@@ -1,0 +1,55 @@
+# Local development stack — app + postgres + redis.
+#
+# Usage:
+#   docker compose up              # start all services
+#   docker compose up --build      # rebuild app image and start
+#   docker compose down -v         # stop and remove volumes
+#
+# The app service builds from python/ by default. To use Go instead,
+# change the build context to ./go or set APP_BUILD_CONTEXT=./go.
+
+services:
+  app:
+    build:
+      context: ${APP_BUILD_CONTEXT:-./python}
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/app
+      - REDIS_URL=redis://redis:6379/0
+      - DEV_MODE=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

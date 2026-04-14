@@ -1,0 +1,77 @@
+version: 2
+
+updates:
+  # ── Python (pip) ──
+  - package-ecosystem: "pip"
+    directory: "/python"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "security-team"
+    commit-message:
+      prefix: "deps:"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+
+  # ── Go modules ──
+  - package-ecosystem: "gomod"
+    directory: "/go"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "security-team"
+    commit-message:
+      prefix: "deps:"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "go"
+
+  # ── GitHub Actions ──
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "security-team"
+    commit-message:
+      prefix: "deps:"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+
+  # ── Docker — Python ──
+  - package-ecosystem: "docker"
+    directory: "/python"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "security-team"
+    commit-message:
+      prefix: "deps:"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # ── Docker — Go ──
+  - package-ecosystem: "docker"
+    directory: "/go"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    assignees:
+      - "security-team"
+    commit-message:
+      prefix: "deps:"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "docker"

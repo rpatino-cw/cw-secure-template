@@ -1,0 +1,56 @@
+name: Generate SBOM on Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write   # Required to upload release artifacts
+
+jobs:
+  # ──────────────────────────────────────
+  # Go SBOM — generated from Go module graph
+  # ──────────────────────────────────────
+  sbom-go:
+    name: SBOM — Go
+    runs-on: ubuntu-latest
+    if: hashFiles('go/go.mod') != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Go SBOM (SPDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: go/
+          artifact-name: sbom-go.spdx.json
+          output-file: sbom-go.spdx.json
+          format: spdx-json
+
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: sbom-go.spdx.json
+
+  # ──────────────────────────────────────
+  # Python SBOM — generated from installed packages
+  # ──────────────────────────────────────
+  sbom-python:
+    name: SBOM — Python
+    runs-on: ubuntu-latest
+    if: hashFiles('python/pyproject.toml') != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Python SBOM (SPDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: python/
+          artifact-name: sbom-python.spdx.json
+          output-file: sbom-python.spdx.json
+          format: spdx-json
+
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: sbom-python.spdx.json

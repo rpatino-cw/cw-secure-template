@@ -1,17 +1,16 @@
 # =============================================================================
-# NetworkPolicy — Default Deny with Explicit Allowlist
+# NetworkPolicy — Default Deny with Explicit Allowlists
 # =============================================================================
 #
-# SECURITY LESSON: Why default-deny matters.
+# SECURITY PRINCIPLE: Zero-trust network posture.
 #
-# Without a NetworkPolicy, every pod can talk to every other pod in the cluster
-# over any port. A compromised pod can scan the internal network, reach
-# databases it shouldn't know about, exfiltrate data to the internet, or pivot
-# to other namespaces. Default-deny flips this: nothing is allowed unless you
-# explicitly permit it. This is the network equivalent of "least privilege."
+# This policy starts by denying ALL ingress and ALL egress traffic, then
+# explicitly allows only the traffic paths this application requires:
+#   - Ingress: app port from the ingress controller namespace only
+#   - Egress: DNS (53) to kube-system, PostgreSQL (5432) same namespace only
 #
-# Think of it like a firewall: the default rule is DROP, and you add ACCEPT
-# rules only for traffic you expect and need.
+# Everything else is blocked. A compromised pod cannot scan the network,
+# reach the internet, or talk to services it doesn't need.
 # =============================================================================
 
 apiVersion: networking.k8s.io/v1
@@ -21,16 +20,17 @@ metadata:
   labels:
     {{- include "cw-secure-app.labels" . | nindent 4 }}
 spec:
-  # SECURITY LESSON: podSelector targets which pods this policy applies to.
-  # Using our selectorLabels means this policy covers every pod in our
-  # deployment — including during rolling updates when old and new pods coexist.
+  # ---------------------------------------------------------------------------
+  # TARGET: All pods belonging to this application
+  # ---------------------------------------------------------------------------
   podSelector:
     matchLabels:
       {{- include "cw-secure-app.selectorLabels" . | nindent 6 }}
 
-  # SECURITY LESSON: Listing both Ingress and Egress in policyTypes with empty
-  # rules would block ALL traffic. We add explicit rules below to allowlist
-  # only the traffic paths this application actually needs.
+  # ---------------------------------------------------------------------------
+  # DEFAULT DENY: Listing both Ingress and Egress here means everything
+  # NOT explicitly listed below is blocked.
+  # ---------------------------------------------------------------------------
   policyTypes:
     - Ingress
     - Egress
@@ -39,16 +39,15 @@ spec:
   # INGRESS RULES — Who can talk TO our pods
   # ---------------------------------------------------------------------------
   ingress:
-    # SECURITY LESSON: Allow traffic from the ingress controller only. This
-    # means only requests that come through the proper ingress (with TLS
-    # termination, rate limiting, and auth) can reach our pods. Direct
-    # pod-to-pod traffic from other namespaces is blocked.
+    # Allow traffic from the ingress controller only. Requests must come
+    # through the proper ingress (with TLS termination, rate limiting, and
+    # auth) to reach our pods. Direct pod-to-pod traffic from other
+    # namespaces or services is blocked.
+    #
+    # Both selectors are in the SAME list item so they are AND'd together —
+    # traffic must come from a pod matching BOTH the namespace label AND the
+    # pod label. If they were separate list items, they would be OR'd.
     - from:
-        # SECURITY LESSON: Both selectors are in the SAME list item so they
-        # are AND'd together — traffic must come from a pod matching BOTH the
-        # namespace label AND the pod label. If they were separate list items
-        # (two dashes), they'd be OR'd, allowing any pod in the namespace OR
-        # any pod with that label in ANY namespace — a much wider opening.
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: ingress-nginx
@@ -63,11 +62,11 @@ spec:
   # EGRESS RULES — Who our pods can talk TO
   # ---------------------------------------------------------------------------
   egress:
-    # SECURITY LESSON: DNS is required for any outbound name resolution. Without
-    # this rule, pods can't resolve hostnames — not even internal service names.
-    # We restrict to port 53 (DNS) on the kube-system namespace where CoreDNS
-    # runs, so a compromised pod can't use DNS as a data exfiltration channel
-    # to arbitrary DNS servers.
+    # Rule 1: DNS resolution (UDP and TCP port 53)
+    # Without DNS, pods cannot resolve any hostname — not even internal
+    # Kubernetes service names. Restricted to kube-system where CoreDNS
+    # runs, so a compromised pod cannot use arbitrary external DNS servers
+    # as a data exfiltration channel.
     - to:
         - namespaceSelector:
             matchLabels:
@@ -78,28 +77,19 @@ spec:
         - protocol: TCP
           port: 53
 
-    # SECURITY LESSON: Allow HTTPS egress to Okta for OIDC token verification.
-    # When a user presents a JWT, the app needs to fetch Okta's JWKS (JSON Web
-    # Key Set) to verify the token signature. Without this, auth breaks silently
-    # and the app either rejects all tokens or (worse) skips verification.
+    # Rule 2: PostgreSQL database (TCP port 5432)
+    # Scoped to pods within the SAME namespace only (empty podSelector).
+    # If your database runs in a different namespace, replace with a
+    # namespaceSelector targeting that specific namespace.
     - to:
-        - ipBlock:
-            # Okta's IP ranges — in practice, use your Okta tenant's actual IPs
-            # or a more specific CIDR. 0.0.0.0/0 with port restriction is a
-            # reasonable starting point; tighten once you know Okta's ranges.
-            cidr: 0.0.0.0/0
+        - podSelector: {}
       ports:
         - protocol: TCP
-          port: 443
+          port: 5432
 
-    # SECURITY LESSON: Allow HTTPS egress to Doppler for secret sync. The
-    # External Secrets Operator (ESO) runs in its own namespace and handles
-    # Doppler communication, but if your app fetches config directly from
-    # Doppler at startup, it needs this egress path. If you only use ESO,
-    # you can remove this rule and further reduce the attack surface.
-    # - to:
-    #     - ipBlock:
-    #         cidr: 0.0.0.0/0  # Replace with Doppler's actual IP ranges
-    #   ports:
-    #     - protocol: TCP
-    #       port: 443
+    # -------------------------------------------------------------------------
+    # NOTHING ELSE IS ALLOWED.
+    # No HTTPS (443), no HTTP (80), no arbitrary outbound connections.
+    # If the app needs to call an external API (e.g., Okta JWKS, Doppler),
+    # add a specific rule below with the tightest possible CIDR and port.
+    # -------------------------------------------------------------------------

@@ -15,9 +15,12 @@ import (
 // SECURITY LESSON: Rate limiting — Without rate limiting, a single client can
 // overwhelm your server with requests (Denial of Service). A token bucket
 // algorithm allows short bursts (normal user behavior) while capping sustained
-// throughput. Per-IP limiting means one abusive client doesn't affect others.
-// In production behind a load balancer, use X-Forwarded-For or X-Real-IP to
-// get the real client IP — but validate that header comes from a trusted proxy.
+// throughput.
+//
+// Per-user rate limiting means authenticated users get their own bucket. This
+// prevents one abusive user from consuming another user's quota, and avoids
+// penalizing all users behind a shared NAT/VPN (same IP). Unauthenticated
+// requests fall back to per-IP limiting.
 
 // tokenBucket implements a simple token bucket rate limiter.
 // Tokens refill at a fixed rate (rps). The bucket holds up to burst tokens.
@@ -80,33 +83,33 @@ func (tb *tokenBucket) retryAfter() int {
 	return int(math.Ceil(seconds))
 }
 
-// ipLimiter manages per-IP token buckets.
-type ipLimiter struct {
-	buckets sync.Map // string (IP) -> *tokenBucket
+// keyLimiter manages per-key (user or IP) token buckets.
+type keyLimiter struct {
+	buckets sync.Map // string (key) -> *tokenBucket
 	rate    float64
 	burst   int
 }
 
-func newIPLimiter(rate float64, burst int) *ipLimiter {
-	return &ipLimiter{
+func newKeyLimiter(rate float64, burst int) *keyLimiter {
+	return &keyLimiter{
 		rate:  rate,
 		burst: burst,
 	}
 }
 
-// getBucket returns the token bucket for the given IP, creating one if needed.
-func (l *ipLimiter) getBucket(ip string) *tokenBucket {
-	if val, ok := l.buckets.Load(ip); ok {
+// getBucket returns the token bucket for the given key, creating one if needed.
+func (l *keyLimiter) getBucket(key string) *tokenBucket {
+	if val, ok := l.buckets.Load(key); ok {
 		return val.(*tokenBucket)
 	}
 
 	bucket := newTokenBucket(l.rate, l.burst)
-	actual, _ := l.buckets.LoadOrStore(ip, bucket)
+	actual, _ := l.buckets.LoadOrStore(key, bucket)
 	return actual.(*tokenBucket)
 }
 
 // cleanup removes stale entries that haven't been seen in the given duration.
-func (l *ipLimiter) cleanup(staleDuration time.Duration) {
+func (l *keyLimiter) cleanup(staleDuration time.Duration) {
 	cutoff := time.Now().Add(-staleDuration)
 	count := 0
 	l.buckets.Range(func(key, value any) bool {
@@ -125,7 +128,24 @@ func (l *ipLimiter) cleanup(staleDuration time.Duration) {
 	}
 }
 
-// RateLimit returns middleware that enforces per-IP rate limiting.
+// rateLimitKey determines the key for rate limiting: "user:<sub>" if
+// authenticated, "ip:<addr>" otherwise.
+//
+// SECURITY LESSON: Per-user rate limiting is fairer and more precise. Without
+// it, all users behind a corporate NAT share one bucket, and one abusive user
+// can lock out an entire office. Per-user limits isolate quotas. We fall back
+// to IP for unauthenticated endpoints (login, healthz, etc.).
+func rateLimitKey(r *http.Request) string {
+	// Check if auth middleware has placed a user in the request context.
+	if user := UserFromContext(r.Context()); user != nil && user.Subject != "" {
+		return "user:" + user.Subject
+	}
+
+	// Fallback to per-IP when no authenticated user is available.
+	return "ip:" + extractIP(r)
+}
+
+// RateLimit returns middleware that enforces per-user (or per-IP) rate limiting.
 // Configuration is read from environment variables:
 //   - RATE_LIMIT_RPS: requests per second (default: 10)
 //   - RATE_LIMIT_BURST: burst capacity (default: 20)
@@ -147,10 +167,10 @@ func RateLimit(next http.Handler) http.Handler {
 		}
 	}
 
-	limiter := newIPLimiter(rps, burst)
+	limiter := newKeyLimiter(rps, burst)
 
 	// SECURITY LESSON: Stale entry cleanup — Without this, the sync.Map grows
-	// unbounded as new IPs arrive. An attacker could exhaust server memory by
+	// unbounded as new keys arrive. An attacker could exhaust server memory by
 	// sending requests from many spoofed IPs. Periodic cleanup prevents this.
 	go func() {
 		ticker := time.NewTicker(5 * time.Minute)
@@ -163,8 +183,8 @@ func RateLimit(next http.Handler) http.Handler {
 	slog.Info("rate limiter configured", "rps", rps, "burst", burst)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := extractIP(r)
-		bucket := limiter.getBucket(ip)
+		key := rateLimitKey(r)
+		bucket := limiter.getBucket(key)
 
 		if !bucket.allow() {
 			retryAfter := bucket.retryAfter()
@@ -173,7 +193,7 @@ func RateLimit(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusTooManyRequests)
 			w.Write([]byte(`{"error":"rate limit exceeded"}`))
 			slog.Warn("rate limit exceeded",
-				"ip", ip,
+				"key", key,
 				"path", r.URL.Path,
 				"retry_after", retryAfter,
 			)

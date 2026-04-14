@@ -30,6 +30,7 @@ jobs:
         run: |
           REPO="${{ github.repository }}"
 
+          # ── Step 1: Apply branch protection rules ──
           gh api -X PUT "repos/${REPO}/branches/main/protection" \
             --input - <<'EOF'
           {
@@ -41,27 +42,42 @@ jobs:
                 "Python Checks",
                 "Dependency Audit",
                 "CodeQL Analysis",
-                "Hook Integrity Check"
+                "Hook Integrity Check",
+                "Commit Signing Check"
               ]
             },
-            "enforce_admins": false,
+            "enforce_admins": true,
             "required_pull_request_reviews": {
               "dismiss_stale_reviews": true,
               "require_code_owner_reviews": false,
-              "required_approving_review_count": 1
+              "required_approving_review_count": 1,
+              "require_last_push_approval": true
             },
             "restrictions": null,
+            "required_signatures": true,
             "allow_force_pushes": false,
-            "allow_deletions": false
+            "allow_deletions": false,
+            "required_linear_history": true
           }
           EOF
+
+          # ── Step 2: Enable commit signature protection ──
+          # The required_signatures field in the main payload is not always
+          # honored by all API versions, so we explicitly enable it via the
+          # dedicated endpoint as well.
+          gh api -X POST \
+            "repos/${REPO}/branches/main/protection/required_signatures" \
+            --header "Accept: application/vnd.github.zzzax-preview+json" || true
 
           echo "## Branch Protection Configured" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Applied to **main** on \`${REPO}\`:" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **PR reviews:** 1 required, stale reviews dismissed" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Status checks:** secrets, go, python, dependencies, codeql, hook-integrity" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Up-to-date branches:** required" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **PR reviews:** 1 required, stale reviews dismissed, last-push approval required" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Status checks:** secrets, go, python, dependencies, codeql, hook-integrity, commit-signing" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Up-to-date branches:** required (strict mode)" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Force pushes:** blocked" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Branch deletion:** blocked" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Signed commits:** required" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Linear history:** required (no merge commits)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Admin enforcement:** enabled (admins follow same rules)" >> "$GITHUB_STEP_SUMMARY"
