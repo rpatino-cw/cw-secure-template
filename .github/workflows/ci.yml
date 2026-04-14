@@ -255,6 +255,93 @@ jobs:
         run: |
           FAIL=0
 
+  # ──────────────────────────────────────
+  # SVG Validation — catch broken terminal animations
+  # ──────────────────────────────────────
+  svg-validation:
+    name: SVG Rendering Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find SVG files changed in PR
+        id: svgs
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.svg')
+          if [ -z "$FILES" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "No SVG files changed — skipping."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "Changed SVGs:"
+            echo "$FILES"
+          fi
+
+      - name: Validate SVG well-formedness
+        if: steps.svgs.outputs.skip != 'true'
+        run: |
+          FAIL=0
+          for svg in $(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.svg'); do
+            [ -f "$svg" ] || continue
+            echo "Checking $svg..."
+
+            # XML well-formedness (catches unclosed tags, bad entities)
+            if ! python3 -c "
+          import xml.etree.ElementTree as ET
+          try:
+              ET.parse('$svg')
+              print('  XML: valid')
+          except ET.ParseError as e:
+              print(f'  XML: INVALID — {e}')
+              exit(1)
+          "; then
+              FAIL=1
+            fi
+          done
+          [ "$FAIL" -eq 0 ] || { echo "::error::SVG XML validation failed"; exit 1; }
+
+      - name: Validate terminal SVG structure
+        if: steps.svgs.outputs.skip != 'true'
+        run: |
+          FAIL=0
+          for svg in $(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'docs/terminal/*.svg'); do
+            [ -f "$svg" ] || continue
+            echo "Checking terminal SVG structure: $svg..."
+
+            # Must have viewBox for responsive rendering
+            if ! grep -q 'viewBox=' "$svg"; then
+              echo "::error::$svg missing viewBox attribute — won't scale on GitHub"
+              FAIL=1
+            fi
+
+            # Must have animation keyframes
+            if ! grep -q '@keyframes' "$svg"; then
+              echo "::error::$svg missing @keyframes — animation won't play"
+              FAIL=1
+            fi
+
+            # Must have window chrome (terminal look)
+            if ! grep -q 'circle.*fill="#ff5f56"' "$svg"; then
+              echo "::warning::$svg missing traffic light dots — terminal chrome may be broken"
+            fi
+
+            # Must have monospace font
+            if ! grep -qi 'monospace\|Menlo\|Monaco\|Courier' "$svg"; then
+              echo "::error::$svg missing monospace font — terminal text won't render correctly"
+              FAIL=1
+            fi
+
+            # File size check (SVGs over 50KB are suspicious)
+            SIZE=$(wc -c < "$svg" | tr -d ' ')
+            if [ "$SIZE" -gt 51200 ]; then
+              echo "::warning::$svg is ${SIZE} bytes (>50KB) — consider optimizing"
+            fi
+
+            echo "  OK"
+          done
+          [ "$FAIL" -eq 0 ] || { echo "::error::Terminal SVG validation failed"; exit 1; }
+
           # Go: verify middleware is imported and used
           if [ -f go/main.go ]; then
             echo "Checking Go middleware wiring..."
