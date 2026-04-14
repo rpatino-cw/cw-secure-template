@@ -123,5 +123,97 @@ if [[ -n "$CONTENT" ]]; then
   done
 fi
 
+# --- Guard 5: Teammate collision detection ---
+# If file has uncommitted changes, someone may be working on it
+if [[ -n "$FILE_PATH" && -f "$FILE_PATH" ]]; then
+  # Check if file has uncommitted changes (staged or unstaged)
+  if git diff --name-only 2>/dev/null | grep -qF "$FILE_PATH" || \
+     git diff --cached --name-only 2>/dev/null | grep -qF "$FILE_PATH"; then
+    # Check who last modified it
+    LAST_AUTHOR=$(git log -1 --format="%an" -- "$FILE_PATH" 2>/dev/null || echo "")
+    LAST_TIME=$(git log -1 --format="%ar" -- "$FILE_PATH" 2>/dev/null || echo "")
+    echo "WARNING: $FILE_PATH has uncommitted changes" >&2
+    if [[ -n "$LAST_AUTHOR" ]]; then
+      echo "Last modified by: $LAST_AUTHOR ($LAST_TIME)" >&2
+    fi
+    echo "Another teammate may be actively editing this file." >&2
+    echo "Proceeding — but coordinate with your team to avoid conflicts." >&2
+    # Warning only, not a block — exit 0 continues but the message is injected
+  fi
+fi
+
+# --- Guard 6: Architecture enforcement — route files must not contain SQL/DB ---
+if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
+  SQL_PATTERNS=(
+    'SELECT\s+.*\s+FROM\s+'
+    'INSERT\s+INTO\s+'
+    'UPDATE\s+.*\s+SET\s+'
+    'DELETE\s+FROM\s+'
+    'cursor\.\s*execute'
+    'session\.\s*execute'
+    'session\.\s*query'
+    'db\.\s*execute'
+    '\.raw\s*\('
+  )
+  for pattern in "${SQL_PATTERNS[@]}"; do
+    if echo "$CONTENT" | grep -qEi "$pattern" 2>/dev/null; then
+      echo "BLOCKED: Database query detected in route handler: $FILE_PATH" >&2
+      echo "Pattern: $pattern" >&2
+      echo "Route handlers must NOT contain SQL or ORM queries." >&2
+      echo "Move database access to repositories/ or services/." >&2
+      exit 2
+    fi
+  done
+fi
+
+# --- Guard 7: Route handlers must have auth ---
+# Check if a new route/endpoint is being added without auth middleware
+if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
+  # Python: check for route decorators without Depends(get_current_user)
+  if echo "$CONTENT" | grep -qE '@(app|router)\.(get|post|put|delete|patch)' 2>/dev/null; then
+    if ! echo "$CONTENT" | grep -qE '(Depends\s*\(\s*get_current_user|current_user|RequireAuth|authenticate)' 2>/dev/null; then
+      # Exception: healthz endpoint doesn't need auth
+      if ! echo "$CONTENT" | grep -qE '(healthz|health|readyz|livez)' 2>/dev/null; then
+        echo "BLOCKED: Route endpoint in $FILE_PATH missing authentication" >&2
+        echo "Every endpoint (except /healthz) requires auth middleware." >&2
+        echo "Add: Depends(get_current_user) to the endpoint parameters." >&2
+        echo "For local dev without Okta, set DEV_MODE=true in .env." >&2
+        exit 2
+      fi
+    fi
+  fi
+  # Go: check for http.HandleFunc without auth middleware
+  if echo "$CONTENT" | grep -qE '(HandleFunc|Handle)\s*\(' 2>/dev/null; then
+    if ! echo "$CONTENT" | grep -qE '(RequireAuth|AuthMiddleware|WithAuth|authenticate)' 2>/dev/null; then
+      if ! echo "$CONTENT" | grep -qE '(healthz|health|readyz|livez)' 2>/dev/null; then
+        echo "BLOCKED: Route handler in $FILE_PATH missing authentication" >&2
+        echo "Every handler (except /healthz) requires auth middleware." >&2
+        echo "Wrap with: RequireAuth(handler)" >&2
+        exit 2
+      fi
+    fi
+  fi
+fi
+
+# --- Guard 8: Dependency direction enforcement ---
+# models/ must not import from routes/, services/, or repositories/
+if [[ -n "$CONTENT" && "$FILE_PATH" == *"models/"* ]]; then
+  if echo "$CONTENT" | grep -qE '(from\s+(routes|services|repositories|handlers|delivery)|import\s+.*(routes|services|repositories|handlers|delivery))' 2>/dev/null; then
+    echo "BLOCKED: Invalid import in model file: $FILE_PATH" >&2
+    echo "models/ must NOT import from routes/, services/, or repositories/" >&2
+    echo "Dependency direction: models depend on NOTHING. Everything else depends on models." >&2
+    exit 2
+  fi
+fi
+# routes/ must not import from repositories/ directly
+if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
+  if echo "$CONTENT" | grep -qE '(from\s+(repositories|repo|db)|import\s+.*(repositories|repo))' 2>/dev/null; then
+    echo "BLOCKED: Route handler importing directly from repository: $FILE_PATH" >&2
+    echo "routes/ must call services/, not repositories/ directly." >&2
+    echo "Dependency direction: routes → services → repositories → models" >&2
+    exit 2
+  fi
+fi
+
 # All checks passed
 exit 0
