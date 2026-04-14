@@ -1,14 +1,31 @@
 #!/usr/bin/env bash
 # PreToolUse guard — runs BEFORE Claude writes to any file.
-# Checks for violations that rules alone can't enforce.
-# Exit 0 = allow, Exit 2 = block with message.
+# Claude Code pipes JSON on stdin with tool_name, file_path, content, etc.
+# Exit 0 = allow, Exit 2 = block with message on stderr.
 
 set -euo pipefail
 
-# The file path Claude is about to edit/write
-FILE_PATH="${CLAUDE_FILE_PATH:-}"
-TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
-CONTENT="${CLAUDE_CONTENT:-}"
+# Read JSON from stdin using python3 (guaranteed available — template requires Python 3.11+)
+INPUT="$(cat)"
+
+read_field() {
+  python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+# tool_input holds the parameters for the tool being called
+tool_input = data.get('tool_input', {})
+if sys.argv[2] == 'tool_name':
+    print(data.get('tool_name', ''))
+elif sys.argv[2] == 'file_path':
+    print(tool_input.get('file_path', ''))
+elif sys.argv[2] == 'content':
+    print(tool_input.get('content', tool_input.get('new_string', '')))
+" "$INPUT" "$1"
+}
+
+TOOL_NAME="$(read_field tool_name)"
+FILE_PATH="$(read_field file_path)"
+CONTENT="$(read_field content)"
 
 # --- Guard 1: Protect guardrail files from modification ---
 PROTECTED_FILES=(
@@ -25,9 +42,9 @@ PROTECTED_FILES=(
 
 for protected in "${PROTECTED_FILES[@]}"; do
   if [[ "$FILE_PATH" == *"$protected"* ]]; then
-    echo "BLOCKED: Cannot modify guardrail file: $FILE_PATH"
-    echo "These files are protected by the repository owner."
-    echo "If you need changes, open a PR and have the repo owner review."
+    echo "BLOCKED: Cannot modify guardrail file: $FILE_PATH" >&2
+    echo "These files are protected by the repository owner." >&2
+    echo "If you need changes, open a PR and have the repo owner review." >&2
     exit 2
   fi
 done
@@ -50,9 +67,9 @@ SECRET_PATTERNS=(
 if [[ -n "$CONTENT" ]]; then
   for pattern in "${SECRET_PATTERNS[@]}"; do
     if echo "$CONTENT" | grep -qE "$pattern" 2>/dev/null; then
-      echo "BLOCKED: Hardcoded secret detected in content being written to $FILE_PATH"
-      echo "Secrets must NEVER be in code. Use: make add-secret"
-      echo "Pattern matched: $pattern"
+      echo "BLOCKED: Hardcoded secret detected in content being written to $FILE_PATH" >&2
+      echo "Secrets must NEVER be in code. Use: make add-secret" >&2
+      echo "Pattern matched: $pattern" >&2
       exit 2
     fi
   done
@@ -62,9 +79,9 @@ fi
 if [[ "$TOOL_NAME" == "Write" && -f "$FILE_PATH" ]]; then
   LINE_COUNT=$(wc -l < "$FILE_PATH" 2>/dev/null || echo "0")
   if [[ "$LINE_COUNT" -gt 10 ]]; then
-    echo "BLOCKED: Cannot overwrite existing file $FILE_PATH ($LINE_COUNT lines)"
-    echo "Use Edit with targeted old_string/new_string instead of Write."
-    echo "Write is only for creating NEW files."
+    echo "BLOCKED: Cannot overwrite existing file $FILE_PATH ($LINE_COUNT lines)" >&2
+    echo "Use Edit with targeted old_string/new_string instead of Write." >&2
+    echo "Write is only for creating NEW files." >&2
     exit 2
   fi
 fi
@@ -84,9 +101,9 @@ if [[ -n "$CONTENT" ]]; then
 
   for pattern in "${DANGEROUS_PATTERNS[@]}"; do
     if echo "$CONTENT" | grep -qE "$pattern" 2>/dev/null; then
-      echo "BLOCKED: Dangerous function detected: $pattern"
-      echo "File: $FILE_PATH"
-      echo "This function is banned by the security rules."
+      echo "BLOCKED: Dangerous function detected: $pattern" >&2
+      echo "File: $FILE_PATH" >&2
+      echo "This function is banned by the security rules." >&2
       exit 2
     fi
   done

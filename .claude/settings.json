@@ -43,10 +43,8 @@
       "Bash(git restore --staged *)",
       "Bash(git commit --no-verify *)",
       "Bash(git commit -n *)",
-      "Bash(git rebase *)",
       "Bash(git stash drop *)",
       "Bash(rm -rf *)",
-      "Bash(rm -r *)",
       "Bash(chmod 777 *)",
       "Bash(chmod 666 *)",
       "Bash(curl * | bash)",
@@ -92,50 +90,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CLAUDE_FILE_PATH=\"$CLAUDE_FILE_PATH\" CLAUDE_TOOL_NAME=\"$CLAUDE_TOOL_NAME\" CLAUDE_CONTENT=\"$CLAUDE_CONTENT\" bash scripts/guard.sh",
+            "command": "bash scripts/guard.sh",
             "timeout": 5000,
             "statusMessage": "Checking guardrails..."
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --directory .claude/memory python hooks/session-start.py",
-            "timeout": 5000,
-            "statusMessage": "Loading knowledge base...",
-            "once": true
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --directory .claude/memory python hooks/session-end.py",
-            "timeout": 10000,
-            "statusMessage": "Saving session knowledge...",
-            "once": true,
-            "async": true
-          }
-        ]
-      }
-    ],
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "uv run --directory .claude/memory python hooks/pre-compact.py",
-            "timeout": 10000,
-            "statusMessage": "Saving knowledge before compact...",
-            "once": true,
-            "async": true
           }
         ]
       }
