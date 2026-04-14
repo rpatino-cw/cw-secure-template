@@ -9,7 +9,7 @@
 # SECURITY LESSON: python:3.12-slim is the minimal official image — no gcc,
 # no X11, no man pages. Slim cuts ~500MB of attack surface vs full python:3.12.
 # For CW production, use the Chainguard Python image from the internal catalog.
-FROM python:3.12-slim AS builder
+FROM python:3.14-slim AS builder
 
 LABEL maintainer="your-team@coreweave.com"
 LABEL description="Secure Python microservice with isolated virtualenv"
@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir .
 # Stage 2: Runtime
 # ---------------------------------------------------------------------------
 # SECURITY LESSON: Fresh slim image — none of the build layers carry over.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 LABEL maintainer="your-team@coreweave.com"
 LABEL description="Secure Python microservice with isolated virtualenv"
