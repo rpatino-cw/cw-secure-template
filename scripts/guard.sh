@@ -27,6 +27,13 @@ TOOL_NAME="$(read_field tool_name)"
 FILE_PATH="$(read_field file_path)"
 CONTENT="$(read_field content)"
 
+# Also extract old_string for Edit tool (needed for dependency guard)
+OLD_STRING=$(python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+print(data.get('tool_input', {}).get('old_string', ''))
+" "$INPUT" 2>/dev/null || echo "")
+
 # --- Guard 0: Path traversal check ---
 if [[ "$FILE_PATH" == *".."* ]]; then
   echo "BLOCKED: Path traversal detected: $FILE_PATH" >&2
@@ -286,6 +293,105 @@ for p in room.get('owns', []):
         echo "Run 'make room-status' to see all rooms and their owners." >&2
         exit 2
       fi
+    fi
+  fi
+fi
+
+# --- Guard 10: Dependency protection — block deleting functions used by other rooms ---
+if [[ "$TOOL_NAME" == "Edit" && -n "$OLD_STRING" && -n "${AGENT_ROOM:-}" && -n "$FILE_PATH" ]]; then
+  REPO_TOP="$(git rev-parse --show-toplevel 2>/dev/null)"
+  ROOMS_CONFIG="$REPO_TOP/rooms.json"
+
+  if [[ -f "$ROOMS_CONFIG" ]]; then
+    # Find function/class names being REMOVED (in old_string but not in new_string)
+    REMOVED_NAMES=$(python3 -c "
+import re, sys
+
+old = sys.argv[1]
+new = sys.argv[2]
+
+# Extract function/class/method names from definitions
+patterns = [
+    r'(?:^|\n)\s*def\s+(\w+)\s*\(',           # Python def
+    r'(?:^|\n)\s*class\s+(\w+)',                # Python class
+    r'(?:^|\n)\s*func\s+(\w+)\s*\(',           # Go func
+    r'(?:^|\n)\s*func\s+\([^)]+\)\s+(\w+)\s*\(', # Go method
+    r'(?:^|\n)\s*(?:export\s+)?function\s+(\w+)', # JS function
+    r'(?:^|\n)\s*(?:export\s+)?const\s+(\w+)\s*=', # JS const export
+]
+
+old_names = set()
+for p in patterns:
+    old_names.update(re.findall(p, old))
+
+new_names = set()
+for p in patterns:
+    new_names.update(re.findall(p, new))
+
+# Names that were in old but NOT in new = removed
+removed = old_names - new_names
+# Filter out very short names and common patterns (avoid false positives)
+removed = {n for n in removed if len(n) > 2 and n not in ('main', 'init', 'new', 'get', 'set', 'run', 'test')}
+
+for name in sorted(removed):
+    print(name)
+" "$OLD_STRING" "$CONTENT" 2>/dev/null || echo "")
+
+    if [[ -n "$REMOVED_NAMES" ]]; then
+      while IFS= read -r func_name; do
+        [[ -z "$func_name" ]] && continue
+
+        # Grep the codebase for references to this function (exclude the file being edited)
+        REFS=$(grep -rn --include="*.go" --include="*.py" --include="*.js" --include="*.ts" \
+          -w "$func_name" "$REPO_TOP" 2>/dev/null \
+          | grep -v "$FILE_PATH" \
+          | grep -v "_test\." \
+          | grep -v "rooms/" \
+          | head -5 || true)
+
+        if [[ -n "$REFS" ]]; then
+          # Check if any references are outside this agent's room
+          OUTSIDE=""
+          ALLOWED=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    config = json.load(f)
+room = config.get('rooms', {}).get(sys.argv[2], {})
+for p in room.get('owns', []):
+    print(p)
+" "$ROOMS_CONFIG" "$AGENT_ROOM" 2>/dev/null || echo "")
+
+          while IFS= read -r ref_line; do
+            [[ -z "$ref_line" ]] && continue
+            ref_file=$(echo "$ref_line" | cut -d: -f1)
+            ref_rel="${ref_file#$REPO_TOP/}"
+
+            IN_MY_ROOM=false
+            while IFS= read -r owned; do
+              [[ -z "$owned" ]] && continue
+              owned="${owned#./}"
+              if [[ "$ref_rel" == "$owned"* ]]; then
+                IN_MY_ROOM=true
+                break
+              fi
+            done <<< "$ALLOWED"
+
+            if [[ "$IN_MY_ROOM" == false ]]; then
+              OUTSIDE="${OUTSIDE}  ${ref_line}\n"
+            fi
+          done <<< "$REFS"
+
+          if [[ -n "$OUTSIDE" ]]; then
+            echo "BLOCKED: Removing '$func_name' would break code in other rooms" >&2
+            echo "" >&2
+            echo "These files reference '$func_name':" >&2
+            echo -e "$OUTSIDE" >&2
+            echo "Coordinate with the owning agent before removing this function." >&2
+            echo "Send a request to their inbox: rooms/{room}/inbox/" >&2
+            exit 2
+          fi
+        fi
+      done <<< "$REMOVED_NAMES"
     fi
   fi
 fi
