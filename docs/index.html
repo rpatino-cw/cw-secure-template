@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CW Vibe — Plan, Scaffold, Ship Secure</title>
+<title>CW Secure Template — Build Secure with Claude Code</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -44,236 +44,129 @@
 @media (prefers-reduced-motion: reduce) { :root { --duration: 0ms; } }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'DM Sans', sans-serif; font-size: var(--text-base); color: var(--text-primary); background: var(--bg); line-height: 1.6; -webkit-font-smoothing: antialiased; }
-.container { max-width: 960px; margin: 0 auto; padding: 0 var(--space-lg); }
+.container { max-width: 860px; margin: 0 auto; padding: 0 var(--space-lg); }
 section { padding: var(--space-2xl) 0; }
 section + section { border-top: 1px solid var(--border-subtle); }
 h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-2xl); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: var(--space-xs); }
-h2 + p.subtitle { color: var(--text-secondary); margin-bottom: var(--space-lg); max-width: 540px; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-xl); letter-spacing: -0.01em; margin-bottom: var(--space-xs); }
+p.subtitle { color: var(--text-secondary); margin-bottom: var(--space-lg); max-width: 560px; }
+p.body-text { color: var(--text-secondary); margin-bottom: var(--space-md); max-width: 640px; line-height: 1.7; }
+a { color: var(--info); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; background: var(--bg-sunken); padding: 2px 6px; border-radius: 4px; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 /* NAV */
-nav { position: sticky; top: 0; z-index: 100; background: oklch(97% 0.008 80 / 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle); }
+nav { position: sticky; top: 0; z-index: 100; background: oklch(97% 0.008 80 / 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border-subtle); }
 .nav-inner { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-sm) 0; overflow-x: auto; }
 .nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: var(--text-lg); white-space: nowrap; letter-spacing: -0.02em; }
-.nav-logo span { color: var(--info); }
 .nav-links { display: flex; gap: var(--space-xs); margin-left: auto; }
 .nav-link { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); text-decoration: none; padding: 6px 12px; border-radius: 6px; white-space: nowrap; transition: all var(--duration) var(--ease-out); }
-.nav-link:hover, .nav-link.active { color: var(--text-primary); background: var(--bg-sunken); }
+.nav-link:hover { color: var(--text-primary); background: var(--bg-sunken); text-decoration: none; }
 
 /* HERO */
-.hero { padding: var(--space-2xl) 0; text-align: left; }
-.hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.6rem, 1.2rem + 2vw, 2.4rem); line-height: 1.15; letter-spacing: -0.02em; max-width: 600px; }
-.hero-stat { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-xl); color: var(--info); margin: var(--space-lg) 0 var(--space-xs); }
-.hero-sub { color: var(--text-secondary); font-size: var(--text-lg); max-width: 560px; margin-bottom: var(--space-lg); }
+.hero { padding: var(--space-2xl) 0 var(--space-xl); }
+.hero h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem); line-height: 1.15; letter-spacing: -0.02em; max-width: 620px; }
+.hero-sub { color: var(--text-secondary); font-size: var(--text-lg); max-width: 580px; margin: var(--space-md) 0 var(--space-lg); line-height: 1.6; }
 .hero-cta { display: inline-block; background: var(--text-primary); color: var(--bg); font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); padding: 12px 28px; border-radius: 8px; border: none; cursor: pointer; transition: transform var(--duration) var(--ease-out), opacity var(--duration); text-decoration: none; }
-.hero-cta:hover { transform: translateY(-2px); opacity: 0.9; }
-
-/* STEPPER */
-.step-track { display: flex; gap: 0; margin-bottom: var(--space-lg); overflow-x: auto; padding-bottom: var(--space-xs); position: sticky; top: 0; z-index: 50; background: var(--bg); padding-top: var(--space-sm); border-bottom: 1px solid var(--border-subtle); }
-.step-progress { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: var(--space-xs); letter-spacing: 0.04em; }
-.step-progress strong { color: var(--info); }
-.step-indicator { flex: 1; min-width: 80px; text-align: center; position: relative; cursor: default; }
-.step-indicator:not(:last-child)::after { content: ''; position: absolute; top: 18px; right: -1px; width: calc(100% - 40px); height: 2px; background: var(--border); left: calc(50% + 20px); transition: background var(--duration) var(--ease-out); }
-.step-indicator.done:not(:last-child)::after { background: var(--pass); }
-.step-dot { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin: 0 auto; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); font-weight: 500; color: var(--text-tertiary); transition: all var(--duration) var(--ease-out); }
-.step-indicator.active .step-dot { border-color: var(--info); color: var(--info); box-shadow: 0 0 0 4px var(--info-bg); }
-.step-indicator.done .step-dot { border-color: var(--pass); background: var(--pass); color: white; }
-.step-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-top: var(--space-xs); }
-.step-indicator.active .step-label { color: var(--info); }
-.step-indicator.done .step-label { color: var(--pass); }
-
-/* CARDS */
-.step-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: var(--space-lg); display: none; animation: fadeUp var(--duration) var(--ease-out); }
-.step-card.active { display: block; }
-.step-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-lg); margin-bottom: var(--space-xs); }
-.step-card > p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-md); }
-
-/* FORM */
-label.field-label { display: block; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-bottom: var(--space-xs); }
-input[type="text"], textarea, select { width: 100%; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text-primary); outline: none; transition: border-color var(--duration) var(--ease-out); }
-input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--info); }
-textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
-.field-group { margin-bottom: var(--space-md); }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
-@media (max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
-.btn { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; transition: all var(--duration) var(--ease-out); }
-.btn-primary { background: var(--text-primary); color: var(--bg); }
-.btn-primary:hover { transform: translateY(-1px); opacity: 0.9; }
-.btn-secondary { background: var(--bg-sunken); color: var(--text-secondary); border: 1px solid var(--border); }
-.btn-secondary:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
-.btn-row { display: flex; gap: var(--space-sm); margin-top: var(--space-md); }
-
-/* DYNAMIC ROWS */
-.dynamic-rows { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-sm); }
-.dynamic-row { display: grid; gap: var(--space-sm); align-items: start; padding: var(--space-sm); background: var(--bg-sunken); border-radius: 8px; }
-.dynamic-row.roles-row { grid-template-columns: 1fr 1fr 1fr 32px; }
-.dynamic-row.table-row { grid-template-columns: 1fr 2fr 1fr 32px; }
-.dynamic-row.endpoint-row { grid-template-columns: 80px 1fr 80px 1.5fr 32px; }
-@media (max-width: 600px) {
-  .dynamic-row.roles-row, .dynamic-row.table-row { grid-template-columns: 1fr 32px; }
-  .dynamic-row.endpoint-row { grid-template-columns: 1fr 32px; }
-  .dynamic-row input, .dynamic-row select { grid-column: 1; }
-}
-.remove-row { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-tertiary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all var(--duration); align-self: center; }
-.remove-row:hover { border-color: var(--critical); color: var(--critical); background: var(--critical-bg); }
-.add-row-btn { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 6px 12px; border-radius: 6px; background: var(--info-bg); color: var(--info); border: 1px solid transparent; cursor: pointer; transition: all var(--duration); }
-.add-row-btn:hover { border-color: var(--info); }
-
-/* STACK CHIPS */
-.stack-options { display: flex; flex-wrap: wrap; gap: var(--space-sm); margin-bottom: var(--space-md); }
-.stack-chip { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-elevated); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); color: var(--text-secondary); transition: all var(--duration) var(--ease-out); }
-.stack-chip:hover { border-color: var(--text-tertiary); color: var(--text-primary); }
-.stack-chip.selected { border-color: var(--info); background: var(--info-bg); color: var(--info); font-weight: 500; }
-
-/* PLAN OUTPUT */
-.plan-output { background: var(--text-primary); border-radius: 12px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); line-height: 1.7; margin-top: var(--space-lg); }
-.plan-chrome { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: oklch(18% 0.015 260); }
-.dot { width: 10px; height: 10px; border-radius: 50%; }
-.dot.r { background: #f87171; } .dot.y { background: #fbbf24; } .dot.g { background: #4ade80; }
-.plan-title { font-size: 11px; color: oklch(55% 0.01 260); margin-left: 8px; }
-.plan-body { padding: var(--space-md); max-height: 500px; overflow-y: auto; color: oklch(85% 0.01 80); white-space: pre-wrap; word-break: break-word; }
-.plan-actions { display: flex; gap: var(--space-sm); padding: var(--space-sm) var(--space-md); background: oklch(18% 0.015 260); }
-.plan-copy-btn { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 6px 14px; border-radius: 6px; background: oklch(30% 0.02 260); color: oklch(75% 0.01 260); border: 1px solid oklch(35% 0.02 260); cursor: pointer; transition: all var(--duration); }
-.plan-copy-btn:hover { background: oklch(35% 0.02 260); color: oklch(90% 0.005 80); }
-
-/* SCAFFOLD */
-.scaffold-cmd { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); background: var(--text-primary); color: oklch(85% 0.01 80); padding: var(--space-md); border-radius: 10px; line-height: 1.8; white-space: pre-wrap; position: relative; }
-.copy-btn { position: absolute; top: var(--space-sm); right: var(--space-sm); font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 10px; border-radius: 5px; background: oklch(30% 0.02 260); color: oklch(75% 0.01 260); border: 1px solid oklch(35% 0.02 260); cursor: pointer; }
-.copy-btn:hover { background: oklch(35% 0.02 260); }
+.hero-cta:hover { transform: translateY(-2px); opacity: 0.9; text-decoration: none; color: var(--bg); }
+.hero-cta + .hero-cta { margin-left: var(--space-sm); background: transparent; color: var(--text-primary); border: 1px solid var(--border); }
+.hero-cta + .hero-cta:hover { background: var(--bg-sunken); color: var(--text-primary); }
 
 /* TERMINAL */
-.terminal { background: var(--text-primary); border-radius: 12px; overflow: hidden; font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); line-height: 1.7; }
-.terminal-chrome { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: oklch(18% 0.015 260); }
-.terminal-title { font-size: 11px; color: oklch(55% 0.01 260); margin-left: 8px; }
-.terminal-body { padding: var(--space-md); min-height: 280px; max-height: 420px; overflow-y: auto; }
-.terminal-line { white-space: pre-wrap; word-break: break-all; }
-.terminal-line.prompt { color: oklch(70% 0.01 260); }
-.terminal-line .cmd { color: oklch(90% 0.005 80); }
-.terminal-line.output { color: oklch(65% 0.01 260); }
-.terminal-line.success { color: #4ade80; }
-.terminal-line.error { color: #f87171; font-weight: 500; }
-.terminal-line.warn { color: #fbbf24; }
-.terminal-line.info { color: #60a5fa; }
-.terminal-line.dim { color: oklch(45% 0.01 260); }
-.cursor { display: inline-block; width: 8px; height: 14px; background: oklch(70% 0.01 260); animation: blink 1s step-end infinite; vertical-align: text-bottom; }
-@keyframes blink { 50% { opacity: 0; } }
+.terminal { background: #1a1b26; border-radius: 12px; overflow: hidden; border: 1px solid oklch(30% 0.01 260); }
+.terminal-chrome { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: #24283b; }
+.dot { width: 12px; height: 12px; border-radius: 50%; }
+.dot.r { background: #ff5f56; }
+.dot.y { background: #ffbd2e; }
+.dot.g { background: #27c93f; }
+.terminal-body { padding: var(--space-md); font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); line-height: 1.9; min-height: 200px; }
+.terminal-body .line { opacity: 0; animation: fadeUp 0.25s ease forwards; }
+.t-cmd { color: #7dcfff; }
+.t-out { color: #a9b1d6; }
+.t-success { color: #9ece6a; }
+.t-error { color: #f7768e; }
+.t-warn { color: #e0af68; }
+.t-info { color: #7aa2f7; }
+.t-dim { color: #565f89; }
+.t-narr { color: #bb9af7; font-style: italic; padding: 4px 0; }
 
-/* SCENARIO BUTTONS */
-.scenarios { display: flex; gap: var(--space-sm); flex-wrap: wrap; margin-bottom: var(--space-md); }
-.scenario-btn { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; padding: var(--space-sm) var(--space-md); cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); color: var(--text-secondary); transition: all var(--duration) var(--ease-out); }
-.scenario-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
-.scenario-btn.active { border-color: var(--info); background: var(--info-bg); color: var(--info); font-weight: 500; }
-.scenario-group { margin-bottom: var(--space-sm); }
-.scenario-group-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-bottom: var(--space-xs); display: block; }
-.scenario-group-btns { display: flex; gap: var(--space-xs); flex-wrap: wrap; }
-.narration { margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; font-size: var(--text-sm); color: var(--text-secondary); min-height: 48px; transition: opacity var(--duration) var(--ease-out); }
+/* DEMO NAV */
+.demo-nav { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-md); }
+.demo-btn { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-secondary); cursor: pointer; transition: all var(--duration) var(--ease-out); white-space: nowrap; }
+.demo-btn:hover { border-color: var(--info); color: var(--info); }
+.demo-btn.active { background: var(--info-bg); border-color: var(--info); color: var(--info); }
+.demo-takeaway { margin-top: var(--space-md); padding: var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; display: none; }
+.demo-takeaway p { font-size: var(--text-sm); color: var(--text-secondary); margin: 0; }
+.demo-takeaway strong { color: var(--text-primary); }
+
+/* CARDS */
+.card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: var(--space-lg); }
+.card h4 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: var(--space-xs); }
+.card p { color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.6; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-md); }
+
+/* TABLES */
+.clean-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.clean-table th { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-tertiary); text-align: left; padding: var(--space-sm) var(--space-md); border-bottom: 2px solid var(--border); }
+.clean-table td { padding: var(--space-sm) var(--space-md); border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); vertical-align: top; }
+.clean-table td:first-child { color: var(--text-primary); font-weight: 500; white-space: nowrap; }
+.clean-table td code { font-size: var(--text-xs); }
+.clean-table tr:last-child td { border-bottom: none; }
 
 /* PIPELINE */
-.pipeline-row { display: flex; gap: 0; overflow-x: auto; padding: var(--space-sm) 0; }
-.p-stage { flex: 1; min-width: 100px; text-align: center; cursor: pointer; position: relative; }
-.p-stage:not(:last-child)::after { content: ''; position: absolute; top: 24px; right: -1px; width: calc(100% - 48px); height: 2px; background: var(--border); left: calc(50% + 24px); }
-.p-dot { width: 48px; height: 48px; border-radius: 50%; border: 2px solid var(--border); background: var(--bg-elevated); display: flex; align-items: center; justify-content: center; margin: 0 auto; font-size: 1.2rem; transition: all var(--duration) var(--ease-out); }
-.p-stage:hover .p-dot { transform: scale(1.08); border-color: var(--info); }
-.p-stage.active .p-dot { border-color: var(--info); box-shadow: 0 0 0 4px var(--info-bg); }
-.p-label { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin-top: var(--space-xs); }
-.p-detail { margin-top: var(--space-lg); padding: var(--space-lg); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; display: none; }
-.p-detail.show { display: block; animation: fadeUp var(--duration) var(--ease-out); }
-.p-detail h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-lg); margin-bottom: var(--space-sm); }
-.p-detail ul { list-style: none; padding: 0; }
-.p-detail li { font-size: var(--text-sm); color: var(--text-secondary); padding: 3px 0 3px 16px; position: relative; }
-.p-detail li::before { content: ''; position: absolute; left: 0; top: 50%; width: 6px; height: 6px; border-radius: 50%; transform: translateY(-50%); }
-.catches li::before { background: var(--pass); }
-.escapes li::before { background: var(--warn); }
-.catches h4 { color: var(--pass); } .escapes h4 { color: var(--warn); }
-.p-detail h4 { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.05em; margin: var(--space-md) 0 var(--space-xs); color: var(--text-tertiary); }
-
-/* CONCEPTS */
-.concept-list { display: flex; flex-direction: column; gap: var(--space-sm); }
-.concept-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color var(--duration) var(--ease-out); }
-.concept-card:hover { border-color: var(--text-tertiary); }
-.concept-head { padding: var(--space-md); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-.concept-head h3 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: var(--text-base); }
-.concept-chev { color: var(--text-tertiary); transition: transform var(--duration) var(--ease-out); font-size: var(--text-sm); }
-.concept-card.open .concept-chev { transform: rotate(180deg); }
-.concept-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration) var(--ease-out); }
-.concept-card.open .concept-body { grid-template-rows: 1fr; }
-.concept-inner { overflow: hidden; }
-.concept-content { padding: 0 var(--space-md) var(--space-md); border-top: 1px solid var(--border-subtle); }
-.concept-content p { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-sm); }
-.try-btn { display: inline-block; margin-top: var(--space-sm); font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); padding: 4px 12px; border-radius: 6px; background: var(--info-bg); color: var(--info); border: none; cursor: pointer; }
-
-/* POLICIES */
-.policy-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-sm); }
-.policy-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: var(--space-md); transition: border-color var(--duration) var(--ease-out); }
-.policy-card:hover { border-color: var(--text-tertiary); }
-.policy-card h4 { font-family: 'Syne', sans-serif; font-weight: 600; font-size: var(--text-sm); margin-bottom: var(--space-xs); }
-.policy-card p { font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.6; }
-.policy-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-bottom: var(--space-xs); text-transform: uppercase; letter-spacing: 0.04em; }
-.tag-critical { background: var(--critical-bg); color: var(--critical); }
-.tag-high { background: var(--warn-bg); color: var(--warn); }
-.tag-medium { background: var(--info-bg); color: var(--info); }
-.tag-low { background: var(--pass-bg); color: var(--pass); }
-.timeline-bar { display: flex; gap: var(--space-sm); margin-top: var(--space-lg); margin-bottom: var(--space-lg); }
-.timeline-segment { flex: 1; text-align: center; padding: var(--space-md); border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elevated); }
-.timeline-segment .days { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-xl); }
-.timeline-segment .label { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; margin-top: var(--space-xs); }
-
-/* Q&A */
-.qa-list { display: flex; flex-direction: column; gap: var(--space-sm); }
-.qa { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: border-color var(--duration) var(--ease-out); }
-.qa:hover { border-color: var(--text-tertiary); }
-.qa-q { padding: var(--space-md); cursor: pointer; display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-md); }
-.qa-q h3 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); line-height: 1.5; }
-.qa-chev { color: var(--text-tertiary); transition: transform var(--duration) var(--ease-out); font-size: var(--text-xs); flex-shrink: 0; margin-top: 3px; }
-.qa.open .qa-chev { transform: rotate(180deg); }
-.qa-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration) var(--ease-out); }
-.qa.open .qa-body { grid-template-rows: 1fr; }
-.qa-inner { overflow: hidden; }
-.qa-a { padding: 0 var(--space-md) var(--space-md); border-top: 1px solid var(--border-subtle); font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; }
-.qa-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 6px; border-radius: 3px; margin-right: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
-.tag-core { background: var(--info-bg); color: var(--info); }
-.tag-hard { background: var(--critical-bg); color: var(--critical); }
-.tag-skeptic { background: var(--warn-bg); color: var(--warn); }
-
-/* TEAM */
-.team-placeholder { text-align: center; padding: var(--space-xl); background: var(--bg-elevated); border: 2px dashed var(--border); border-radius: 12px; color: var(--text-tertiary); }
-.team-placeholder h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: var(--space-xs); color: var(--text-secondary); }
+.pipeline-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-md); margin-top: var(--space-md); }
+.pipeline-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: var(--space-md); position: relative; }
+.pipeline-card h4 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: var(--text-sm); margin-bottom: var(--space-xs); }
+.pipeline-card p { font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; }
+.pipeline-num { font-family: 'JetBrains Mono', monospace; font-size: var(--text-xs); color: var(--info); margin-bottom: var(--space-xs); }
+.pipeline-when { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-tertiary); margin-top: var(--space-sm); text-transform: uppercase; letter-spacing: 0.04em; }
 
 /* FILE TREE */
-.tree-dir { cursor: pointer; color: var(--text-primary); font-weight: 500; }
-.tree-dir:hover { color: var(--info); }
-.tree-file { color: var(--text-secondary); cursor: pointer; padding-left: 4px; }
-.tree-file:hover { color: var(--text-primary); }
-.tree-children { padding-left: 20px; }
-.tree-children.collapsed { display: none; }
 .tree-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
 .layer-ai { background: oklch(55% 0.14 290); }
 .layer-hooks { background: oklch(52% 0.14 155); }
 .layer-ci { background: oklch(52% 0.12 250); }
-.layer-docs { background: oklch(58% 0.16 75); }
-.layer-deploy { background: oklch(48% 0.10 260); }
 .layer-code { background: oklch(52% 0.12 200); }
-.file-desc { margin-top: var(--space-sm); padding: var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: var(--text-sm); color: var(--text-secondary); }
+.layer-deploy { background: oklch(48% 0.10 260); }
+.layer-docs { background: oklch(58% 0.16 75); }
+.tree-dir { cursor: pointer; color: var(--text-primary); font-weight: 500; }
+.tree-dir:hover { color: var(--info); }
+.tree-file { color: var(--text-secondary); }
+.tree-children { padding-left: 20px; }
+.tree-children.collapsed { display: none; }
+.file-desc { margin-top: var(--space-md); padding: var(--space-sm) var(--space-md); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px; font-size: var(--text-sm); color: var(--text-secondary); }
+
+/* FAQ */
+.faq { border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: var(--space-sm); overflow: hidden; }
+.faq-q { padding: var(--space-md); cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--bg-elevated); }
+.faq-q h4 { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: var(--text-sm); }
+.faq-q span { color: var(--text-tertiary); font-size: var(--text-xs); transition: transform var(--duration) var(--ease-out); }
+.faq.open .faq-q span { transform: rotate(180deg); }
+.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
+.faq.open .faq-a { max-height: 300px; }
+.faq-a-inner { padding: 0 var(--space-md) var(--space-md); font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; }
 
 /* FOOTER */
-.footer { padding: var(--space-xl) 0; text-align: center; font-size: var(--text-sm); color: var(--text-tertiary); }
+footer { padding: var(--space-lg) 0; text-align: center; font-size: var(--text-xs); color: var(--text-tertiary); border-top: 1px solid var(--border-subtle); }
+
+@media (max-width: 600px) {
+  .card-grid, .pipeline-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
 <div class="container nav-inner">
-  <div class="nav-logo">cw<span>/</span>vibe</div>
+  <div class="nav-logo">CW Secure Template</div>
   <div class="nav-links">
-    <a href="#demo" class="nav-link active" data-section="demo">Demo</a>
-    <a href="#scaffold" class="nav-link" data-section="scaffold">Scaffold</a>
-    <a href="#pipeline" class="nav-link" data-section="pipeline">Pipeline</a>
-    <a href="#files" class="nav-link" data-section="files">Files</a>
-    <a href="#policies" class="nav-link" data-section="policies">Policies</a>
-    <a href="#qa" class="nav-link" data-section="qa">Q&amp;A</a>
-    <a href="#team" class="nav-link" data-section="team">Team</a>
+    <a class="nav-link" href="#demo">Demo</a>
+    <a class="nav-link" href="#framework">Framework</a>
+    <a class="nav-link" href="#actions">GitHub Actions</a>
+    <a class="nav-link" href="#files">Files</a>
+    <a class="nav-link" href="#faq">FAQ</a>
   </div>
 </div>
 </nav>
@@ -281,722 +174,495 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 <!-- HERO -->
 <section class="hero">
 <div class="container">
-  <h1>You prompt Claude.<br>This keeps it secure.</h1>
-  <p class="hero-stat">Same prompt. Secure code. Zero extra work.</p>
-  <p class="hero-sub">Clone one repo. Every app you build with Claude gets auth, secret scanning, CI, and OWASP coverage automatically.</p>
-  <a href="#demo" class="hero-cta" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'});return false;">See it work</a>
+  <h1>Build internal tools with Claude Code. Security happens automatically.</h1>
+  <p class="hero-sub">You describe what you want. Claude writes secure code — authentication, secret management, input validation, tests — without you asking. If something slips through, git hooks and GitHub Actions catch it before it reaches production.</p>
+  <a href="https://github.com/rpatino-cw/cw-secure-template" class="hero-cta" target="_blank">Get the Template</a>
+  <a href="#demo" class="hero-cta">See It Work</a>
 </div>
 </section>
 
-<!-- ===== SECTION 2: SCAFFOLD ===== -->
-<section id="scaffold">
+<!-- GET STARTED -->
+<section id="start">
 <div class="container">
-  <h2>Get Your Scaffold</h2>
-  <p class="subtitle">One command. Security from commit one.</p>
-  <div class="scaffold-cmd" id="scaffoldCmd"><span style="color:#4ade80">$</span> git clone https://github.com/rpatino-cw/cw-secure-template.git <span id="scaffoldName">my-app</span>
-<span style="color:#4ade80">$</span> cd <span id="scaffoldCd">my-app</span>
-<span style="color:#4ade80">$</span> chmod +x setup.sh && ./setup.sh
-<span style="color:#4ade80">$</span> make init<button class="copy-btn" onclick="copyScaffold()">Copy</button></div>
-  <div style="margin-top:var(--space-lg)">
-    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">What You Get</h3>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--space-sm)">
-      <div class="policy-card"><h4>Pre-commit Hooks</h4><p>Secrets scanning, linting, and formatting run on every commit. Can't skip them.</p></div>
-      <div class="policy-card"><h4>CI Pipeline</h4><p>GitHub Actions with SAST, dependency scanning, container scanning, and coverage gates.</p></div>
-      <div class="policy-card"><h4>CLAUDE.md</h4><p>Project-specific instructions so Claude already knows your stack, conventions, and security rules.</p></div>
-      <div class="policy-card"><h4>make doctor</h4><p>One command to verify your entire security posture. Green = ship it.</p></div>
+  <h2>30 Seconds to Secure</h2>
+  <p class="subtitle">Clone, run one command, start building. Setup asks one question (Python or Go), then handles everything else.</p>
+  <div class="terminal" style="max-width:640px">
+    <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <div class="terminal-body">
+      <div class="line" style="animation-delay:0.2s"><span class="t-dim">$</span> <span class="t-cmd">git clone https://github.com/rpatino-cw/cw-secure-template my-app</span></div>
+      <div class="line" style="animation-delay:0.5s"><span class="t-dim">Cloning into 'my-app'...</span></div>
+      <div class="line" style="animation-delay:0.9s"><span class="t-dim">$</span> <span class="t-cmd">cd my-app && bash setup.sh</span></div>
+      <div class="line" style="animation-delay:1.4s"><span class="t-out">Which language?</span> <span class="t-success">Python selected.</span></div>
+      <div class="line" style="animation-delay:1.8s"><span class="t-success">&#x2713; Security hooks installed</span></div>
+      <div class="line" style="animation-delay:2.1s"><span class="t-success">&#x2713; Dependencies installed</span></div>
+      <div class="line" style="animation-delay:2.4s"><span class="t-success">&#x2713; Pipeline verified</span></div>
+      <div class="line" style="animation-delay:2.9s"><span class="t-out">Setup complete! Run:</span> <span class="t-cmd">make start</span></div>
     </div>
   </div>
-  <div style="margin-top:var(--space-lg);padding:var(--space-md);background:var(--info-bg);border:1px solid oklch(80% 0.06 250);border-radius:10px">
-    <p style="font-size:var(--text-sm);color:var(--info)"><strong>Template repo:</strong> <a href="https://github.com/rpatino-cw/cw-secure-template" style="color:var(--info);text-decoration:underline" target="_blank" rel="noopener">rpatino-cw/cw-secure-template</a> &mdash; 33 commits, 100+ files, Python &amp; Node.js stacks, full CI/CD.</p>
-  </div>
-
-  <!-- Step-by-step visual walkthrough -->
-  <div style="margin-top:var(--space-xl)">
-    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Your First 10 Minutes</h3>
-    <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-lg)">Just follow the steps.</p>
-    <div style="display:flex;flex-direction:column;gap:var(--space-xl)">
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 1 — Get the template</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step1-setup.svg" width="100%" style="border-radius:12px" alt="Clone the template" loading="lazy"></div>
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 2 — Pick Python (recommended)</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step2-pick.svg" width="100%" style="border-radius:12px" alt="Choose language" loading="lazy"></div>
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 3 — Start your app</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step3-start.svg" width="100%" style="border-radius:12px" alt="Start app" loading="lazy"></div>
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 3.5 — Got an API key? Store it safely</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step4-secret.svg" width="100%" style="border-radius:12px" alt="Store secret" loading="lazy"></div>
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 4 — Build with Claude</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step5-build.svg" width="100%" style="border-radius:12px" alt="Build with Claude" loading="lazy"></div>
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 5 — Commit (security checks run automatically)</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step6-commit.svg" width="100%" style="border-radius:12px" alt="Commit with checks" loading="lazy"></div>
-      <div><p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.05em;color:var(--text-tertiary);margin-bottom:var(--space-sm)">Step 6 — Push (tests run, then CI takes over)</p><img src="https://raw.githubusercontent.com/rpatino-cw/cw-secure-template/main/docs/visuals/step7-push.svg" width="100%" style="border-radius:12px" alt="Push to CI" loading="lazy"></div>
-    </div>
-  </div>
-
-  <!-- Comparison table -->
-  <div style="margin-top:var(--space-xl)">
-    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">What Makes This Different</h3>
-    <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-md)">Most templates give you starter code. This one gives you a full Claude Code framework.</p>
-    <div style="display:flex;flex-direction:column;gap:var(--space-xs)">
-      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;color:var(--text-tertiary)"><div>Approach</div><div style="text-align:center">Security</div><div style="text-align:center">CW-Aligned</div><div style="text-align:center">AI Rules</div><div style="text-align:center">Teaching</div><div style="text-align:center">Enforced</div></div>
-      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm)"><div style="font-weight:500">Start from scratch</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div></div>
-      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm)"><div style="font-weight:500">Generic boilerplate</div><div style="text-align:center;color:var(--pass)">Partial</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div></div>
-      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm)"><div style="font-weight:500">OWASP checklist</div><div style="text-align:center;color:var(--pass)">Guidance</div><div style="text-align:center;color:var(--text-tertiary)">Partial</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--text-tertiary)">&mdash;</div></div>
-      <div style="display:grid;grid-template-columns:1.5fr repeat(5,1fr);align-items:center;padding:var(--space-sm) var(--space-md);background:var(--pass-bg);border:1px solid var(--pass);border-radius:8px;font-size:var(--text-sm);font-weight:500"><div>CW Secure Template</div><div style="text-align:center;color:var(--pass)">Full</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--pass)">Yes</div><div style="text-align:center;color:var(--pass)">Yes</div></div>
-    </div>
-  </div>
+  <p class="body-text" style="margin-top:var(--space-lg)">After setup, you have git hooks that scan every commit for secrets, a CI pipeline that blocks insecure PRs, and a <code>CLAUDE.md</code> file that tells Claude how to write secure code in your project. You didn't configure any of it.</p>
 </div>
 </section>
 
-<!-- ===== SECTION 3: GUIDED TOUR ===== -->
+<!-- LIVE DEMO -->
 <section id="demo">
 <div class="container">
-  <h2>Guided Tour</h2>
-  <p class="subtitle">Walk through the template step by step. Each stop has a live terminal demo.</p>
-
-  <!-- Tour progress -->
-  <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-lg)">
-    <button class="btn btn-secondary" id="tourPrev" onclick="tourNav(-1)" style="padding:8px 16px">&larr; Back</button>
-    <div style="flex:1;height:4px;background:var(--bg-sunken);border-radius:2px;overflow:hidden"><div id="tourProgress" style="height:100%;background:var(--info);border-radius:2px;transition:width var(--duration) var(--ease-out);width:9%"></div></div>
-    <span id="tourCount" style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);color:var(--text-tertiary);white-space:nowrap">1 / 11</span>
-    <button class="btn btn-primary" id="tourNext" onclick="tourNav(1)" style="padding:8px 16px">Next &rarr;</button>
+  <h2>See It In Action</h2>
+  <p class="subtitle">Pick a scenario. Watch what happens in the terminal.</p>
+  <div class="demo-nav" id="demo-nav"></div>
+  <div class="terminal" style="max-width:720px">
+    <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <div class="terminal-body" id="demo-terminal"></div>
   </div>
-
-  <!-- Tour card -->
-  <div id="tourCard">
-    <div style="margin-bottom:var(--space-md)">
-      <span id="tourTag" style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;background:var(--info-bg);color:var(--info);text-transform:uppercase;letter-spacing:0.04em"></span>
-      <h3 id="tourTitle" style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-xl);margin-top:var(--space-xs)"></h3>
-      <p id="tourDesc" style="color:var(--text-secondary);font-size:var(--text-sm);margin-top:var(--space-xs);max-width:600px"></p>
-    </div>
-
-    <div class="terminal">
-      <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="terminal-title" id="tourTermTitle">Terminal &mdash; my-app</span></div>
-      <div class="terminal-body" id="term" role="log" aria-live="polite"></div>
-    </div>
-    <div class="narration" id="narration"></div>
-
-    <div id="tourTakeaway" style="margin-top:var(--space-md);padding:var(--space-md);background:var(--pass-bg);border:1px solid oklch(80% 0.06 155);border-radius:10px;display:none">
-      <p style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;color:var(--pass);margin-bottom:var(--space-xs)">Takeaway</p>
-      <p id="tourTakeawayText" style="font-size:var(--text-sm);color:var(--text-primary)"></p>
-    </div>
-  </div>
+  <div class="demo-takeaway" id="demo-takeaway"><p id="demo-takeaway-text"></p></div>
 </div>
 </section>
 
-<!-- ===== SECTION 4: PIPELINE ===== -->
-<section id="pipeline">
+<!-- CLAUDE CODE FRAMEWORK -->
+<section id="framework">
 <div class="container">
-  <h2>The Pipeline Protects You</h2>
-  <p class="subtitle">Six layers between your code and production. Click each to see what it catches &mdash; and what passes through.</p>
-  <div class="pipeline-row" id="pipeline-row"></div>
-  <div id="p-detail-box"></div>
+  <h2>A Full Claude Code Framework</h2>
+  <p class="subtitle">Not just a template. The <code>.claude/</code> directory gives Claude commands, rules, skills, and agents — so it builds things the right way without you having to explain security every time.</p>
 
-  <!-- Lazy Path -->
-  <div style="margin-top:var(--space-xl)">
-    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">The Lazy Path Is the Secure Path</h3>
-    <p style="color:var(--text-secondary);font-size:var(--text-sm);margin-bottom:var(--space-md)">Every insecure shortcut has a faster secure alternative.</p>
-    <div style="display:flex;flex-direction:column;gap:var(--space-sm)">
-      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.04em;color:var(--text-tertiary)"><div>You want to...</div><div>Don't</div><div>Do this instead</div></div>
-      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Use an API key</div><div style="color:var(--critical);text-decoration:line-through">Paste it in code</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-secret</code></div></div>
-      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Use a config file</div><div style="color:var(--critical);text-decoration:line-through">Drop it in the folder</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-config</code></div></div>
-      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Use a database URL</div><div style="color:var(--critical);text-decoration:line-through">Hardcode the password</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-secret</code></div></div>
-      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Share your .env</div><div style="color:var(--critical);text-decoration:line-through">Paste to Claude or Slack</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make add-secret</code> per value</div></div>
-      <div style="display:grid;grid-template-columns:1.2fr 1.2fr 1.5fr;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;font-size:var(--text-sm);align-items:center"><div>Check for dropped files</div><div style="color:var(--critical);text-decoration:line-through">Hope for the best</div><div><code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--pass-bg);color:var(--pass);padding:2px 8px;border-radius:4px">make doctor</code> scans 20+ patterns</div></div>
+  <h3>Claude Already Knows the Rules</h3>
+  <p class="body-text">The <code>CLAUDE.md</code> file has 15 security rules. Claude reads them automatically every session. If someone says "skip auth" or "just hardcode the key," Claude refuses and shows the safe alternative. The rules are set by the repo owner — the person prompting can't override them.</p>
+
+  <h3 style="margin-top:var(--space-xl)">Built-in Commands</h3>
+  <p class="body-text">Type these directly in Claude Code. They work like shortcuts for common tasks.</p>
+  <table class="clean-table">
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>/project:add-endpoint</code></td><td>Builds a new API route with auth, input validation, and tests already wired. You describe what the endpoint does — Claude handles the security layers.</td></tr>
+      <tr><td><code>/project:check</code></td><td>Runs every quality and security check. Tells you in plain English what passed and what to fix.</td></tr>
+      <tr><td><code>/project:security-review</code></td><td>10-point security audit of your codebase. Finds issues, shows severity, gives you the exact code to fix each one.</td></tr>
+      <tr><td><code>/project:add-secret</code></td><td>Walks you through storing an API key safely. Hidden input goes to <code>.env</code> — never in code, never in git.</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:var(--space-xl)">AI Agents</h3>
+  <p class="body-text">Two agents ship with the template. They run inside Claude Code and review your work like a teammate would.</p>
+  <div class="card-grid">
+    <div class="card">
+      <h4>Security Auditor</h4>
+      <p>Deep audit covering OWASP Top 10, CoreWeave compliance, and deployment security. Outputs a report with severity levels, locations, and exact fixes. Uses 10 focused turns to be thorough.</p>
     </div>
-    <p style="margin-top:var(--space-lg);font-size:var(--text-sm);color:var(--text-tertiary);font-style:italic">The secure option is always faster than the insecure one. That's the design principle.</p>
+    <div class="card">
+      <h4>Code Reviewer</h4>
+      <p>Reviews your changes before you open a PR. Checks security, code quality, and project conventions. Tells you what needs fixing and what looks good. Like a senior engineer reviewing your code.</p>
+    </div>
   </div>
+
+  <h3 style="margin-top:var(--space-xl)">Smart Rules</h3>
+  <p class="body-text">The <code>.claude/rules/</code> folder has rule files that activate automatically based on what you're editing. You never see them — Claude just follows them.</p>
+  <table class="clean-table">
+    <thead><tr><th>When you edit...</th><th>Rules that apply</th></tr></thead>
+    <tbody>
+      <tr><td>Any <code>.go</code> or <code>.py</code> file</td><td>No hardcoded secrets, auth required on endpoints, parameterized queries, no dangerous functions (eval, exec, pickle, shell=True)</td></tr>
+      <tr><td>Any test file</td><td>80% coverage target, security test cases required, proper test environment</td></tr>
+      <tr><td>Any <code>main.*</code> file</td><td>REST conventions, correct status codes, all 5 security headers present</td></tr>
+      <tr><td>Any source file</td><td>Code style, structured logging, import ordering</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:var(--space-xl)">Auto-Learning Memory</h3>
+  <p class="body-text">The template remembers what you build. Each Claude Code session adds context to <code>.claude/MEMORY.md</code> — what your app does, what patterns you use, what decisions you've made. Next session, Claude already knows your project. Run <code>make init</code> to tell Claude your app name, team, and data classification up front.</p>
 </div>
 </section>
 
-<!-- ===== CONCEPTS ===== -->
-<section id="concepts">
+<!-- GITHUB ACTIONS -->
+<section id="actions">
 <div class="container">
-  <h2>Security Concepts</h2>
-  <p class="subtitle">Plain English. No jargon. Click to expand.</p>
-  <div class="concept-list" id="concept-list"></div>
+  <h2>GitHub Actions — The Backbone</h2>
+  <p class="subtitle">Every time you push code or open a pull request, 6 automated checks run on your code. You can't skip them. Your PR can't merge until they all pass.</p>
+
+  <div class="pipeline-grid">
+    <div class="pipeline-card">
+      <div class="pipeline-num">01</div>
+      <h4>Secret Scanning</h4>
+      <p>Scans every file for API keys, tokens, and passwords. Catches anything that slipped past the git hooks.</p>
+      <div class="pipeline-when">Every push + PR</div>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-num">02</div>
+      <h4>Code Analysis</h4>
+      <p>Runs CodeQL plus language-specific scanners (gosec for Go, bandit for Python). Finds security bugs humans miss — SQL injection, XSS, auth bypasses.</p>
+      <div class="pipeline-when">Every push + PR</div>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-num">03</div>
+      <h4>Dependency Audit</h4>
+      <p>Checks every library your code uses for known vulnerabilities. A single outdated library can compromise your app.</p>
+      <div class="pipeline-when">Every push + PR</div>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-num">04</div>
+      <h4>Test + Coverage Gate</h4>
+      <p>Runs all tests and blocks the PR if coverage drops below 80%. Untested code is where bugs hide.</p>
+      <div class="pipeline-when">Every push + PR</div>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-num">05</div>
+      <h4>Hook Integrity</h4>
+      <p>Verifies nobody removed security hooks, weakened CLAUDE.md rules, or unwired security middleware. Prevents someone from quietly disabling the safety net.</p>
+      <div class="pipeline-when">Every PR</div>
+    </div>
+    <div class="pipeline-card">
+      <div class="pipeline-num">06</div>
+      <h4>Branch Protection</h4>
+      <p>PRs required for main. Reviewer approval enforced. Force push blocked. No one ships alone.</p>
+      <div class="pipeline-when">Always</div>
+    </div>
+  </div>
+
+  <p class="body-text" style="margin-top:var(--space-lg)"><strong>If a check fails</strong>, you'll see a clear message in your pull request explaining what went wrong and how to fix it. No cryptic error codes. <strong>If all checks pass</strong>, your code is safe to merge.</p>
 </div>
 </section>
 
-<!-- ===== FILE TREE ===== -->
+<!-- HEALTH CHECK + COMMANDS -->
+<section id="commands">
+<div class="container">
+  <h2>Commands</h2>
+  <p class="subtitle">You only need three. The rest are there when you need them.</p>
+
+  <div class="terminal" style="max-width:480px;margin-bottom:var(--space-lg)">
+    <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <div class="terminal-body" style="min-height:auto">
+      <div><span class="t-cmd">make start</span> <span class="t-dim">&mdash; run your app</span></div>
+      <div><span class="t-cmd">make check</span> <span class="t-dim">&mdash; before pull requests</span></div>
+      <div><span class="t-cmd">make help</span>  <span class="t-dim">&mdash; everything else</span></div>
+    </div>
+  </div>
+
+  <table class="clean-table">
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>make test</code></td><td>Run tests and show coverage percentage</td></tr>
+      <tr><td><code>make lint</code></td><td>Check code style</td></tr>
+      <tr><td><code>make fix</code></td><td>Automatically fix lint and security issues</td></tr>
+      <tr><td><code>make doctor</code></td><td>Check if your security pipeline is healthy — tools, hooks, config, code quality</td></tr>
+      <tr><td><code>make scan</code></td><td>Deep security scan (gitleaks + language scanners + dependency audit)</td></tr>
+      <tr><td><code>make learn</code></td><td>15-question security quiz — learn by doing, not reading</td></tr>
+      <tr><td><code>make dashboard</code></td><td>Open an interactive visual of your security pipeline</td></tr>
+      <tr><td><code>make init</code></td><td>Personalize for your app — name, team, what data it handles</td></tr>
+      <tr><td><code>make add-secret</code></td><td>Store an API key safely (hidden input, goes to <code>.env</code>)</td></tr>
+      <tr><td><code>make add-config</code></td><td>Store a config file (<code>.json</code>, <code>.pem</code>) safely</td></tr>
+    </tbody>
+  </table>
+</div>
+</section>
+
+<!-- FILE TREE -->
 <section id="files">
 <div class="container">
   <h2>What's Inside</h2>
-  <p class="subtitle">92 files. Click any to see what it does.</p>
-  <div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-md);flex-wrap:wrap">
-    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(55% 0.14 290)"></span>AI Layer</span>
-    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(52% 0.14 155)"></span>Hooks</span>
-    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(52% 0.12 250)"></span>CI</span>
-    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(52% 0.12 200)"></span>Code</span>
-    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(48% 0.10 260)"></span>Deploy</span>
-    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:oklch(58% 0.16 75)"></span>Docs</span>
+  <p class="subtitle">Click any file to see what it does.</p>
+  <div style="display:flex;gap:var(--space-md);margin-bottom:var(--space-md);flex-wrap:wrap">
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span class="tree-dot layer-ai" style="position:static"></span>AI Layer</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span class="tree-dot layer-hooks" style="position:static"></span>Hooks</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span class="tree-dot layer-ci" style="position:static"></span>CI</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span class="tree-dot layer-code" style="position:static"></span>Code</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span class="tree-dot layer-deploy" style="position:static"></span>Deploy</span>
+    <span style="display:inline-flex;align-items:center;gap:4px;font-size:var(--text-xs);color:var(--text-tertiary)"><span class="tree-dot layer-docs" style="position:static"></span>Docs</span>
   </div>
   <div id="tree" style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);line-height:2"></div>
   <div id="file-desc"></div>
 </div>
 </section>
 
-
-<!-- ===== SECTION 5: POLICIES ===== -->
-<section id="policies">
+<!-- FAQ -->
+<section id="faq">
 <div class="container">
-  <h2>CW Policies</h2>
-  <p class="subtitle">22 security policies. Know what applies to your app before you write a line of code.</p>
-  <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Remediation Timelines</h3>
-  <div class="timeline-bar">
-    <div class="timeline-segment" style="border-color:var(--critical)"><div class="days" style="color:var(--critical)">15</div><div class="label">Critical</div></div>
-    <div class="timeline-segment" style="border-color:var(--warn)"><div class="days" style="color:var(--warn)">30</div><div class="label">High</div></div>
-    <div class="timeline-segment" style="border-color:var(--info)"><div class="days" style="color:var(--info)">60</div><div class="label">Medium</div></div>
-    <div class="timeline-segment" style="border-color:var(--pass)"><div class="days" style="color:var(--pass)">90</div><div class="label">Low</div></div>
-  </div>
-  <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Data Classification</h3>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:var(--space-sm);margin-bottom:var(--space-xl)">
-    <div class="policy-card"><span class="policy-tag tag-low">Public</span><h4>Public Data</h4><p>Marketing materials, open-source code, public docs. No restrictions on sharing.</p></div>
-    <div class="policy-card"><span class="policy-tag tag-medium">Internal</span><h4>Internal Data</h4><p>Most app data, internal tools, employee info. Default classification for new apps.</p></div>
-    <div class="policy-card"><span class="policy-tag tag-high">Confidential</span><h4>Confidential Data</h4><p>Customer data, financial records, contracts. Encryption required at rest and in transit.</p></div>
-    <div class="policy-card"><span class="policy-tag tag-critical">Restricted</span><h4>Restricted Data</h4><p>Credentials, keys, PII, health data. Strongest controls. Need-to-know access only.</p></div>
-  </div>
-  <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:var(--text-lg);margin-bottom:var(--space-sm)">Policy Categories</h3>
-  <div class="policy-grid" id="policyGrid"></div>
-  <div style="margin-top:var(--space-lg);padding:var(--space-md);background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px"><h4 style="font-family:'Syne',sans-serif;font-weight:600;margin-bottom:var(--space-xs)">Need Help?</h4><p style="font-size:var(--text-sm);color:var(--text-secondary)"><strong>#security</strong> on Slack for policy questions &mdash; <strong>#platform-engineering</strong> for deployment &mdash; <strong>#cw-secure-template</strong> for template issues</p></div>
-</div>
-</section>
-
-<!-- ===== Q&A ===== -->
-<section id="qa">
-<div class="container">
-  <h2>How It Works</h2>
-  <p class="subtitle">Common questions, explained simply.</p>
-  <div class="qa-list" id="qa-list"></div>
-</div>
-</section>
-
-<!-- ===== TEAM ===== -->
-<section id="team">
-<div class="container">
-  <h2>Build Together</h2>
-  <p class="subtitle">Share your plan. See your team's security health. Ship as one.</p>
-  <div class="team-placeholder"><h3>Team View &mdash; Coming Soon</h3><p style="max-width:400px;margin:var(--space-sm) auto 0">Paste <code style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--bg-sunken);padding:2px 6px;border-radius:4px">make doctor</code> output to share security health. See who's building what. One shared PLAN.md for the whole team.</p></div>
-  <div style="margin-top:var(--space-lg)">
-    <label class="field-label" for="doctorPaste">Paste make doctor output</label>
-    <textarea id="doctorPaste" placeholder="Run `make doctor` in your project and paste the output here..." style="min-height:120px;font-family:'JetBrains Mono',monospace;font-size:var(--text-xs)"></textarea>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="parseDoctorOutput()">Parse Results</button></div>
-    <div id="doctorResults" style="margin-top:var(--space-md)"></div>
-  </div>
+  <h2>Common Questions</h2>
+  <p class="subtitle">Answered simply.</p>
+  <div id="faq-list"></div>
 </div>
 </section>
 
 <!-- CTA -->
 <section style="text-align:center;padding:var(--space-2xl) 0">
 <div class="container">
-  <h2 style="margin:0 auto var(--space-sm)">Ready to Build Secure?</h2>
-  <p style="color:var(--text-secondary);margin-bottom:var(--space-lg)">Clone the template. Start prompting Claude. Security is automatic.</p>
-  <div class="terminal" style="max-width:420px;margin:0 auto var(--space-lg)">
+  <h2>Ready to Build?</h2>
+  <p style="color:var(--text-secondary);margin-bottom:var(--space-lg);max-width:400px;margin-left:auto;margin-right:auto">Clone the template. Open Claude Code. Start prompting. Security is automatic.</p>
+  <div class="terminal" style="max-width:520px;margin:0 auto var(--space-lg)">
     <div class="terminal-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
-    <div style="padding:var(--space-md);color:oklch(65% 0.01 260)">
-      <div><span style="color:oklch(70% 0.01 260)">$ </span><span style="color:oklch(90% 0.005 80)">git clone https://github.com/rpatino-cw/cw-secure-template my-app</span></div>
-      <div><span style="color:oklch(70% 0.01 260)">$ </span><span style="color:oklch(90% 0.005 80)">cd my-app && bash setup.sh</span></div>
-      <div><span style="color:oklch(70% 0.01 260)">$ </span><span style="color:oklch(90% 0.005 80)">make start</span></div>
+    <div class="terminal-body" style="min-height:auto">
+      <div><span class="t-dim">$</span> <span class="t-cmd">git clone https://github.com/rpatino-cw/cw-secure-template my-app</span></div>
+      <div><span class="t-dim">$</span> <span class="t-cmd">cd my-app && bash setup.sh</span></div>
+      <div><span class="t-dim">$</span> <span class="t-cmd">make start</span></div>
     </div>
   </div>
   <a href="https://github.com/rpatino-cw/cw-secure-template" class="hero-cta" target="_blank">Get the Template</a>
+  <a href="getting-started.md" class="hero-cta">Read the Guide</a>
 </div>
 </section>
 
-<footer class="footer"><div class="container">CW Vibe &mdash; Plan, scaffold, ship secure. Built for CoreWeave engineering teams.</div></footer>
+<footer><div class="container">CW Secure Template &mdash; Built for CoreWeave engineering teams. Questions? <strong>#application-security</strong> on Slack.</div></footer>
 
 <script>
-/* ═══════════════════════════════════════════
-   FORM STATE
-   ═══════════════════════════════════════════ */
-const STORAGE_KEY = 'cw-vibe-form';
-function copyScaffold(){ const nm=document.getElementById('scaffoldName').textContent; navigator.clipboard.writeText(`git clone https://github.com/rpatino-cw/cw-secure-template.git ${nm}\ncd ${nm}\nchmod +x setup.sh && ./setup.sh\nmake init`).then(()=>{const b=document.querySelector('#scaffold .copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);}); }
-
-/* ═══════════════════════════════════════════
-   GUIDED TOUR — 11 SCENARIOS
-   ═══════════════════════════════════════════ */
+/* ===== DEMO SCENARIOS ===== */
 const SCENARIOS = [
-  {id:'whats-terminal',name:'The Problem This Solves',tag:'Start here',
-   desc:'You ask Claude to build an API. Without guardrails, the code is insecure. With this template, the exact same prompt produces production-safe code.',
+  {name:'The Problem',
    takeaway:'Same prompt, different result. The template tells Claude HOW to write code. You just describe WHAT you want.',
    steps:[
-    {t:'narration',v:'Watch what happens when you ask Claude the same question \u2014 with and without the template.'},{t:'pause',v:600},
-    {t:'cmd',v:'# You: "Claude, build me an API that stores user data"'},{t:'pause',v:500},
-    {t:'error',v:''},{t:'error',v:'  WITHOUT the template:'},{t:'error',v:'    \u2717 API key hardcoded in source code'},{t:'error',v:'    \u2717 No authentication on endpoints'},{t:'error',v:'    \u2717 Database password in plain text'},{t:'error',v:'    \u2717 No input validation'},{t:'error',v:'    \u2717 Secrets committed to git forever'},
-    {t:'narration',v:'This is what most AI-generated code looks like. It works, but it\'s a security incident waiting to happen.'},{t:'pause',v:800},
-    {t:'cmd',v:'# Same prompt, inside cw-secure-template:'},{t:'pause',v:400},
-    {t:'success',v:''},{t:'success',v:'  WITH the template:'},{t:'success',v:'    \u2713 API key loaded from environment variable'},{t:'success',v:'    \u2713 Okta authentication on every endpoint'},{t:'success',v:'    \u2713 Database password encrypted via Doppler'},{t:'success',v:'    \u2713 Pydantic strict validation on all inputs'},{t:'success',v:'    \u2713 Gitleaks blocks secrets before they reach git'},
-    {t:'narration',v:'Same Claude. Same prompt. The template added a CLAUDE.md file with 15 security rules. Claude reads it automatically and follows every one.'},{t:'pause',v:600},
-    {t:'dim',v:''},{t:'dim',v:'  You only need 3 commands:'},{t:'info',v:'    make start    \u2190 run your app'},{t:'info',v:'    make check    \u2190 before pull requests'},{t:'info',v:'    make help     \u2190 everything else'},
-    {t:'narration',v:'That\'s the whole interface. Three commands. Everything else is automatic.'}
+    {t:'narr',v:'You ask Claude the same question \u2014 with and without the template.'},
+    {t:'cmd',v:'# "Claude, build me an API that stores user data"'},
+    {t:'error',v:''},
+    {t:'error',v:'  WITHOUT the template:'},
+    {t:'error',v:'    \u2717 API key hardcoded in source code'},
+    {t:'error',v:'    \u2717 No authentication on endpoints'},
+    {t:'error',v:'    \u2717 Database password in plain text'},
+    {t:'error',v:'    \u2717 No input validation'},
+    {t:'error',v:'    \u2717 Secrets committed to git forever'},
+    {t:'cmd',v:'# Same prompt, inside cw-secure-template:'},
+    {t:'success',v:''},
+    {t:'success',v:'  WITH the template:'},
+    {t:'success',v:'    \u2713 API key loaded from environment variable'},
+    {t:'success',v:'    \u2713 Okta authentication on every endpoint'},
+    {t:'success',v:'    \u2713 Database password encrypted via Doppler'},
+    {t:'success',v:'    \u2713 Pydantic strict validation on all inputs'},
+    {t:'success',v:'    \u2713 Gitleaks blocks secrets before they reach git'}
   ]},
-  {id:'first-setup',name:'Clone and Setup',tag:'Getting started',
-   desc:'Download the template and run setup. Takes about 2 minutes. Only happens once per project.',
-   takeaway:'One clone, one script. You now have security hooks, dependencies, and a health check \u2014 before writing a single line of code.',
+  {name:'Build + Ship',
+   takeaway:'You wrote code. The pipeline ran secret scanning, linting, SAST, tests, coverage checks, and CodeQL \u2014 without you doing anything.',
    steps:[
-    {t:'narration',v:'Let\'s set up a new project from scratch.'},{t:'pause',v:400},
-    {t:'cmd',v:'git clone https://github.com/rpatino-cw/cw-secure-template my-app'},{t:'pause',v:300},
-    {t:'out',v:'  Cloning into \'my-app\'...'},{t:'out',v:'  Receiving objects: 100% (247/247)'},{t:'success',v:'  done.'},
-    {t:'narration',v:'This copies the template to a folder called "my-app" on your computer.'},{t:'pause',v:500},
-    {t:'cmd',v:'cd my-app && bash setup.sh'},{t:'pause',v:400},
-    {t:'out',v:'  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510'},{t:'out',v:'  \u2502  CW Secure Template Setup  \u2502'},{t:'out',v:'  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518'},
-    {t:'out',v:'  Which language?'},{t:'success',v:'  1) Python  \u2190 recommended for internal tools'},{t:'dim',v:'  2) Go      \u2190 zero-dependency option'},{t:'dim',v:'  3) Both'},
-    {t:'narration',v:'Python is recommended. It\'s simpler and Claude writes excellent Python.'},{t:'pause',v:500},
-    {t:'out',v:'  > 1'},{t:'success',v:'  Python selected.'},{t:'pause',v:300},
-    {t:'dim',v:'  [1/4] Installing git hooks...'},{t:'success',v:'        pre-commit, pre-push, post-checkout \u2713'},{t:'dim',v:'  [2/4] Installing Python dependencies...'},{t:'success',v:'        fastapi, uvicorn, pydantic \u2713'},{t:'dim',v:'  [3/4] Running security scan...'},{t:'success',v:'        0 findings \u2713'},{t:'dim',v:'  [4/4] Verifying pipeline...'},{t:'success',v:'        All checks passing \u2713'},
-    {t:'pause',v:400},{t:'success',v:''},{t:'success',v:'  Setup complete! Run: make start'},
-    {t:'narration',v:'Done. Git hooks catch secrets before every commit. Dependencies are installed. Security scan is clean. Your project is ready to build.'}
+    {t:'narr',v:'Ask Claude to add a feature. Commit. Push. Watch 6 checkpoints fire.'},
+    {t:'cmd',v:'# "Add an endpoint that returns team members"'},
+    {t:'info',v:'  Claude reads CLAUDE.md \u2192 15 security rules loaded'},
+    {t:'out',v:'  + @app.get("/api/team")'},
+    {t:'out',v:'  + async def get_team(user = Depends(get_current_user)):'},
+    {t:'out',v:'  +     # SECURITY LESSON: Auth required on every endpoint'},
+    {t:'success',v:'  Endpoint created with auth + strict validation.'},
+    {t:'cmd',v:'git commit -m "Add team endpoint"'},
+    {t:'out',v:'  gitleaks........passed  |  ruff........passed  |  bandit........passed'},
+    {t:'success',v:'  Commit created.'},
+    {t:'cmd',v:'git push origin feature/team'},
+    {t:'out',v:'  Pre-push: 14 tests passed in 1.8s'},
+    {t:'out',v:'  CI: Secret Scan \u2713  SAST \u2713  CodeQL \u2713  Coverage 87% \u2713  Hooks \u2713'},
+    {t:'success',v:'  All checks passed. PR ready for review.'}
   ]},
-  {id:'run-app',name:'Start Your App',tag:'Getting started',
-   desc:'Run the app and see what\'s already working. Auth, rate limiting, security headers, and request tracking are all wired from the start.',
-   takeaway:'Before you write any code, the app already has authentication, rate limiting, security headers, and request tracking. All automatic.',
-   steps:[
-    {t:'narration',v:'Your app is set up. Let\'s start it.'},{t:'pause',v:300},
-    {t:'cmd',v:'make start'},{t:'pause',v:400},
-    {t:'dim',v:'  Checking DEV_MODE...'},{t:'warn',v:'  [WARN] DEV_MODE=true \u2014 auth bypassed with test user. Never deploy this way.'},{t:'info',v:'  INFO:     Uvicorn running on http://localhost:8080'},{t:'success',v:'  App is running.'},
-    {t:'narration',v:'The warning is intentional. In local dev, you get a fake test user. In production, real Okta auth kicks in automatically.'},{t:'pause',v:600},
-    {t:'cmd',v:'curl localhost:8080/healthz'},{t:'pause',v:200},{t:'success',v:'  {"status":"ok"}'},
-    {t:'narration',v:'/healthz is unauthenticated on purpose \u2014 Kubernetes needs it to check if your app is alive.'},{t:'pause',v:500},
-    {t:'cmd',v:'curl localhost:8080/api/me'},{t:'pause',v:200},
-    {t:'out',v:'  {"sub":"dev-user-001","email":"dev@localhost","groups":["developers"]}'},{t:'dim',v:'  Response headers:'},{t:'dim',v:'    X-Request-ID: 8f3a-...-c2d1'},{t:'dim',v:'    X-Content-Type-Options: nosniff'},{t:'dim',v:'    Strict-Transport-Security: max-age=31536000'},{t:'dim',v:'    Content-Security-Policy: default-src \'self\''},
-    {t:'narration',v:'Every response includes security headers and a unique request ID for tracing. You didn\'t configure any of this \u2014 it\'s built in.'}
-  ]},
-  {id:'happy',name:'Build + Commit + Push',tag:'Building',
-   desc:'Ask Claude to add a feature. Commit it. Push it. Watch 6 security checkpoints fire automatically at every step.',
-   takeaway:'You focused on building. The template ran secret scanning, linting, SAST, tests, coverage checks, and CodeQL \u2014 without you doing anything.',
-   steps:[
-    {t:'narration',v:'Let\'s add a real feature and ship it.'},{t:'pause',v:400},
-    {t:'cmd',v:'# You tell Claude: "add an endpoint that returns team members"'},{t:'pause',v:400},
-    {t:'info',v:'  Claude reads CLAUDE.md \u2192 15 security rules loaded'},{t:'out',v:'  + @app.get("/api/team")'},{t:'out',v:'  + async def get_team(user = Depends(get_current_user)):'},{t:'out',v:'  +     # SECURITY LESSON: Auth required on every endpoint'},{t:'out',v:'  + class TeamMember(BaseModel, ConfigDict(strict=True)):'},{t:'out',v:'  +     name: str'},{t:'out',v:'  +     role: str'},{t:'success',v:'  Endpoint created with auth + strict validation.'},
-    {t:'narration',v:'Claude added authentication and input validation automatically. The SECURITY LESSON comment teaches you why.'},{t:'pause',v:600},
-    {t:'cmd',v:'git add src/main.py && git commit -m "Add team endpoint"'},{t:'pause',v:300},
-    {t:'dim',v:'  \u2500\u2500 Pre-commit hooks running \u2500\u2500'},{t:'out',v:'  gitleaks (secret scan)........passed'},{t:'out',v:'  ruff (lint + format)..........passed'},{t:'out',v:'  bandit (security analysis)....passed'},{t:'success',v:'  Commit created.'},
-    {t:'narration',v:'Three security tools ran before the commit was created. If any failed, the commit would be blocked.'},{t:'pause',v:500},
-    {t:'cmd',v:'git push origin feature/team'},{t:'pause',v:300},
-    {t:'dim',v:'  \u2500\u2500 Pre-push hook \u2500\u2500'},{t:'out',v:'  Running tests......14 passed in 1.8s'},{t:'success',v:'  Pushing to GitHub...'},{t:'pause',v:300},
-    {t:'dim',v:'  \u2500\u2500 CI Pipeline \u2500\u2500'},{t:'out',v:'  Secret Scanning...........passed'},{t:'out',v:'  Python SAST...............passed'},{t:'out',v:'  CodeQL...................passed'},{t:'out',v:'  Coverage.................87% (gate: 80%) \u2713'},{t:'out',v:'  Hook Integrity............passed'},{t:'success',v:'  All checks passed. PR ready for review.'},
-    {t:'narration',v:'6 checkpoints total: 3 at commit, 1 at push, 5 in CI. You just wrote code \u2014 the pipeline handled everything else.'}
-  ]},
-  {id:'intercept',name:'Claude Blocks Bad Ideas',tag:'Building',
-   desc:'You ask Claude to take a shortcut. Watch it refuse and show you the safe way instead \u2014 every time.',
+  {name:'Claude Blocks Shortcuts',
    takeaway:'You can\'t accidentally write insecure code with Claude in this template. Every dangerous pattern has a safe alternative that\'s just as easy.',
    steps:[
-    {t:'narration',v:'Three common shortcuts. Watch Claude handle each one.'},{t:'pause',v:500},
-    {t:'cmd',v:'# "Just hardcode the API key so it works"'},{t:'pause',v:500},
-    {t:'warn',v:'  Claude: Can\'t do that. Keys in code end up in git history forever.'},{t:'info',v:'  Claude: Here\'s what I\'ll do instead:'},{t:'out',v:'  + api_key = os.environ["API_KEY"]'},{t:'out',v:'  + # Added API_KEY to .env.example'},{t:'success',v:'  Key stays in .env (gitignored). Code uses the variable name only.'},
-    {t:'narration',v:'The key never touches your code. If someone searches your git history, they\'ll find os.environ["API_KEY"] \u2014 not the actual key.'},{t:'pause',v:700},
-    {t:'cmd',v:'# "Skip auth for now, I\'ll add it later"'},{t:'pause',v:500},
-    {t:'warn',v:'  Claude: Auth can\'t be skipped. But I\'ll make local dev easy.'},{t:'out',v:'  + async def create(item: Item, user = Depends(get_current_user)):'},{t:'out',v:'  + # DEV_MODE=true gives you a test user locally'},{t:'out',v:'  + # In production, this becomes real Okta auth automatically'},{t:'success',v:'  Auth is wired. You get a fake user locally. Real auth in production.'},
-    {t:'narration',v:'"I\'ll add it later" is how apps ship without auth. This template makes that impossible.'},{t:'pause',v:700},
-    {t:'cmd',v:'# "Use eval() to parse the JSON"'},{t:'pause',v:500},
-    {t:'warn',v:'  Claude: eval() runs ANY code \u2014 not just JSON. An attacker could'},{t:'warn',v:'  send malicious input and take over your server.'},{t:'info',v:'  Claude: json.loads() does the same thing safely:'},{t:'out',v:'  + data = json.loads(request_body)'},{t:'success',v:'  Same result. No risk.'},
-    {t:'narration',v:'CLAUDE.md blocks 19 dangerous patterns. Claude always picks the safe alternative without you asking.'}
+    {t:'narr',v:'Three common shortcuts. Watch Claude handle each one.'},
+    {t:'cmd',v:'# "Just hardcode the API key so it works"'},
+    {t:'warn',v:'  Claude: Can\'t do that. Keys in code end up in git history forever.'},
+    {t:'out',v:'  + api_key = os.environ["API_KEY"]'},
+    {t:'success',v:'  Key stays in .env (gitignored). Code uses the variable name only.'},
+    {t:'cmd',v:'# "Skip auth for now, I\'ll add it later"'},
+    {t:'warn',v:'  Claude: Auth can\'t be skipped. DEV_MODE gives you a test user locally.'},
+    {t:'out',v:'  + user = Depends(get_current_user)  # test user in dev, Okta in prod'},
+    {t:'success',v:'  Auth is wired. Real in production, painless locally.'},
+    {t:'cmd',v:'# "Use eval() to parse the JSON"'},
+    {t:'warn',v:'  Claude: eval() runs ANY code. An attacker could take over your server.'},
+    {t:'out',v:'  + data = json.loads(request_body)'},
+    {t:'success',v:'  Same result. No risk.'}
   ]},
-  {id:'secret',name:'Secret Caught at Commit',tag:'What happens when...',
-   desc:'Someone pastes an API key into the code and tries to commit. The pre-commit hook stops it cold and tells you exactly how to fix it.',
-   takeaway:'Secrets can never reach GitHub. The hook catches them locally, explains the problem in plain English, and tells you the fix. 30 seconds to resolve.',
+  {name:'Secret Caught',
+   takeaway:'Secrets can never reach GitHub. The hook catches them locally, explains the problem, and tells you the fix.',
    steps:[
-    {t:'narration',v:'An API key is in the code. Watch what happens when you try to commit it.'},{t:'pause',v:400},
-    {t:'cmd',v:'cat src/config.py'},{t:'pause',v:200},
-    {t:'out',v:'  import os'},{t:'out',v:'  API_KEY = "sk-live-abc123def456ghi789jkl012"  # TODO: move to env'},{t:'error',v:'  \u26A0 Real API key in source code'},
-    {t:'narration',v:'That TODO will never get done. The hook makes sure it gets done NOW.'},{t:'pause',v:500},
-    {t:'cmd',v:'git add . && git commit -m "Add API integration"'},{t:'pause',v:300},
-    {t:'dim',v:'  \u2500\u2500 Pre-commit hooks running \u2500\u2500'},{t:'out',v:'  gitleaks (secret scan)........'},{t:'pause',v:300},
-    {t:'error',v:'  gitleaks (secret scan)........BLOCKED'},{t:'error',v:''},{t:'error',v:'  \u2588\u2588 YOUR COMMIT WAS STOPPED \u2588\u2588'},{t:'error',v:''},
-    {t:'out',v:'  What:   API key found in src/config.py line 2'},{t:'out',v:'  Risk:   Anyone with repo access can see this key forever'},{t:'out',v:'  Even:   Deleting the line later won\'t help \u2014 git history is permanent'},{t:'pause',v:400},
-    {t:'success',v:'  Fix:'},{t:'success',v:'    1. Replace the value:  api_key = os.environ["API_KEY"]'},{t:'success',v:'    2. Store the key:      make add-secret'},{t:'success',v:'    3. Commit again'},
-    {t:'narration',v:'Plain English. What happened, why it matters, exactly how to fix it. No error codes.'},{t:'pause',v:600},
-    {t:'cmd',v:'# After fixing...'},{t:'cmd',v:'git commit -m "Add API integration"'},{t:'dim',v:'  gitleaks (secret scan)........passed'},{t:'dim',v:'  ruff.........................passed'},{t:'dim',v:'  bandit.......................passed'},{t:'success',v:'  Commit created.'},
-    {t:'narration',v:'Fixed in 30 seconds. The key is safe in .env, the code uses the variable name, and the commit goes through clean.'}
+    {t:'narr',v:'An API key is in the code. Watch what happens at commit time.'},
+    {t:'cmd',v:'git commit -m "Add API integration"'},
+    {t:'out',v:'  gitleaks (secret scan)........'},
+    {t:'error',v:'  gitleaks (secret scan)........BLOCKED'},
+    {t:'error',v:''},
+    {t:'error',v:'  \u26A0 SECRET DETECTED'},
+    {t:'out',v:'  File:   src/main.py:14'},
+    {t:'out',v:'  Type:   Generic API Key'},
+    {t:'error',v:'  Match:  api_key = "sk-live-a3x..."'},
+    {t:'error',v:'  \u2717 Commit blocked.'},
+    {t:'cmd',v:'make add-secret'},
+    {t:'out',v:'  Variable name: API_KEY'},
+    {t:'dim',v:'  Value: \u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'},
+    {t:'success',v:'  \u2713 Added to .env (never touches git)'}
   ]},
-  {id:'noverify',name:'CI Catches --no-verify',tag:'What happens when...',
-   desc:'A developer skips the local hooks with --no-verify. CI has a backup: it checks a timestamp to prove hooks actually ran.',
-   takeaway:'There is no shortcut. Local hooks write a timestamp. CI checks the timestamp. If you skipped hooks, CI blocks your PR.',
+  {name:'Health Check',
+   takeaway:'One command tells you if your security pipeline is healthy. Green across the board = safe to ship.',
    steps:[
-    {t:'narration',v:'A developer thinks they can skip the security checks. Watch what happens.'},{t:'pause',v:400},
-    {t:'cmd',v:'git commit --no-verify -m "Quick fix"'},{t:'pause',v:200},
-    {t:'warn',v:'  (hooks skipped \u2014 no security checks ran)'},{t:'out',v:'  [feature/quick-fix abc1234] Quick fix'},
-    {t:'narration',v:'The commit went through. But notice: the .last-hook-run file wasn\'t updated. CI will notice.'},{t:'pause',v:600},
-    {t:'cmd',v:'git push origin feature/quick-fix'},{t:'pause',v:300},
-    {t:'dim',v:'  \u2500\u2500 CI Pipeline \u2500\u2500'},{t:'out',v:'  Secret Scanning...........passed'},{t:'out',v:'  Python SAST...............passed'},{t:'out',v:'  CodeQL...................passed'},{t:'out',v:'  Coverage.................passed'},{t:'out',v:'  Hook Integrity............checking...'},{t:'pause',v:500},
-    {t:'error',v:'  Hook Integrity............FAILED'},{t:'error',v:''},{t:'error',v:'  .last-hook-run timestamp is older than the latest commit.'},{t:'error',v:'  This means pre-commit hooks were bypassed.'},{t:'error',v:''},{t:'error',v:'  Fix: Run `make check` locally, then push again.'},{t:'error',v:''},{t:'error',v:'  \u2588\u2588 PR BLOCKED \u2014 required status check failed \u2588\u2588'},
-    {t:'narration',v:'The template writes a hidden timestamp every time hooks run. CI compares it to the commit time. If they don\'t match, the PR is blocked. No exceptions.'}
-  ]},
-  {id:'ratelimit',name:'Rate Limiter in Action',tag:'What happens when...',
-   desc:'Someone\'s script floods your API with requests. The built-in rate limiter kicks in automatically and protects your app.',
-   takeaway:'Rate limiting is on by default: 100 requests/minute per IP. It protects your app from being overwhelmed. You never configured it.',
-   steps:[
-    {t:'narration',v:'Your app is deployed. A script starts sending hundreds of requests.'},{t:'pause',v:400},
-    {t:'out',v:'  [08:41:01] GET /api/data 200  10.0.0.15  12ms'},{t:'out',v:'  [08:41:01] GET /api/data 200  10.0.0.15   8ms'},{t:'out',v:'  [08:41:02] GET /api/data 200  10.0.0.15  11ms'},{t:'out',v:'  [08:41:02] GET /api/data 200  10.0.0.15   9ms'},{t:'out',v:'  [08:41:03] GET /api/data 200  10.0.0.15  13ms'},
-    {t:'dim',v:'  ... 95 more requests in the last 50 seconds ...'},{t:'pause',v:500},
-    {t:'warn',v:'  [08:41:55] RATE LIMIT \u2014 10.0.0.15 exceeded 100 req/min'},{t:'error',v:'  [08:41:55] GET /api/data 429 Too Many Requests'},{t:'error',v:'             Retry-After: 12s'},{t:'error',v:'  [08:41:56] GET /api/data 429 Too Many Requests'},{t:'error',v:'             Retry-After: 11s'},
-    {t:'narration',v:'At 100 requests per minute, the limiter kicks in. The response includes a Retry-After header telling the client when to try again.'},{t:'pause',v:600},
-    {t:'dim',v:'  ... meanwhile, other users are fine ...'},{t:'out',v:'  [08:41:57] GET /api/data 200  10.0.0.22   7ms'},{t:'success',v:'  [08:41:57] (other IPs unaffected)'},{t:'pause',v:300},
-    {t:'dim',v:'  ... 12 seconds later ...'},{t:'out',v:'  [08:42:07] GET /api/data 200  10.0.0.15  10ms'},{t:'success',v:'  Normal traffic resumed for 10.0.0.15'},
-    {t:'narration',v:'The limit is per-IP, so one bad actor can\'t take down the app for everyone. You didn\'t write any of this code \u2014 it\'s built into the template middleware.'}
-  ]},
-  {id:'lazydrop',name:'Safe Secret Storage',tag:'Building',
-   desc:'You have an API key. Instead of pasting it into code or Claude, the template gives you a hidden-input tool that stores it safely in 10 seconds.',
-   takeaway:'make add-secret: hidden input, straight to .env, gitignored. The lazy way IS the safe way.',
-   steps:[
-    {t:'narration',v:'You got an API key from a vendor. The instinct: paste it into Claude. Watch what happens.'},{t:'pause',v:400},
-    {t:'cmd',v:'# "Claude, here\'s my key: sk-live-abc123..."'},{t:'pause',v:400},
-    {t:'warn',v:'  Claude: I can\'t accept secrets in the conversation.'},{t:'warn',v:'  They\'d be visible in terminal history and session logs.'},{t:'info',v:'  Claude: Use the secret storage tool instead:'},{t:'info',v:'    Run: make add-secret'},
-    {t:'narration',v:'Claude won\'t even look at the key. CLAUDE.md Rule #15: never put secrets in code, comments, or responses.'},{t:'pause',v:600},
-    {t:'cmd',v:'make add-secret'},{t:'pause',v:300},
-    {t:'out',v:'  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510'},{t:'out',v:'  \u2502  Add a Secret  \u2502'},{t:'out',v:'  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518'},{t:'out',v:'  Variable name: STRIPE_KEY'},{t:'out',v:'  Paste value (hidden): '},{t:'dim',v:'  >  \u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'},{t:'pause',v:400},
-    {t:'success',v:'  \u2713 STRIPE_KEY saved to .env'},{t:'success',v:'  \u2713 .env is gitignored (never committed)'},{t:'out',v:''},{t:'out',v:'  Use in your code:'},{t:'info',v:'    Python:  os.environ["STRIPE_KEY"]'},{t:'info',v:'    Go:      os.Getenv("STRIPE_KEY")'},
-    {t:'narration',v:'10 seconds. The key went straight to .env with hidden input \u2014 it was never visible on screen. Your code references it by name only. Git will never see it.'}
-  ]},
-  {id:'slashcmd',name:'Claude Slash Commands',tag:'Power user',
-   desc:'Four built-in commands for Claude Code. Type them in Claude and they trigger full security workflows.',
-   takeaway:'Claude doesn\'t just write code \u2014 it runs security workflows. /check, /add-endpoint, /add-secret, and /security-review are all one command.',
-   steps:[
-    {t:'narration',v:'The template adds slash commands to Claude Code. Here are the three most important ones.'},{t:'pause',v:500},
-    {t:'cmd',v:'/project:check'},{t:'pause',v:300},
-    {t:'info',v:'  Running full security suite...'},{t:'out',v:'  [1/4] Lint + format..........passed'},{t:'out',v:'  [2/4] Tests..................14 passed (87% coverage)'},{t:'out',v:'  [3/4] Security scan..........0 findings'},{t:'out',v:'  [4/4] Dropped files..........no sensitive files found'},{t:'success',v:'  All clear. Ready for a PR.'},
-    {t:'narration',v:'One command runs everything: lint, tests, secret scan, and dropped file scan. Run this before every PR.'},{t:'pause',v:700},
-    {t:'cmd',v:'/project:add-endpoint "list of rack inventory items"'},{t:'pause',v:300},
-    {t:'info',v:'  Scaffolding secure endpoint...'},{t:'out',v:'  + GET /api/inventory'},{t:'out',v:'  + Auth: Depends(get_current_user)'},{t:'out',v:'  + Model: InventoryItem(BaseModel, strict=True)'},{t:'out',v:'  + Tests: test_list_200, test_list_401, test_list_422'},{t:'out',v:'  + Comment: SECURITY LESSON explaining auth + validation'},{t:'success',v:'  Endpoint, model, and 3 tests created.'},
-    {t:'narration',v:'One sentence in, complete endpoint out. Auth, validation, and tests \u2014 all wired. The SECURITY LESSON comment teaches you as you read the code.'},{t:'pause',v:700},
-    {t:'cmd',v:'/project:security-review'},{t:'pause',v:300},
-    {t:'info',v:'  Running 10-point security audit...'},{t:'out',v:'  [1]  Secrets in code.........clean'},{t:'out',v:'  [2]  Auth coverage...........all endpoints protected'},{t:'out',v:'  [3]  Input validation........strict models on all handlers'},{t:'out',v:'  [4]  SQL safety..............parameterized queries only'},{t:'out',v:'  [5]  Dangerous functions.....none found'},{t:'out',v:'  [6]  Logging safety..........no secrets in logs'},{t:'out',v:'  [7]  Error handling..........generic external messages'},{t:'out',v:'  [8]  Dependencies............pinned, no CVEs'},{t:'out',v:'  [9]  Headers.................all 4 security headers present'},{t:'out',v:'  [10] Rate limiting...........active'},{t:'success',v:'  10/10 passed. No issues found.'},
-    {t:'narration',v:'A full security audit in seconds. This is what AppSec would check manually \u2014 now it\'s one command.'}
-  ]},
-  {id:'init',name:'Personalize Your Project',tag:'Power user',
-   desc:'make init turns the generic template into YOUR project. 5 questions, 6 files updated. After this, Claude knows your app by name.',
-   takeaway:'After init, Claude doesn\'t generate generic code. It uses your app name, team, and data classification in every decision.',
-   steps:[
-    {t:'narration',v:'The template starts generic. make init makes it yours.'},{t:'pause',v:400},
-    {t:'cmd',v:'make init'},{t:'pause',v:300},
-    {t:'out',v:'  \u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510'},{t:'out',v:'  \u2502  Personalize Your Project  \u2502'},{t:'out',v:'  \u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518'},
-    {t:'out',v:'  App name:            inventory-tracker'},{t:'out',v:'  What does it do:     Tracks rack inventory for DCT ops'},{t:'out',v:'  Team name:           dct-ops'},{t:'out',v:'  Slack channel:       #dct-eng'},{t:'out',v:'  Data classification: Internal'},{t:'pause',v:500},
-    {t:'dim',v:'  Updating 6 files...'},{t:'pause',v:300},
-    {t:'success',v:'  \u2713 .claude/MEMORY.md      Claude knows your app, team, and data sensitivity'},{t:'success',v:'  \u2713 Helm chart             App name: inventory-tracker'},{t:'success',v:'  \u2713 pyproject.toml         Package name: inventory-tracker'},{t:'success',v:'  \u2713 CODEOWNERS             Required reviewer: @coreweave/dct-ops'},{t:'success',v:'  \u2713 SECURITY.md            Incident contact: #dct-eng'},{t:'success',v:'  \u2713 .env.example           DEV_MODE=true, app-specific vars'},
-    {t:'narration',v:'Now when you open Claude Code, it reads MEMORY.md and knows everything: "I\'m building inventory-tracker for dct-ops. It handles internal data."'},{t:'pause',v:600},
-    {t:'cmd',v:'# You tell Claude: "add an endpoint for rack inventory"'},{t:'pause',v:400},
-    {t:'info',v:'  Claude reads MEMORY.md \u2192 "This is inventory-tracker for dct-ops"'},{t:'out',v:'  + GET /api/racks  (auth: dct-ops group required)'},{t:'out',v:'  + Logging: "inventory-tracker.api.racks" namespace'},{t:'out',v:'  + Data: classified as Internal \u2192 standard access controls'},
-    {t:'narration',v:'Claude used your team name for RBAC, your app name for logging, and your data classification for access controls. That\'s what make init does.'}
+    {t:'narr',v:'Not sure if everything\'s working? One command.'},
+    {t:'cmd',v:'make doctor'},
+    {t:'out',v:'  CW Secure Template \u2014 Health Check'},
+    {t:'dim',v:'  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
+    {t:'success',v:'  Pre-commit hooks     \u2713 installed'},
+    {t:'success',v:'  Gitleaks             \u2713 v8.18.0'},
+    {t:'success',v:'  Branch protection    \u2713 enabled'},
+    {t:'success',v:'  .env.example         \u2713 synced'},
+    {t:'success',v:'  CLAUDE.md            \u2713 15 rules active'},
+    {t:'success',v:'  CI pipeline          \u2713 configured'},
+    {t:'success',v:'  Test coverage        \u2713 87% (\u226580%)'},
+    {t:'success',v:'  Security headers     \u2713 all 5 present'},
+    {t:'dim',v:'  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500'},
+    {t:'success',v:'  8/8 checks passed \u2014 ship it'}
   ]}
 ];
 
-/* Terminal Simulator */
-class TermSim {
-  constructor(el, narEl) { this.el = el; this.nar = narEl; this.ac = null; }
-  async run(sc) { if(this.ac)this.ac.abort(); this.ac=new AbortController(); this.el.innerHTML=''; this.nar.textContent=''; for(const s of sc.steps){ if(this.ac.signal.aborted)return; await this.step(s); } }
-  async step(s) { if(s.t==='narration'){this.nar.textContent=s.v;return;} if(s.t==='pause'){await this.wait(s.v);return;} if(s.t==='cmd'){await this.typeCmd(s.v);return;} const cls={out:'output',success:'success',error:'error',warn:'warn',info:'info',dim:'dim'}[s.t]||'output'; await this.printLine(s.v,cls); }
-  async typeCmd(text) { const line=document.createElement('div');line.className='terminal-line prompt'; const pr=document.createElement('span');pr.textContent='~/my-app $ ';pr.style.color='oklch(55% 0.01 260)'; const cmd=document.createElement('span');cmd.className='cmd'; const cur=document.createElement('span');cur.className='cursor'; line.append(pr,cmd,cur);this.el.appendChild(line);this.scroll(); for(const c of text){if(this.ac.signal.aborted)return;cmd.textContent+=c;await this.wait(35);} cur.remove();await this.wait(200); }
-  async printLine(text,cls) { const line=document.createElement('div');line.className='terminal-line '+cls;this.el.appendChild(line); for(const c of text){if(this.ac.signal.aborted)return;line.textContent+=c;await this.wait(12);} this.scroll(); }
-  scroll() { this.el.scrollTop=this.el.scrollHeight; }
-  wait(ms) { return new Promise(r=>{const id=setTimeout(r,ms);this.ac.signal.addEventListener('abort',()=>{clearTimeout(id);r();});}); }
+/* Terminal renderer */
+const demoTerm = document.getElementById('demo-terminal');
+const demoNav = document.getElementById('demo-nav');
+const demoTakeaway = document.getElementById('demo-takeaway');
+let activeDemo = 0, animTimer = null;
+
+function playDemo(idx) {
+  activeDemo = idx;
+  demoNav.querySelectorAll('.demo-btn').forEach((b,i) => b.classList.toggle('active', i === idx));
+  demoTakeaway.style.display = 'none';
+  demoTerm.innerHTML = '';
+  if (animTimer) clearTimeout(animTimer);
+
+  const sc = SCENARIOS[idx];
+  let delay = 200;
+  sc.steps.forEach((step, i) => {
+    const d = delay;
+    animTimer = setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'line';
+      el.style.animationDelay = '0s';
+      const cls = {cmd:'t-cmd',out:'t-out',success:'t-success',error:'t-error',warn:'t-warn',info:'t-info',dim:'t-dim',narr:'t-narr'}[step.t] || 't-out';
+      if (step.t === 'cmd') {
+        el.innerHTML = '<span class="t-dim">$</span> <span class="' + cls + '">' + step.v + '</span>';
+      } else {
+        el.innerHTML = '<span class="' + cls + '">' + step.v + '</span>';
+      }
+      demoTerm.appendChild(el);
+      demoTerm.scrollTop = demoTerm.scrollHeight;
+    }, d);
+    delay += step.t === 'narr' ? 600 : step.t === 'cmd' ? 500 : 200;
+  });
+
+  animTimer = setTimeout(() => {
+    demoTakeaway.style.display = 'block';
+    document.getElementById('demo-takeaway-text').innerHTML = '<strong>Takeaway:</strong> ' + sc.takeaway;
+  }, delay + 400);
 }
 
-/* ═══════════════════════════════════════════
-   PIPELINE (with catches + escapes)
-   ═══════════════════════════════════════════ */
-const STAGES = [
-  {title:'Your Code',emoji:'\u270E',catches:['CLAUDE.md prevents hardcoded secrets','Parameterized queries enforced','Dangerous functions blocked','Auth required on every endpoint'],escapes:['Manual edits bypass Claude (caught by hooks)']},
-  {title:'CLAUDE.md',emoji:'\uD83E\uDD16',catches:['15 non-negotiable security rules','19 messy-prompt interceptions','Anti-jailbreak protection','settings.json blocks force-push, --no-verify, eval'],escapes:['User writes code without Claude (caught by linters)']},
-  {title:'Pre-commit',emoji:'\uD83D\uDEE1',catches:['Gitleaks: passwords, API keys, tokens','Private key detection','Lint + security scanning (ruff, bandit)','Blocks commits to main branch'],escapes:['--no-verify skips hooks (caught by CI timestamp)']},
-  {title:'CI Pipeline',emoji:'\u2699',catches:['CodeQL deep static analysis','80% test coverage gate','Hook integrity check (catches --no-verify)','SBOM generation'],escapes:['Zero-day vulns not in databases (mitigated by defense-in-depth)']},
-  {title:'PR Review',emoji:'\uD83D\uDC40',catches:['10-point security checklist','Business logic issues automation misses','Architecture-level security decisions'],escapes:['Reviewer might miss subtle issues (mitigated by CI)']},
-  {title:'Deploy',emoji:'\uD83D\uDE80',catches:['Non-root container, read-only filesystem','Network policy: default-deny','Secrets from Doppler via ESO','Health probes, resource limits'],escapes:['Runtime vulns (mitigated by monitoring)']}
-];
-
-/* ═══════════════════════════════════════════
-   CONCEPTS
-   ═══════════════════════════════════════════ */
-const CONCEPTS = [
-  {name:'SQL Injection',desc:'Attacker puts commands inside your database query. Like ordering "chicken; empty the register" at a restaurant.',scenario:'secret'},
-  {name:'Hardcoded Secrets',desc:'API keys written directly in code. Once in git, they\'re in the history forever \u2014 even after deletion.',scenario:'secret'},
-  {name:'Cross-Site Scripting (XSS)',desc:'Attacker injects JavaScript into your page that runs in other users\' browsers. Content-Security-Policy header blocks it.',scenario:'happy'},
-  {name:'Broken Authentication',desc:'When your app doesn\'t properly verify who someone is. The template uses Okta OIDC \u2014 never custom auth.',scenario:'intercept'},
-  {name:'Rate Limiting',desc:'Without it, attackers can flood your API with thousands of requests per second, crashing it.',scenario:'ratelimit'},
-  {name:'Defense in Depth',desc:'6 overlapping security layers. If one fails, the next catches it. No single point of failure.',scenario:'noverify'},
-  {name:'Parameterized Queries',desc:'Instead of putting user input into SQL strings (dangerous), you use placeholders. The database treats input as data, never as commands.',scenario:'intercept'},
-  {name:'Secure Secret Pipeline',desc:'API keys go to .env via hidden input (make add-secret). Config files go to .secrets/ (make add-config). The lazy path is the secure path.',scenario:'lazydrop'},
-  {name:'Claude Code Slash Commands',desc:'Type /project:check in Claude to run the full security suite. /project:add-endpoint scaffolds secure routes. /project:security-review audits your code.',scenario:'slashcmd'},
-  {name:'settings.json Deny List',desc:'The .claude/settings.json file blocks dangerous commands at the harness level. Claude literally cannot run force-push, --no-verify, or eval.',scenario:'noverify'},
-  {name:'Project Initialization',desc:'make init personalizes the template for YOUR app \u2014 name, team, data classification. Claude reads .claude/MEMORY.md every session.',scenario:'init'}
-];
-
-/* ═══════════════════════════════════════════
-   Q&A
-   ═══════════════════════════════════════════ */
-const QA = [
-  {tag:'core',q:'What does this actually do?',a:'It\'s a secure starter template for internal AI-powered tools. It gives teams a safe default foundation so they can build internal apps without inventing auth, secret handling, middleware, CI enforcement, and deployment guardrails from scratch.'},
-  {tag:'core',q:'What makes it different from a normal starter template?',a:'It makes the secure path the easiest path. Instead of telling people "be careful," it wires in guardrails: Claude project rules, denied dangerous commands in settings.json, hook enforcement, secret scanning, CI checks, auth defaults, rate limiting, and secure deployment.'},
-  {tag:'core',q:'How do you stop Claude from generating insecure code?',a:'Two layers. Instruction-level: CLAUDE.md says the model cannot hardcode secrets, skip auth, or suggest --no-verify. Structural: .claude/settings.json blocks dangerous commands at the harness level \u2014 Claude literally cannot execute them.'},
-  {tag:'core',q:'What\'s the authentication model?',a:'Okta OIDC/OAuth2. The guardrails ban custom username/password auth, require auth on every user-facing endpoint, and use group claims for RBAC. In local dev, DEV_MODE=true bypasses auth with a fake user.'},
-  {tag:'core',q:'What\'s the strategy for secrets?',a:'Never in code, never echoed back, never committed. Code references env vars only. Users store values through make add-secret (hidden input \u2192 .env) or make add-config (files \u2192 .secrets/). Production secrets flow through Doppler via External Secrets Operator.'},
-  {tag:'core',q:'What are the three commands a new user needs?',a:'make start, make check, and make help.'},
-  {tag:'core',q:'What does "make init" do?',a:'It asks 5 questions (app name, purpose, team, Slack channel, data classification) and updates 6 files. After init, Claude knows your project context without you repeating it.'},
-  {tag:'hard',q:'Walk me through the Python middleware order.',a:'Request ID is outermost (trace ID on every log), then request size checks, then rate limiting (throttle before auth), then trusted host and CORS. Security headers are set on every response.'},
-  {tag:'hard',q:'Why rate limiting before auth?',a:'To throttle abusive traffic before it hits the auth layer. It protects the auth system itself from being overwhelmed.'},
-  {tag:'hard',q:'What if someone says "it\'s internal, we can loosen security"?',a:'The repo explicitly rejects that logic. CLAUDE.md says internal tools are the most common attack vector and should be treated like production.'},
-  {tag:'hard',q:'What does DEV_MODE do exactly?',a:'It bypasses Okta auth with a fake test user. Risk: if deployed with DEV_MODE=true, anyone can access every endpoint. Mitigation: the app logs a warning at startup, and Helm prod values set DEV_MODE=false.'},
-  {tag:'hard',q:'How do you teach security instead of just enforcing it?',a:'Three ways: inline SECURITY LESSON comments in generated code, a 1,325-line security handbook with plain-English OWASP explanations, and a 15-question interactive quiz (make learn).'},
-  {tag:'skeptic',q:'Is this really secure, or does it just have a lot of badges?',a:'It doesn\'t remove the need for security review. It raises the floor. The repo bakes in defaults and enforcement so a non-expert is less likely to do the obviously dangerous thing.'},
-  {tag:'skeptic',q:'What\'s NOT covered?',a:'It doesn\'t replace threat modeling, AppSec review, correct RBAC design, data classification, or secure infrastructure setup. The repo includes an AppSec review pack specifically because those require human judgment.'},
-  {tag:'skeptic',q:'How many of these "6 layers" actually enforce anything?',a:'CLAUDE.md + settings.json enforce at the AI level. Pre-commit hooks at commit time. CI server-side (can\'t bypass). Branch protection at PR time. Helm at deploy time. Full enforcement requires a CW org repo with Okta + Doppler configured.'}
-];
-
-/* ═══════════════════════════════════════════
-   POLICIES
-   ═══════════════════════════════════════════ */
-const POLICIES = [
-  {cat:'Authentication',severity:'critical',items:['Okta OIDC required for all internal apps','MFA enforced for all users','Service accounts use short-lived tokens','No hardcoded credentials anywhere']},
-  {cat:'Secrets Management',severity:'critical',items:['All secrets stored in Doppler','No .env files in production','Secrets rotated on schedule','Audit log for all secret access']},
-  {cat:'Code Security',severity:'high',items:['SAST scanning on every PR','Dependency scanning with auto-PR for CVEs','Container image scanning before deploy','No known critical CVEs in production']},
-  {cat:'Data Protection',severity:'high',items:['Encryption at rest for all data stores','TLS 1.2+ for all network traffic','Data classified before storage','PII handled per data classification level']},
-  {cat:'Access Control',severity:'high',items:['RBAC with least-privilege principle','Okta groups mapped to app roles','Regular access reviews (quarterly)','Break-glass procedures documented']},
-  {cat:'Deployment',severity:'medium',items:['Helm + Argo for all K8s workloads','Chainguard base images preferred','Resource limits required on all pods','Network policies isolate namespaces']},
-  {cat:'Monitoring',severity:'medium',items:['Structured logging to central collector','Security events forwarded to SIEM','Alerting on auth failures and anomalies','Incident response runbook exists']},
-  {cat:'SDLC',severity:'medium',items:['PR reviews required before merge','Branch protection on main','Signed commits encouraged','CLAUDE.md defines project conventions']}
-];
-
-/* ═══════════════════════════════════════════
-   INIT EVERYTHING
-   ═══════════════════════════════════════════ */
-
-// Stepper
-renderStepper();
-
-// Restore form state
-(function restoreState(){
-  const s=loadState();
-  if(s.appName)document.getElementById('appName').value=s.appName;
-  if(s.appDesc)document.getElementById('appDesc').value=s.appDesc;
-  if(s.teamName)document.getElementById('teamName').value=s.teamName;
-  if(s.flowDesc)document.getElementById('flowDesc').value=s.flowDesc;
-  if(s.secAuth)document.getElementById('secAuth').value=s.secAuth;
-  if(s.secSecrets)document.getElementById('secSecrets').value=s.secSecrets;
-  if(s.secClass)document.getElementById('secClass').value=s.secClass;
-  if(s.lang)document.querySelectorAll('#langOptions .stack-chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===s.lang));
-  if(s.db)document.querySelectorAll('#dbOptions .stack-chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===s.db));
-  if(s.deploy)document.querySelectorAll('#deployOptions .stack-chip').forEach(c=>c.classList.toggle('selected',c.dataset.val===s.deploy));
-  function esc(v){return(v||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-  if(s.roles?.length){const c=document.getElementById('rolesRows');c.innerHTML='';s.roles.forEach(r=>{const d=document.createElement('div');d.className='dynamic-row roles-row';d.innerHTML=`<input type="text" class="role-name" value="${esc(r.role)}"><input type="text" class="role-who" value="${esc(r.who)}"><input type="text" class="role-perms" value="${esc(r.perms)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
-  if(s.tables?.length){const c=document.getElementById('tableRows');c.innerHTML='';s.tables.forEach(t=>{const d=document.createElement('div');d.className='dynamic-row table-row';d.innerHTML=`<input type="text" class="tbl-name" value="${esc(t.name)}"><input type="text" class="tbl-fields" value="${esc(t.fields)}"><input type="text" class="tbl-notes" value="${esc(t.notes)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
-  if(s.endpoints?.length){const c=document.getElementById('endpointRows');c.innerHTML='';s.endpoints.forEach(e=>{const d=document.createElement('div');d.className='dynamic-row endpoint-row';d.innerHTML=`<select class="ep-method"><option${e.method==='GET'?' selected':''}>GET</option><option${e.method==='POST'?' selected':''}>POST</option><option${e.method==='PUT'?' selected':''}>PUT</option><option${e.method==='PATCH'?' selected':''}>PATCH</option><option${e.method==='DELETE'?' selected':''}>DELETE</option></select><input type="text" class="ep-path" value="${esc(e.path)}"><input type="text" class="ep-auth" value="${esc(e.auth)}"><input type="text" class="ep-desc" value="${esc(e.desc)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
-  if(s.flowNodes?.length){const c=document.getElementById('flowRows');c.innerHTML='';s.flowNodes.forEach(f=>{const d=document.createElement('div');d.className='dynamic-row';d.style.gridTemplateColumns='1fr 40px 1fr 32px';d.innerHTML=`<input type="text" class="flow-from" value="${esc(f.from)}"><span style="text-align:center;color:var(--text-tertiary);font-size:var(--text-lg)">&rarr;</span><input type="text" class="flow-to" value="${esc(f.to)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
-  // Step 7 restore
-  if(s.envs)document.querySelectorAll('#envOptions .stack-chip').forEach(c=>c.classList.toggle('selected',s.envs.includes(c.dataset.val)));
-  if(s.replicasDev)document.getElementById('replicasDev').value=s.replicasDev;
-  if(s.replicasProd)document.getElementById('replicasProd').value=s.replicasProd;
-  if(s.cpuLimit)document.getElementById('cpuLimit').value=s.cpuLimit;
-  if(s.memLimit)document.getElementById('memLimit').value=s.memLimit;
-  if(s.scalingStrategy)document.getElementById('scalingStrategy').value=s.scalingStrategy;
-  if(s.infraNotes)document.getElementById('infraNotes').value=s.infraNotes;
-  // Step 8 restore
-  if(s.mvpFeatures?.length){const c=document.getElementById('mvpRows');c.innerHTML='';s.mvpFeatures.forEach(f=>{const d=document.createElement('div');d.className='dynamic-row';d.style.gridTemplateColumns='1fr 32px';d.innerHTML=`<input type="text" class="mvp-item" value="${esc(f)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
-  if(s.deferredFeatures?.length){const c=document.getElementById('deferredRows');c.innerHTML='';s.deferredFeatures.forEach(f=>{const d=document.createElement('div');d.className='dynamic-row';d.style.gridTemplateColumns='1fr 32px';d.innerHTML=`<input type="text" class="deferred-item" value="${esc(f)}"><button class="remove-row" onclick="removeRow(this)">&times;</button>`;c.appendChild(d);});}
-  if(s.ghBranchProtect!==undefined)document.getElementById('ghBranchProtect').checked=s.ghBranchProtect;
-  if(s.ghRequirePR!==undefined)document.getElementById('ghRequirePR').checked=s.ghRequirePR;
-  if(s.ghRequireCI!==undefined)document.getElementById('ghRequireCI').checked=s.ghRequireCI;
-  if(s.ghCodeowners!==undefined)document.getElementById('ghCodeowners').checked=s.ghCodeowners;
-  if(s.ghSignedCommits!==undefined)document.getElementById('ghSignedCommits').checked=s.ghSignedCommits;
-  if(s.ghConventional!==undefined)document.getElementById('ghConventional').checked=s.ghConventional;
-  if(s.branchStrategy)document.getElementById('branchStrategy').value=s.branchStrategy;
-})();
-
-// Guided Tour
-const term = new TermSim(document.getElementById('term'), document.getElementById('narration'));
-let tourIdx = 0;
-
-function showTourStop(idx) {
-  tourIdx = Math.max(0, Math.min(idx, SCENARIOS.length - 1));
-  const sc = SCENARIOS[tourIdx];
-  document.getElementById('tourTag').textContent = sc.tag;
-  document.getElementById('tourTitle').textContent = sc.name;
-  document.getElementById('tourDesc').textContent = sc.desc;
-  document.getElementById('tourCount').textContent = `${tourIdx + 1} / ${SCENARIOS.length}`;
-  document.getElementById('tourProgress').style.width = `${((tourIdx + 1) / SCENARIOS.length) * 100}%`;
-  document.getElementById('tourPrev').disabled = tourIdx === 0;
-  document.getElementById('tourPrev').style.opacity = tourIdx === 0 ? '0.4' : '1';
-  document.getElementById('tourTakeaway').style.display = 'none';
-  term.run(sc).then(() => {
-    document.getElementById('tourTakeaway').style.display = 'block';
-    document.getElementById('tourTakeawayText').textContent = sc.takeaway;
-  });
-}
-function tourNav(dir) { showTourStop(tourIdx + dir); }
-showTourStop(0);
-
-// Pipeline
-const pRow = document.getElementById('pipeline-row');
-const pBox = document.getElementById('p-detail-box');
-STAGES.forEach((v, i) => {
-  const el = document.createElement('div'); el.className = 'p-stage' + (i===0?' active':'');
-  el.innerHTML = `<div class="p-dot">${v.emoji}</div><div class="p-label">${v.title}</div>`;
-  el.addEventListener('click', () => {
-    pRow.querySelectorAll('.p-stage').forEach(s=>s.classList.remove('active')); el.classList.add('active');
-    pBox.innerHTML = `<div class="p-detail show"><h3>${v.title}</h3>
-      <div class="catches"><h4>What it catches</h4><ul>${v.catches.map(c=>'<li>'+c+'</li>').join('')}</ul></div>
-      <div class="escapes"><h4>What passes through</h4><ul>${v.escapes.map(c=>'<li>'+c+'</li>').join('')}</ul></div></div>`;
-  });
-  pRow.appendChild(el);
+SCENARIOS.forEach((sc, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'demo-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = sc.name;
+  btn.addEventListener('click', () => playDemo(i));
+  demoNav.appendChild(btn);
 });
-// Show first stage detail
-pBox.innerHTML = `<div class="p-detail show"><h3>${STAGES[0].title}</h3><div class="catches"><h4>What it catches</h4><ul>${STAGES[0].catches.map(c=>'<li>'+c+'</li>').join('')}</ul></div><div class="escapes"><h4>What passes through</h4><ul>${STAGES[0].escapes.map(c=>'<li>'+c+'</li>').join('')}</ul></div></div>`;
+playDemo(0);
 
-// Concepts
-const cList = document.getElementById('concept-list');
-CONCEPTS.forEach(c => {
-  const el = document.createElement('div'); el.className = 'concept-card';
-  el.innerHTML = `<div class="concept-head"><h3>${c.name}</h3><span class="concept-chev">\u25BC</span></div>
-    <div class="concept-body"><div class="concept-inner"><div class="concept-content"><p>${c.desc}</p>
-    <button class="try-btn" data-sc="${c.scenario}">See demo</button></div></div></div>`;
-  el.querySelector('.concept-head').addEventListener('click', () => el.classList.toggle('open'));
-  el.querySelector('.try-btn').addEventListener('click', e => {
-    e.stopPropagation(); const idx = SCENARIOS.findIndex(s => s.id === c.scenario);
-    if(idx >= 0){ document.getElementById('demo').scrollIntoView({behavior:'smooth'}); setTimeout(()=>showTourStop(idx),400); }
-  });
-  cList.appendChild(el);
-});
-
-// Policies
-const pGrid = document.getElementById('policyGrid');
-POLICIES.forEach(p => {
-  pGrid.innerHTML += `<div class="policy-card"><span class="policy-tag tag-${p.severity}">${p.severity}</span><h4>${p.cat}</h4>
-    <ul style="list-style:none;padding:0;margin-top:var(--space-xs)">${p.items.map(i=>`<li style="font-size:var(--text-xs);color:var(--text-secondary);padding:2px 0 2px 14px;position:relative"><span style="position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--border)"></span>${i}</li>`).join('')}</ul></div>`;
-});
-
-// Q&A
-const qaList = document.getElementById('qa-list');
-QA.forEach(item => {
-  const el = document.createElement('div'); el.className = 'qa';
-  const tagClass = {core:'tag-core',hard:'tag-hard',skeptic:'tag-skeptic'}[item.tag];
-  const tagLabel = {core:'core',hard:'deep dive',skeptic:'skeptic'}[item.tag];
-  el.innerHTML = `<div class="qa-q"><h3><span class="qa-tag ${tagClass}">${tagLabel}</span> ${item.q}</h3><span class="qa-chev">\u25BC</span></div>
-    <div class="qa-body"><div class="qa-inner"><div class="qa-a">${item.a}</div></div></div>`;
-  el.querySelector('.qa-q').addEventListener('click', () => el.classList.toggle('open'));
-  qaList.appendChild(el);
-});
-
-// Doctor output parser
-function parseDoctorOutput() {
-  const raw = document.getElementById('doctorPaste').value.trim(); if(!raw)return;
-  const results = document.getElementById('doctorResults');
-  const checks = raw.split('\n').map(line => {
-    const isPass=/pass|ok|\u2713|\u2705|yes/i.test(line), isFail=/fail|error|\u2717|\u274C|no|missing/i.test(line), isWarn=/warn|\u26A0/i.test(line);
-    return { line:line.trim(), status: isFail?'critical':isWarn?'warn':isPass?'pass':'info' };
-  }).filter(c=>c.line);
-  const pc=checks.filter(c=>c.status==='pass').length, fc=checks.filter(c=>c.status==='critical').length;
-  results.innerHTML = `<div style="display:flex;gap:var(--space-md);margin-bottom:var(--space-md)">
-    <div style="padding:var(--space-sm) var(--space-md);border-radius:8px;background:var(--pass-bg);border:1px solid var(--pass);font-family:'JetBrains Mono',monospace;font-size:var(--text-sm);color:var(--pass)">${pc} passed</div>
-    <div style="padding:var(--space-sm) var(--space-md);border-radius:8px;background:${fc?'var(--critical-bg)':'var(--bg-sunken)'};border:1px solid ${fc?'var(--critical)':'var(--border)'};font-family:'JetBrains Mono',monospace;font-size:var(--text-sm);color:${fc?'var(--critical)':'var(--text-tertiary)'}">${fc} failed</div></div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);background:var(--text-primary);border-radius:10px;padding:var(--space-md);color:oklch(85% 0.01 80);line-height:1.8">
-    ${checks.map(c=>`<div style="color:${c.status==='pass'?'#4ade80':c.status==='critical'?'#f87171':c.status==='warn'?'#fbbf24':'oklch(65% 0.01 260)'}">${c.line}</div>`).join('')}</div>`;
-}
-
-// File tree
+/* File tree */
 const FILETREE = [
-  {name:'CLAUDE.md',layer:'ai',desc:'15 security rules + anti-jailbreak + 24 messy-prompt interceptions. The AI brain.'},
-  {name:'.claude/',layer:'ai',desc:'Full Claude Code project config \u2014 commands, rules, skills, agents.',children:[
-    {name:'settings.json',layer:'ai',desc:'Permissions locked. Denies force-push, --no-verify, eval at harness level.'},
-    {name:'MEMORY.md',layer:'ai',desc:'Project memory \u2014 context that persists across Claude sessions.'},
-    {name:'commands/',layer:'ai',desc:'4 slash commands for Claude Code.',children:[
-      {name:'check.md',layer:'ai',desc:'/project:check \u2014 runs full security suite (lint + test + scan + drops).'},
-      {name:'add-endpoint.md',layer:'ai',desc:'/project:add-endpoint \u2014 scaffolds a secure route with auth + tests.'},
-      {name:'add-secret.md',layer:'ai',desc:'/project:add-secret \u2014 guides safe key storage via make add-secret.'},
-      {name:'security-review.md',layer:'ai',desc:'/project:security-review \u2014 10-point security audit of the codebase.'}
+  {name:'CLAUDE.md',layer:'ai',desc:'15 security rules Claude follows automatically. Anti-override protocol prevents bypassing.'},
+  {name:'.claude/',layer:'ai',desc:'Full Claude Code project config.',children:[
+    {name:'commands/',layer:'ai',desc:'4 slash commands.',children:[
+      {name:'add-endpoint.md',layer:'ai',desc:'/project:add-endpoint \u2014 scaffolds a secure route with auth, validation, and tests.'},
+      {name:'check.md',layer:'ai',desc:'/project:check \u2014 runs full security suite (lint + test + scan).'},
+      {name:'security-review.md',layer:'ai',desc:'/project:security-review \u2014 10-point security audit.'},
+      {name:'add-secret.md',layer:'ai',desc:'/project:add-secret \u2014 guides safe key storage.'}
     ]},
-    {name:'rules/',layer:'ai',desc:'Modular instruction files, auto-applied by glob pattern.',children:[
-      {name:'security.md',layer:'ai',desc:'Globs *.go,*.py \u2014 secrets, auth, validation, dangerous functions.'},
-      {name:'testing.md',layer:'ai',desc:'Globs *_test.* \u2014 coverage, security tests, environment setup.'},
-      {name:'code-style.md',layer:'ai',desc:'Globs *.go,*.py \u2014 formatting, logging, imports.'},
-      {name:'api-conventions.md',layer:'ai',desc:'Globs main.* \u2014 REST, status codes, headers.'}
+    {name:'rules/',layer:'ai',desc:'Auto-applied by file type.',children:[
+      {name:'security.md',layer:'ai',desc:'*.go, *.py \u2014 secrets, auth, validation, dangerous functions.'},
+      {name:'testing.md',layer:'ai',desc:'*_test.* \u2014 coverage, security tests, environment.'},
+      {name:'code-style.md',layer:'ai',desc:'*.go, *.py \u2014 formatting, logging, imports.'},
+      {name:'api-conventions.md',layer:'ai',desc:'main.* \u2014 REST, status codes, headers.'}
     ]},
-    {name:'skills/',layer:'ai',desc:'Auto-invoked workflows.',children:[
-      {name:'security-review/SKILL.md',layer:'ai',desc:'Auto-triggers on code changes. Checks 7 security categories.'}
+    {name:'agents/',layer:'ai',desc:'AI review agents.',children:[
+      {name:'security-auditor.md',layer:'ai',desc:'Deep OWASP + CW compliance audit. 10 focused turns.'},
+      {name:'code-reviewer.md',layer:'ai',desc:'PR review: security + quality + conventions.'}
     ]},
-    {name:'agents/',layer:'ai',desc:'Subagent personas for specialized tasks.',children:[
-      {name:'security-auditor.md',layer:'ai',desc:'Deep OWASP + CW compliance audit. Uses sonnet, 10 turns.'},
-      {name:'code-reviewer.md',layer:'ai',desc:'PR review agent. Security + quality + conventions. Uses sonnet, 8 turns.'}
-    ]}
+    {name:'skills/',layer:'ai',desc:'Auto-triggered workflows.',children:[
+      {name:'security-review/',layer:'ai',desc:'Triggers on code changes. Checks 7 security categories.'}
+    ]},
+    {name:'MEMORY.md',layer:'ai',desc:'Project memory \u2014 Claude remembers across sessions.'}
   ]},
-  {name:'SECURITY.md',layer:'docs',desc:'Incident response template aligned with CW IR process.'},
-  {name:'Makefile',layer:'code',desc:'3 visible commands: start, check, help. Plus: fix, doctor, add-secret, add-config, learn.'},
-  {name:'setup.sh',layer:'code',desc:'One-command bootstrap. Auto-opens dashboard, auto-configures branch protection.'},
-  {name:'scripts/',layer:'hooks',desc:'Git hooks, doctor, security-fix, quiz, add-secret, add-config, scan-drops.',children:[
-    {name:'git-hooks/',layer:'hooks',desc:'Pre-commit, post-checkout, pre-push hooks.',children:[
-      {name:'pre-commit',layer:'hooks',desc:'Scans for secrets + lint. Plain English errors. Writes timestamp for CI.'},
+  {name:'scripts/',layer:'hooks',desc:'Git hooks, health check, secret tools, quiz.',children:[
+    {name:'git-hooks/',layer:'hooks',desc:'Pre-commit, pre-push, post-checkout.',children:[
+      {name:'pre-commit',layer:'hooks',desc:'Scans for secrets + lint. Blocks commit if issues found.'},
       {name:'pre-push',layer:'hooks',desc:'Runs tests before push. Last local gate.'},
-      {name:'post-checkout',layer:'hooks',desc:'Auto-reinstalls hooks if removed.'}
+      {name:'post-checkout',layer:'hooks',desc:'Reinstalls hooks if removed.'}
     ]},
-    {name:'add-secret.sh',layer:'hooks',desc:'Stores API keys in .env with hidden input. Never displays the value.'},
-    {name:'add-config.sh',layer:'hooks',desc:'Stores config files (.json, .pem) in gitignored .secrets/ directory.'},
-    {name:'scan-drops.sh',layer:'hooks',desc:'Scans for 20+ accidentally dropped sensitive file patterns.'},
-    {name:'doctor.sh',layer:'hooks',desc:'Full pipeline health check with pass/fail table.'},
-    {name:'security-fix.sh',layer:'hooks',desc:'Auto-fix lint, plain English guidance for manual fixes.'},
-    {name:'security-quiz.sh',layer:'docs',desc:'15-question OWASP quiz with explanations.'}
+    {name:'doctor.sh',layer:'hooks',desc:'Full pipeline health check.'},
+    {name:'add-secret.sh',layer:'hooks',desc:'Stores API keys with hidden input.'},
+    {name:'security-quiz.sh',layer:'docs',desc:'15-question OWASP quiz.'}
   ]},
-  {name:'.github/',layer:'ci',desc:'CI workflows, branch protection, PR template.',children:[
-    {name:'workflows/ci.yml',layer:'ci',desc:'CodeQL, gosec/bandit, 80% coverage gate, hook integrity, middleware presence check.'},
-    {name:'workflows/branch-protection-setup.yml',layer:'ci',desc:'One-time workflow to configure branch protection rules.'},
-    {name:'pull_request_template.md',layer:'ci',desc:'10-point security checklist for every PR.'}
+  {name:'.github/',layer:'ci',desc:'CI + branch protection.',children:[
+    {name:'workflows/ci.yml',layer:'ci',desc:'6 automated checks: secrets, SAST, deps, coverage, hooks, SVG.'},
+    {name:'pull_request_template.md',layer:'ci',desc:'10-point security checklist for reviewers.'},
+    {name:'CODEOWNERS',layer:'ci',desc:'Required reviewers for PRs.'}
   ]},
-  {name:'python/',layer:'code',desc:'Python starter with FastAPI.',children:[
-    {name:'src/main.py',layer:'code',desc:'Wired: auth, rate limit, request ID, CORS, security headers, startup validation.'},
-    {name:'src/middleware/',layer:'code',desc:'Okta OIDC auth, rate limiter, request ID, request size limit.'},
-    {name:'Dockerfile',layer:'deploy',desc:'Multi-stage slim build, non-root user, health check.'}
+  {name:'python/',layer:'code',desc:'Python starter (FastAPI).',children:[
+    {name:'src/main.py',layer:'code',desc:'Auth, rate limit, request ID, CORS, security headers \u2014 all wired.'},
+    {name:'src/middleware/',layer:'code',desc:'Okta OIDC, rate limiter, request ID, request size limit.'},
+    {name:'Dockerfile',layer:'deploy',desc:'Multi-stage, non-root, slim.'}
   ]},
-  {name:'go/',layer:'code',desc:'Go starter with net/http. Zero external dependencies.',children:[
-    {name:'main.go',layer:'code',desc:'Full middleware stack, graceful shutdown, startup env validation.'},
-    {name:'middleware/',layer:'code',desc:'Okta OIDC JWT (stdlib only), rate limiter, request ID, security headers.'},
-    {name:'Dockerfile',layer:'deploy',desc:'CW Chainguard multi-stage, distroless runtime.'}
+  {name:'go/',layer:'code',desc:'Go starter (net/http).',children:[
+    {name:'main.go',layer:'code',desc:'Full middleware stack, graceful shutdown, env validation.'},
+    {name:'middleware/',layer:'code',desc:'JWT auth (stdlib), rate limiter, security headers.'},
+    {name:'Dockerfile',layer:'deploy',desc:'CW Chainguard multi-stage.'}
   ]},
-  {name:'deploy/',layer:'deploy',desc:'Helm chart + ArgoCD + env-specific values.',children:[
-    {name:'helm/',layer:'deploy',desc:'K8s deployment, service, ESO, network policy, PDB, service account.',children:[
-      {name:'values.yaml',layer:'deploy',desc:'Default values: resources, Okta, Doppler, health checks.'},
-      {name:'values-dev.yaml',layer:'deploy',desc:'Dev overrides: 1 replica, DEV_MODE, small resources.'},
-      {name:'values-stg.yaml',layer:'deploy',desc:'Staging overrides: 2 replicas, staging Okta.'},
-      {name:'values-prod.yaml',layer:'deploy',desc:'Prod overrides: 3 replicas, pinned image, PDB enabled.'}
-    ]},
-    {name:'argo/',layer:'deploy',desc:'ArgoCD Application manifest with auto-sync.'}
+  {name:'deploy/helm/',layer:'deploy',desc:'Kubernetes deployment.',children:[
+    {name:'values.yaml',layer:'deploy',desc:'Resources, Okta, Doppler, health probes.'},
+    {name:'templates/',layer:'deploy',desc:'Deployment, service, ingress, secrets, network policy.'}
   ]},
-  {name:'docs/',layer:'docs',desc:'Guides, handbook, AppSec review pack, CW operational docs.',children:[
-    {name:'getting-started.md',layer:'docs',desc:'Step-by-step for your first 10 minutes. Includes Step 3.5: add-secret.'},
-    {name:'security-handbook.md',layer:'docs',desc:'Plain-English OWASP guide + glossary + FAQ.'},
-    {name:'appsec-review-pack/',layer:'docs',desc:'STRIDE threat model, architecture, data classification, review request.'},
-    {name:'okta-ticket-template.md',layer:'docs',desc:'Copy-paste Freshservice ticket for Okta app registration.'},
-    {name:'doppler-onboarding.md',layer:'docs',desc:'Naming conventions, step-by-step onboarding.'},
-    {name:'approved-images.md',layer:'docs',desc:'CW Chainguard image families, mirror paths, tag policy.'},
-    {name:'cw-integration.md',layer:'docs',desc:'How to layer this on top of cw scaffold / cw repo create.'},
-    {name:'repo-governance.md',layer:'docs',desc:'Production repos must live in CW org. What org gives you for free.'}
-  ]}
+  {name:'docs/',layer:'docs',desc:'Guides and handbooks.',children:[
+    {name:'getting-started.md',layer:'docs',desc:'Step-by-step for your first 10 minutes.'},
+    {name:'security-handbook.md',layer:'docs',desc:'Plain-English OWASP guide + glossary.'},
+    {name:'appsec-review-pack/',layer:'docs',desc:'Threat model, architecture, data classification.'}
+  ]},
+  {name:'Makefile',layer:'code',desc:'12 commands: start, check, doctor, scan, learn, add-secret...'},
+  {name:'setup.sh',layer:'code',desc:'One-command bootstrap. Language choice, hooks, deps, health check.'},
+  {name:'SECURITY.md',layer:'docs',desc:'Incident response template.'}
 ];
+
 function renderTree(items, parent) {
   items.forEach(item => {
     const isDir = !!item.children;
     const row = document.createElement('div');
-    row.innerHTML = `<span class="tree-dot layer-${item.layer}"></span><span class="${isDir?'tree-dir':'tree-file'}">${isDir?'\u25BC ':'' }${item.name}</span>`;
+    row.style.cursor = 'pointer';
+    row.innerHTML = '<span class="tree-dot layer-' + item.layer + '"></span><span class="' + (isDir ? 'tree-dir' : 'tree-file') + '">' + (isDir ? '\u25BC ' : '') + item.name + '</span>';
     parent.appendChild(row);
-    if(isDir) {
-      const kids = document.createElement('div'); kids.className = 'tree-children'; parent.appendChild(kids);
+    if (isDir) {
+      const kids = document.createElement('div');
+      kids.className = 'tree-children';
+      parent.appendChild(kids);
       row.querySelector('.tree-dir').addEventListener('click', () => {
         kids.classList.toggle('collapsed');
         const arrow = row.querySelector('.tree-dir');
-        arrow.textContent = kids.classList.contains('collapsed') ? '\u25B6 '+item.name : '\u25BC '+item.name;
+        arrow.textContent = kids.classList.contains('collapsed') ? '\u25B6 ' + item.name : '\u25BC ' + item.name;
       });
       renderTree(item.children, kids);
     }
     row.addEventListener('click', e => {
-      if(isDir && e.target.classList.contains('tree-dir')) return;
-      document.getElementById('file-desc').innerHTML = `<div class="file-desc"><strong>${item.name}</strong> \u2014 ${item.desc}</div>`;
+      if (isDir && e.target.classList.contains('tree-dir')) return;
+      document.getElementById('file-desc').innerHTML = '<div class="file-desc"><strong>' + item.name + '</strong> \u2014 ' + item.desc + '</div>';
     });
   });
 }
 renderTree(FILETREE, document.getElementById('tree'));
 
-// Nav scroll tracking
-function updateNav() {
-  const sections = ['demo','scaffold','pipeline','concepts','files','policies','qa','team'];
-  let active = sections[0];
-  sections.forEach(id => { const el=document.getElementById(id); if(el&&el.offsetParent!==null&&el.getBoundingClientRect().top<=100)active=id; });
-  document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.section === active));
-}
-window.addEventListener('scroll', updateNav, { passive: true });
-document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    const t=document.getElementById(link.dataset.section);
-    if(t) { t.style.display=''; t.scrollIntoView({behavior:'smooth'}); }
-  });
+/* FAQ */
+const FAQS = [
+  {q:'Do I need to know security to use this?',a:'No. That\'s the whole point. Claude follows the rules, hooks catch mistakes, GitHub Actions enforces everything. You focus on building.'},
+  {q:'Can I use this without Claude Code?',a:'Yes. The hooks, GitHub Actions, and Makefile commands work on their own. You just won\'t get the AI commands, agents, and auto-learning memory.'},
+  {q:'What if a hook blocks my commit?',a:'Read the message \u2014 it tells you exactly what\'s wrong and how to fix it. Or run <code>make fix</code> and it tries to fix things automatically.'},
+  {q:'What if I don\'t have Okta credentials?',a:'You don\'t need them for local development. The app runs in DEV_MODE with a fake test user. When you\'re ready to deploy, file an IT ticket using the template in CLAUDE.md.'},
+  {q:'What languages does this support?',a:'Python (FastAPI) and Go (net/http). Setup asks which one you want. The other gets archived \u2014 you can switch later.'},
+  {q:'What does "make learn" do?',a:'It runs a 15-question multiple-choice quiz about common security mistakes. Each answer includes an explanation. It\'s a quick way to build intuition without reading a textbook.'},
+  {q:'Can someone disable the security checks?',a:'The Hook Integrity check in GitHub Actions catches if anyone removes hooks, weakens CLAUDE.md rules, or unwires middleware. CI blocks the PR. Branch protection prevents force-pushing to main.'},
+  {q:'How is this different from a normal boilerplate?',a:'Boilerplate gives you starter code. This gives you a full enforcement system \u2014 Claude Code rules, git hooks, CI pipeline, branch protection, AI agents. The security is in the infrastructure, not just the code.'}
+];
+
+const faqList = document.getElementById('faq-list');
+FAQS.forEach(item => {
+  const el = document.createElement('div');
+  el.className = 'faq';
+  el.innerHTML = '<div class="faq-q"><h4>' + item.q + '</h4><span>\u25BC</span></div><div class="faq-a"><div class="faq-a-inner">' + item.a + '</div></div>';
+  el.querySelector('.faq-q').addEventListener('click', () => el.classList.toggle('open'));
+  faqList.appendChild(el);
 });
+
+/* Scroll nav tracking */
+window.addEventListener('scroll', () => {
+  const ids = ['demo','framework','actions','files','faq'];
+  let active = ids[0];
+  ids.forEach(id => { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top <= 120) active = id; });
+  document.querySelectorAll('.nav-link').forEach(link => {
+    const href = link.getAttribute('href');
+    if (href) link.style.color = href === '#' + active ? 'var(--text-primary)' : '';
+  });
+}, { passive: true });
 </script>
 </body>
 </html>
