@@ -47,6 +47,7 @@ PROTECTED_FILES=(
   ".github/CODEOWNERS"
   "scripts/git-hooks/"
   "scripts/guard.sh"
+  "scripts/guard-bash.sh"
 )
 
 for protected in "${PROTECTED_FILES[@]}"; do
@@ -63,7 +64,7 @@ SECRET_PATTERNS=(
   'sk-[a-zA-Z0-9]{20,}'
   'ghp_[a-zA-Z0-9]{36}'
   'AKIA[A-Z0-9]{16}'
-  'password\s*=\s*["\x27][^"\x27]+'
+  'password\s*=\s*["\x27][^"\x27]{8,}'
   'secret\s*=\s*["\x27][^"\x27]+'
   'token\s*=\s*["\x27][^"\x27]+'
   'Bearer [a-zA-Z0-9_\-\.]{20,}'
@@ -137,8 +138,8 @@ if [[ -n "$FILE_PATH" && -f "$FILE_PATH" ]]; then
       echo "Last modified by: $LAST_AUTHOR ($LAST_TIME)" >&2
     fi
     echo "Another teammate may be actively editing this file." >&2
-    echo "Proceeding — but coordinate with your team to avoid conflicts." >&2
-    # Warning only, not a block — exit 0 continues but the message is injected
+    echo "Edit blocked — coordinate with your team or commit/stash their changes first." >&2
+    exit 2
   fi
 fi
 
@@ -167,30 +168,40 @@ if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
 fi
 
 # --- Guard 7: Route handlers must have auth ---
-# Check if a new route/endpoint is being added without auth middleware
+# When a new route decorator/handler is in the edit, check the FULL FILE for auth
 if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
-  # Python: check for route decorators without Depends(get_current_user)
+  HAS_NEW_ROUTE=false
+  IS_HEALTH=false
+
+  # Detect new route in the edit content
   if echo "$CONTENT" | grep -qE '@(app|router)\.(get|post|put|delete|patch)' 2>/dev/null; then
-    if ! echo "$CONTENT" | grep -qE '(Depends\s*\(\s*get_current_user|current_user|RequireAuth|authenticate)' 2>/dev/null; then
-      # Exception: healthz endpoint doesn't need auth
-      if ! echo "$CONTENT" | grep -qE '(healthz|health|readyz|livez)' 2>/dev/null; then
-        echo "BLOCKED: Route endpoint in $FILE_PATH missing authentication" >&2
-        echo "Every endpoint (except /healthz) requires auth middleware." >&2
-        echo "Add: Depends(get_current_user) to the endpoint parameters." >&2
-        echo "For local dev without Okta, set DEV_MODE=true in .env." >&2
-        exit 2
-      fi
-    fi
+    HAS_NEW_ROUTE=true
   fi
-  # Go: check for http.HandleFunc without auth middleware
   if echo "$CONTENT" | grep -qE '(HandleFunc|Handle)\s*\(' 2>/dev/null; then
-    if ! echo "$CONTENT" | grep -qE '(RequireAuth|AuthMiddleware|WithAuth|authenticate)' 2>/dev/null; then
-      if ! echo "$CONTENT" | grep -qE '(healthz|health|readyz|livez)' 2>/dev/null; then
-        echo "BLOCKED: Route handler in $FILE_PATH missing authentication" >&2
-        echo "Every handler (except /healthz) requires auth middleware." >&2
-        echo "Wrap with: RequireAuth(handler)" >&2
-        exit 2
-      fi
+    HAS_NEW_ROUTE=true
+  fi
+
+  # Health endpoints are exempt
+  if echo "$CONTENT" | grep -qE '(healthz|health|readyz|livez)' 2>/dev/null; then
+    IS_HEALTH=true
+  fi
+
+  if [[ "$HAS_NEW_ROUTE" == true && "$IS_HEALTH" == false ]]; then
+    # Check the FULL FILE on disk (not just the edit) for auth patterns
+    FULL_FILE=""
+    if [[ -f "$FILE_PATH" ]]; then
+      FULL_FILE=$(cat "$FILE_PATH" 2>/dev/null || echo "")
+    fi
+    # Combine: existing file + new content being added
+    COMBINED="${FULL_FILE}${CONTENT}"
+
+    if ! echo "$COMBINED" | grep -qE '(Depends\s*\(\s*get_current_user|current_user|RequireAuth|AuthMiddleware|WithAuth|authenticate)' 2>/dev/null; then
+      echo "BLOCKED: Route endpoint in $FILE_PATH missing authentication" >&2
+      echo "Every endpoint (except /healthz) requires auth middleware." >&2
+      echo "Python: Add Depends(get_current_user) to endpoint parameters." >&2
+      echo "Go: Wrap handler with RequireAuth(handler)." >&2
+      echo "For local dev without Okta, set DEV_MODE=true in .env." >&2
+      exit 2
     fi
   fi
 fi
@@ -198,19 +209,33 @@ fi
 # --- Guard 8: Dependency direction enforcement ---
 # models/ must not import from routes/, services/, or repositories/
 if [[ -n "$CONTENT" && "$FILE_PATH" == *"models/"* ]]; then
+  # Python imports
   if echo "$CONTENT" | grep -qE '(from\s+(routes|services|repositories|handlers|delivery)|import\s+.*(routes|services|repositories|handlers|delivery))' 2>/dev/null; then
     echo "BLOCKED: Invalid import in model file: $FILE_PATH" >&2
     echo "models/ must NOT import from routes/, services/, or repositories/" >&2
     echo "Dependency direction: models depend on NOTHING. Everything else depends on models." >&2
     exit 2
   fi
+  # Go imports
+  if echo "$CONTENT" | grep -qE '"[^"]*/(routes|services|repository|handlers|delivery|controller)"' 2>/dev/null; then
+    echo "BLOCKED: Invalid import in model file: $FILE_PATH" >&2
+    echo "models/ must NOT import from routes/, services/, or repositories/" >&2
+    exit 2
+  fi
 fi
 # routes/ must not import from repositories/ directly
 if [[ -n "$CONTENT" && "$FILE_PATH" == *"routes/"* ]]; then
+  # Python imports
   if echo "$CONTENT" | grep -qE '(from\s+(repositories|repo|db)|import\s+.*(repositories|repo))' 2>/dev/null; then
     echo "BLOCKED: Route handler importing directly from repository: $FILE_PATH" >&2
     echo "routes/ must call services/, not repositories/ directly." >&2
-    echo "Dependency direction: routes → services → repositories → models" >&2
+    echo "Dependency direction: routes -> services -> repositories -> models" >&2
+    exit 2
+  fi
+  # Go imports
+  if echo "$CONTENT" | grep -qE '"[^"]*/(repository|repo|db)"' 2>/dev/null; then
+    echo "BLOCKED: Route handler importing directly from repository: $FILE_PATH" >&2
+    echo "routes/ must call services/, not repositories/ directly." >&2
     exit 2
   fi
 fi
