@@ -27,6 +27,14 @@ Clone. Setup. Build. The security infrastructure is already there.
 
 <br>
 
+## Interactive Demo
+
+The landing page is a scroll-driven walkthrough of the entire security pipeline. As you scroll, each defense layer reveals itself — pipeline cards animate in sequentially, terminals slide into view, and the guardrails animation shows messy prompts being corrected at every stage. Built with [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/).
+
+**[Scroll through the demo →](https://rpatino-cw.github.io/cw-secure-template/)**
+
+<br>
+
 ## Get Started in 30 Seconds
 
 <p align="center">
