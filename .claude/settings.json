@@ -62,6 +62,11 @@
       "Bash(pre-commit uninstall *)",
       "Bash(mv CLAUDE.md *)",
       "Bash(mv .claude *)",
+      "Bash(* > CLAUDE.md)",
+      "Bash(* > .claude/*)",
+      "Bash(* > .claude/settings.local.json)",
+      "Bash(* >> CLAUDE.md)",
+      "Bash(* >> .claude/*)",
       "Bash(tee *)",
       "Bash(perl -e *)",
       "Bash(perl -p *)",
@@ -99,6 +104,17 @@
             "command": "bash scripts/guard.sh",
             "timeout": 5000,
             "statusMessage": "Checking guardrails..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/guard-bash.sh",
+            "timeout": 3000,
+            "statusMessage": "Checking command..."
           }
         ]
       }

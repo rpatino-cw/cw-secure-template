@@ -38,6 +38,7 @@ fi
 PROTECTED_FILES=(
   "CLAUDE.md"
   ".claude/settings.json"
+  ".claude/settings.local.json"
   ".claude/rules/"
   ".claude/skills/"
   ".claude/agents/"
@@ -45,6 +46,7 @@ PROTECTED_FILES=(
   ".github/workflows/ci.yml"
   ".github/CODEOWNERS"
   "scripts/git-hooks/"
+  "scripts/guard.sh"
 )
 
 for protected in "${PROTECTED_FILES[@]}"; do
