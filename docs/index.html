@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CW Secure Template — Vibe Code Without the Slop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,400&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,400&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <style>
 /* ═══ Reset & Base ═══ */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -707,6 +708,267 @@ section {
   .tm-arrow, .tm-arrow2 { display: none; }
 }
 
+/* ═══ LIVE DEMO — Dark Section ═══ */
+.live-demo {
+  background: #0a0a0f;
+  color: #c8c8d4;
+  padding: clamp(48px, 8vw, 80px) 0;
+  --d-bg: #0a0a0f;
+  --d-surface: #12121a;
+  --d-border: #1e1e2e;
+  --d-text: #c8c8d4;
+  --d-dim: #5a5a72;
+  --d-accent: #f4f4f8;
+  --d-alice: #e8b4b8;
+  --d-bob: #b4d4e8;
+  --d-charlie: #d4e8b4;
+  --d-guard: #f59e0b;
+  --d-block: #ef4444;
+  --d-pass: #22c55e;
+}
+
+.live-demo .wrap { max-width: 1080px; }
+
+.live-demo h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem);
+  font-weight: 700;
+  color: var(--d-accent);
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.live-demo .demo-sub {
+  color: var(--d-dim);
+  font-size: 1rem;
+  margin-bottom: clamp(32px, 4vw, 48px);
+  max-width: 560px;
+  line-height: 1.6;
+}
+
+.demo-board {
+  display: grid;
+  grid-template-columns: 180px 1fr 180px;
+  gap: 0;
+  position: relative;
+  min-height: 520px;
+}
+
+/* Devs column */
+.demo-devs {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 48px;
+}
+
+.demo-dev {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--d-surface);
+  border: 1px solid var(--d-border);
+  opacity: 0;
+}
+
+.demo-dev-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.demo-dev[data-who="alice"] .demo-dev-dot { background: var(--d-alice); }
+.demo-dev[data-who="bob"] .demo-dev-dot { background: var(--d-bob); }
+.demo-dev[data-who="charlie"] .demo-dev-dot { background: var(--d-charlie); }
+.demo-dev[data-who="alice"] .demo-dev-name { color: var(--d-alice); }
+.demo-dev[data-who="bob"] .demo-dev-name { color: var(--d-bob); }
+.demo-dev[data-who="charlie"] .demo-dev-name { color: var(--d-charlie); }
+
+.demo-dev-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.demo-dev-task {
+  font-size: 0.65rem;
+  color: var(--d-dim);
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 2px;
+}
+
+/* File tree */
+.demo-files {
+  position: relative;
+  padding: 0 32px;
+}
+
+.demo-files-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--d-dim);
+  margin-bottom: 12px;
+}
+
+.demo-fg-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--d-dim);
+  padding: 5px 10px;
+}
+
+.demo-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px 7px 24px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--d-text);
+  border: 1px solid transparent;
+  transition: border-color 0.3s, background 0.3s;
+  opacity: 0;
+}
+
+.demo-file .dtag {
+  font-size: 0.55rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  opacity: 0;
+}
+
+.demo-file .dlock {
+  font-size: 0.6rem;
+  opacity: 0;
+}
+
+/* Guard wall */
+.demo-guard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 48px;
+}
+
+.demo-guard-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--d-guard);
+  margin-bottom: 6px;
+  opacity: 0;
+}
+
+.demo-guard-layer {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--d-guard);
+  background: #f59e0b10;
+  opacity: 0;
+}
+
+.demo-guard-layer-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--d-guard);
+}
+
+.demo-guard-layer-desc {
+  font-size: 0.6rem;
+  color: var(--d-dim);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* Event log */
+.demo-log {
+  margin-top: 48px;
+  border-top: 1px solid var(--d-border);
+  padding-top: 32px;
+}
+
+.demo-log-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--d-dim);
+  margin-bottom: 12px;
+}
+
+.demo-events {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 260px;
+  overflow: hidden;
+}
+
+.demo-ev {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.demo-ev-time { color: var(--d-dim); font-size: 0.6rem; width: 40px; flex-shrink: 0; }
+.demo-ev-icon { width: 16px; text-align: center; flex-shrink: 0; }
+.demo-ev-who { font-weight: 600; width: 56px; flex-shrink: 0; }
+.demo-ev-msg { color: var(--d-text); }
+
+.demo-ev-pass { background: #22c55e08; border: 1px solid #22c55e20; }
+.demo-ev-pass .demo-ev-icon { color: var(--d-pass); }
+.demo-ev-block { background: #ef444408; border: 1px solid #ef444420; }
+.demo-ev-block .demo-ev-icon { color: var(--d-block); }
+.demo-ev-guard { background: #f59e0b08; border: 1px solid #f59e0b20; }
+.demo-ev-guard .demo-ev-icon { color: var(--d-guard); }
+
+/* Stats */
+.demo-stats {
+  margin-top: 40px;
+  display: flex;
+  gap: 40px;
+  padding: 20px 0;
+  border-top: 1px solid var(--d-border);
+}
+
+.demo-stat { opacity: 0; }
+
+.demo-stat-val {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--d-accent);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.demo-stat-val.s-pass { color: var(--d-pass); }
+.demo-stat-val.s-block { color: var(--d-block); }
+
+.demo-stat-lbl {
+  font-size: 0.7rem;
+  color: var(--d-dim);
+  margin-top: 3px;
+}
+
+@media (max-width: 900px) {
+  .demo-board { grid-template-columns: 1fr; gap: 32px; }
+  .demo-devs, .demo-guard { flex-direction: row; flex-wrap: wrap; }
+  .demo-files { padding: 0; }
+  .demo-stats { flex-wrap: wrap; }
+}
+
 /* ═══ FOOTER ═══ */
 .footer {
   padding: 48px 0;
@@ -980,14 +1242,78 @@ section {
   </div>
 </section>
 
-<!-- ═══ INTERACTIVE DEMO LINK ═══ -->
-<section style="padding: clamp(32px, 5vw, 64px) 0; text-align: center;">
+<!-- ═══ LIVE DEMO — Embedded ═══ -->
+<section class="live-demo" id="liveDemo">
   <div class="wrap">
-    <h2 class="reveal" style="font-size: clamp(1.4rem, 1rem + 1.5vw, 2rem); margin-bottom: 12px;">See it live.</h2>
-    <p class="reveal" style="color: var(--text-mid); margin-bottom: 28px;">Watch Alice, Bob, and Charlie vibe code while the guardrails catch everything in real time.</p>
-    <a class="hero-cta reveal" href="team-guardrails.html" style="display: inline-flex;">
-      Open interactive demo
-    </a>
+    <h2 class="reveal">Three developers. One codebase. Zero collisions.</h2>
+    <p class="demo-sub reveal">Watch Alice, Bob, and Charlie vibe code simultaneously. The guardrails keep every edit in its lane.</p>
+
+    <div class="demo-board reveal">
+      <!-- Devs -->
+      <div class="demo-devs">
+        <div class="demo-dev" data-who="alice">
+          <div class="demo-dev-dot"></div>
+          <div><div class="demo-dev-name">Alice</div><div class="demo-dev-task">adding user auth</div></div>
+        </div>
+        <div class="demo-dev" data-who="bob">
+          <div class="demo-dev-dot"></div>
+          <div><div class="demo-dev-name">Bob</div><div class="demo-dev-task">building payments</div></div>
+        </div>
+        <div class="demo-dev" data-who="charlie">
+          <div class="demo-dev-dot"></div>
+          <div><div class="demo-dev-name">Charlie</div><div class="demo-dev-task">reports dashboard</div></div>
+        </div>
+      </div>
+
+      <!-- Files -->
+      <div class="demo-files">
+        <div class="demo-files-label">Project Files</div>
+        <div><div class="demo-fg-name">routes/</div>
+          <div class="demo-file" data-file="routes/users.py"><span>users.py</span><span class="dtag" style="color:var(--d-alice)">Alice</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="routes/payments.py"><span>payments.py</span><span class="dtag" style="color:var(--d-bob)">Bob</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="routes/reports.py"><span>reports.py</span><span class="dtag" style="color:var(--d-charlie)">Charlie</span><span class="dlock"></span></div>
+        </div>
+        <div><div class="demo-fg-name">services/</div>
+          <div class="demo-file" data-file="services/auth.py"><span>auth_service.py</span><span class="dtag" style="color:var(--d-alice)">Alice</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="services/payment.py"><span>payment_service.py</span><span class="dtag" style="color:var(--d-bob)">Bob</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="services/report.py"><span>report_service.py</span><span class="dtag" style="color:var(--d-charlie)">Charlie</span><span class="dlock"></span></div>
+        </div>
+        <div><div class="demo-fg-name">config/</div>
+          <div class="demo-file" data-file="config/settings.py"><span>settings.py</span><span class="dlock"></span></div>
+          <div class="demo-file" data-file="main.py"><span>main.py</span><span class="dlock"></span></div>
+        </div>
+      </div>
+
+      <!-- Guard -->
+      <div class="demo-guard">
+        <div class="demo-guard-label">Enforcement</div>
+        <div class="demo-guard-layer" data-layer="1">
+          <div class="demo-guard-layer-name">Layer 1 — Rules</div>
+          <div class="demo-guard-layer-desc">14 rule files. Anti-override.</div>
+        </div>
+        <div class="demo-guard-layer" data-layer="2">
+          <div class="demo-guard-layer-name">Layer 2 — Deny List</div>
+          <div class="demo-guard-layer-desc">Runtime blocks. Can't bypass.</div>
+        </div>
+        <div class="demo-guard-layer" data-layer="3">
+          <div class="demo-guard-layer-name">Layer 3 — Hook</div>
+          <div class="demo-guard-layer-desc">Pre-write inspection.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event log -->
+    <div class="demo-log">
+      <div class="demo-log-label">Live Event Log</div>
+      <div class="demo-events" id="demoEvents"></div>
+    </div>
+
+    <!-- Stats -->
+    <div class="demo-stats">
+      <div class="demo-stat"><div class="demo-stat-val s-pass" id="dEdits">0</div><div class="demo-stat-lbl">Clean edits</div></div>
+      <div class="demo-stat"><div class="demo-stat-val s-block" id="dBlocks">0</div><div class="demo-stat-lbl">Violations blocked</div></div>
+      <div class="demo-stat"><div class="demo-stat-val" id="dConflicts">0</div><div class="demo-stat-lbl">Collisions prevented</div></div>
+    </div>
   </div>
 </section>
 
@@ -1171,6 +1497,136 @@ document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
   }, { threshold: 0.2 });
 
   stageObserver.observe(stage);
+})();
+
+// ═══ Live Demo (GSAP) ═══
+(function() {
+  const section = document.getElementById('liveDemo');
+  if (!section || typeof gsap === 'undefined') return;
+
+  const D = {
+    devs: [
+      { name: 'Alice', color: 'var(--d-alice)', glow: '#e8b4b820', who: 'alice' },
+      { name: 'Bob', color: 'var(--d-bob)', glow: '#b4d4e820', who: 'bob' },
+      { name: 'Charlie', color: 'var(--d-charlie)', glow: '#d4e8b420', who: 'charlie' },
+    ],
+    scenarios: [
+      { dev: 0, file: 'routes/users.py', type: 'pass', msg: 'Edit routes/users.py — add login endpoint' },
+      { dev: 1, file: 'routes/payments.py', type: 'pass', msg: 'Edit routes/payments.py — add charge endpoint' },
+      { dev: 2, file: 'routes/reports.py', type: 'pass', msg: 'Edit routes/reports.py — add export route' },
+      { dev: 1, file: 'routes/users.py', type: 'block', msg: 'BLOCKED — users.py has uncommitted changes (Alice)', layer: 3 },
+      { dev: 0, file: 'services/auth.py', type: 'pass', msg: 'Edit auth_service.py — add token validation' },
+      { dev: 1, file: 'services/payment.py', type: 'pass', msg: 'Edit payment_service.py — add Stripe call' },
+      { dev: 2, file: 'routes/reports.py', type: 'guard', msg: 'REDIRECTED — raw SQL belongs in repositories/', layer: 1 },
+      { dev: 0, file: 'config/settings.py', type: 'block', msg: 'BLOCKED — hardcoded secret: sk-live-...', layer: 3 },
+      { dev: 0, file: 'routes/users.py', type: 'pass', msg: 'Edit routes/users.py — add password reset' },
+      { dev: 1, file: 'main.py', type: 'block', msg: 'BLOCKED — Write on existing file. Use Edit.', layer: 3 },
+      { dev: 2, file: 'routes/reports.py', type: 'guard', msg: 'ENFORCED — endpoint requires auth middleware', layer: 1 },
+      { dev: 0, file: null, type: 'block', msg: 'BLOCKED — git push --force denied', layer: 2 },
+      { dev: 1, file: 'routes/payments.py', type: 'pass', msg: 'Edit routes/payments.py — add refund endpoint' },
+      { dev: 2, file: 'services/report.py', type: 'pass', msg: 'Edit report_service.py — add PDF export' },
+    ],
+    edits: 0, blocks: 0, conflicts: 0, clock: 0, idx: 0, active: false
+  };
+
+  function fmt(s) { return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+
+  function addEv(sc) {
+    const ev = document.getElementById('demoEvents');
+    const d = D.devs[sc.dev];
+    const cls = sc.type==='pass'?'demo-ev-pass':sc.type==='block'?'demo-ev-block':'demo-ev-guard';
+    const icon = sc.type==='pass'?'✓':sc.type==='block'?'✗':'⚡';
+    const el = document.createElement('div');
+    el.className = 'demo-ev '+cls;
+    el.innerHTML = '<span class="demo-ev-time">'+fmt(D.clock)+'</span><span class="demo-ev-icon">'+icon+'</span><span class="demo-ev-who" style="color:'+d.color+'">'+d.name+'</span><span class="demo-ev-msg">'+sc.msg+'</span>';
+    ev.prepend(el);
+    gsap.fromTo(el,{opacity:0,y:8},{opacity:1,y:0,duration:0.3});
+    const all=ev.children;
+    for(let i=5;i<all.length;i++) gsap.to(all[i],{opacity:Math.max(0,0.3-(i-5)*0.08),duration:0.2});
+    if(all.length>8) all[all.length-1].remove();
+  }
+
+  function hlFile(sc) {
+    const d=D.devs[sc.dev];
+    const f=section.querySelector('.demo-file[data-file="'+sc.file+'"]');
+    if(!f) return;
+    const bc=sc.type==='pass'?d.color:sc.type==='block'?'var(--d-block)':'var(--d-guard)';
+    const bg=sc.type==='pass'?d.glow:sc.type==='block'?'#ef444410':'#f59e0b10';
+    gsap.to(f,{borderColor:bc,background:bg,duration:0.3});
+    const tag=f.querySelector('.dtag');
+    if(tag&&sc.type==='pass'){tag.style.color=d.color;tag.textContent=d.name;gsap.to(tag,{opacity:1,duration:0.3});}
+    const lk=f.querySelector('.dlock');
+    if(lk&&sc.type==='block'){lk.textContent='🔒';gsap.fromTo(lk,{opacity:0,scale:0.5},{opacity:1,scale:1,duration:0.3});}
+    gsap.to(f,{borderColor:sc.type==='pass'?'transparent':bc,background:sc.type==='pass'?'transparent':bg.replace('10','06'),delay:1.5,duration:0.5});
+  }
+
+  function pulseL(n) {
+    const l=section.querySelector('.demo-guard-layer[data-layer="'+n+'"]');
+    if(!l) return;
+    gsap.timeline().to(l,{borderColor:'var(--d-block)',background:'#ef444418',scale:1.03,duration:0.12}).to(l,{borderColor:'var(--d-guard)',background:'#f59e0b10',scale:1,duration:0.4});
+  }
+
+  function pulseDev(i) {
+    const d=section.querySelectorAll('.demo-dev')[i];
+    if(d) gsap.timeline().to(d,{scale:1.03,duration:0.12}).to(d,{scale:1,duration:0.25});
+  }
+
+  function stats(sc) {
+    if(sc.type==='pass'){D.edits++;document.getElementById('dEdits').textContent=D.edits;}
+    else{
+      if(sc.msg.includes('uncommitted')){D.conflicts++;document.getElementById('dConflicts').textContent=D.conflicts;}
+      D.blocks++;const el=document.getElementById('dBlocks');el.textContent=D.blocks;
+      gsap.fromTo(el,{scale:1.15,color:'#ff6b6b'},{scale:1,color:'var(--d-block)',duration:0.3});
+    }
+  }
+
+  function runNext() {
+    if(!D.active) return;
+    if(D.idx>=D.scenarios.length){
+      setTimeout(()=>{
+        D.edits=0;D.blocks=0;D.conflicts=0;D.clock=0;D.idx=0;
+        document.getElementById('dEdits').textContent='0';
+        document.getElementById('dBlocks').textContent='0';
+        document.getElementById('dConflicts').textContent='0';
+        section.querySelectorAll('.demo-file').forEach(f=>{
+          gsap.to(f,{borderColor:'transparent',background:'transparent',duration:0.2});
+          const t=f.querySelector('.dtag');if(t)gsap.to(t,{opacity:0,duration:0.15});
+          const l=f.querySelector('.dlock');if(l){l.textContent='';gsap.set(l,{opacity:0});}
+        });
+        document.getElementById('demoEvents').innerHTML='';
+        if(D.active) runNext();
+      },3000);
+      return;
+    }
+    const sc=D.scenarios[D.idx];
+    D.clock+=Math.floor(Math.random()*6)+2;
+    pulseDev(sc.dev);addEv(sc);
+    if(sc.file)hlFile(sc);
+    if(sc.layer)pulseL(sc.layer);
+    stats(sc);
+    D.idx++;
+    setTimeout(runNext,sc.type==='block'?1800:sc.type==='guard'?1600:1000);
+  }
+
+  // Entrance + start on scroll
+  const demoObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting && !D.active){
+        D.active = true;
+        const tl = gsap.timeline({defaults:{ease:'power3.out'}});
+        tl.to(section.querySelectorAll('.demo-dev'),{opacity:1,stagger:0.12,duration:0.4})
+          .to(section.querySelectorAll('.demo-file'),{opacity:1,stagger:0.03,duration:0.25},'-=0.2')
+          .to(section.querySelector('.demo-guard-label'),{opacity:1,duration:0.3},'-=0.15')
+          .to(section.querySelectorAll('.demo-guard-layer'),{opacity:1,stagger:0.1,duration:0.4},'-=0.15')
+          .to(section.querySelectorAll('.demo-stat'),{opacity:1,stagger:0.08,duration:0.3},'-=0.15');
+        tl.eventCallback('onComplete',()=>setTimeout(runNext,600));
+      } else if(!entry.isIntersecting) {
+        D.active = false;
+      }
+    });
+  },{threshold:0.15});
+
+  demoObs.observe(section);
 })();
 </script>
 
