@@ -1,7 +1,7 @@
 <h1 align="center">CW Secure Template</h1>
 
 <p align="center">
-  <strong>Build internal tools with Claude Code. Security happens automatically.</strong>
+  <strong>Same prompt. Secure code. Zero extra work.</strong>
 </p>
 
 <p align="center">
@@ -19,11 +19,11 @@
 
 ---
 
-You don't need to know security to ship secure code.
+**Same prompt. Secure code. Zero extra work.**
 
-This template gives you a ready-to-go project where **Claude Code already knows the rules**. When you ask Claude to build something, it automatically adds authentication, validates input, hides secrets, and writes tests. If you accidentally paste an API key, the system catches it before it ever reaches GitHub.
+Your team prompts Claude to build internal tools. This template makes every line of code production-safe — authentication, secret management, input validation, and tests are enforced automatically. Six layers of defense between your code and production. Nothing ships without passing all of them.
 
-You clone it, run one command, and start building. Everything else is handled.
+Clone. Setup. Build. The security infrastructure is already there.
 
 <br>
 
