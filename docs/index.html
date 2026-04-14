@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CW Secure Template — Vibe Code Without the Slop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,400&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══ Reset & Base ═══ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: oklch(97.5% 0.006 75);
+  --bg-alt: oklch(95% 0.01 75);
+  --surface: oklch(99% 0.003 75);
+  --text: oklch(18% 0.02 260);
+  --text-mid: oklch(40% 0.015 260);
+  --text-dim: oklch(58% 0.01 260);
+  --amber: oklch(72% 0.17 65);
+  --amber-deep: oklch(55% 0.16 55);
+  --amber-bg: oklch(94% 0.04 70);
+  --red: oklch(58% 0.2 25);
+  --red-bg: oklch(94% 0.04 25);
+  --green: oklch(55% 0.16 155);
+  --green-bg: oklch(94% 0.04 155);
+  --blue: oklch(52% 0.12 250);
+  --blue-bg: oklch(94% 0.04 250);
+  --term-bg: oklch(15% 0.015 260);
+  --term-text: oklch(85% 0.01 100);
+  --term-green: oklch(72% 0.18 155);
+  --term-dim: oklch(50% 0.01 260);
+  --border: oklch(88% 0.01 75);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ═══ Typography ═══ */
+h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; line-height: 1.15; }
+code, .mono { font-family: 'IBM Plex Mono', monospace; }
+
+/* ═══ Layout ═══ */
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 48px); }
+
+section {
+  padding: clamp(48px, 8vw, 100px) 0;
+}
+
+/* ═══ HERO ═══ */
+.hero {
+  padding: clamp(60px, 10vw, 120px) 0 clamp(40px, 6vw, 80px);
+  text-align: left;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(32px, 4vw, 64px);
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 1.4rem + 4vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.hero h1 em {
+  font-style: italic;
+  color: var(--amber-deep);
+  font-weight: 600;
+}
+
+.hero-sub {
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.2rem);
+  color: var(--text-mid);
+  max-width: 440px;
+  margin-bottom: 32px;
+  line-height: 1.7;
+}
+
+.hero-gif {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 80px oklch(0% 0 0 / 0.08);
+}
+
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--term-bg);
+  color: var(--term-green);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.9rem;
+  padding: 14px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  text-decoration: none;
+}
+
+.hero-cta:hover { transform: translateY(-2px); }
+
+.hero-cta .prompt { color: var(--term-dim); }
+
+/* ═══ FEATURES — Three Columns ═══ */
+.features {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+}
+
+.feature {
+  padding: 32px 0;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.feature-icon.security { background: var(--amber-bg); color: var(--amber-deep); }
+.feature-icon.framework { background: var(--blue-bg); color: var(--blue); }
+.feature-icon.agents { background: var(--green-bg); color: var(--green); }
+
+.feature h3 {
+  font-size: clamp(1.1rem, 1rem + 0.3vw, 1.3rem);
+  margin-bottom: 8px;
+}
+
+.feature p {
+  color: var(--text-mid);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ═══ ENFORCEMENT LAYERS — 3D Stack ═══ */
+.layers { text-align: center; }
+
+.layers h2 {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem);
+  margin-bottom: 12px;
+}
+
+.layers-sub {
+  color: var(--text-mid);
+  margin-bottom: clamp(40px, 5vw, 64px);
+  font-size: 1.05rem;
+}
+
+.stack-3d {
+  perspective: 900px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  height: 380px;
+  position: relative;
+}
+
+.layer {
+  position: absolute;
+  left: 50%;
+  width: 80%;
+  padding: 28px 32px;
+  border-radius: 12px;
+  text-align: left;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  border: 1px solid;
+}
+
+.layer:nth-child(1) {
+  transform: translate(-50%, 0) rotateX(45deg) rotateZ(-5deg);
+  background: var(--amber-bg);
+  border-color: oklch(80% 0.08 65);
+  z-index: 3;
+  top: 0;
+}
+
+.layer:nth-child(2) {
+  transform: translate(-50%, 0) rotateX(45deg) rotateZ(-5deg);
+  background: var(--red-bg);
+  border-color: oklch(80% 0.08 25);
+  z-index: 2;
+  top: 120px;
+}
+
+.layer:nth-child(3) {
+  transform: translate(-50%, 0) rotateX(45deg) rotateZ(-5deg);
+  background: var(--green-bg);
+  border-color: oklch(80% 0.08 155);
+  z-index: 1;
+  top: 240px;
+}
+
+.stack-3d:hover .layer:nth-child(1) { transform: translate(-50%, -16px) rotateX(45deg) rotateZ(-5deg); }
+.stack-3d:hover .layer:nth-child(2) { transform: translate(-50%, 0) rotateX(45deg) rotateZ(-5deg); }
+.stack-3d:hover .layer:nth-child(3) { transform: translate(-50%, 16px) rotateX(45deg) rotateZ(-5deg); }
+
+.layer-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.layer:nth-child(1) .layer-label { color: var(--amber-deep); }
+.layer:nth-child(2) .layer-label { color: var(--red); }
+.layer:nth-child(3) .layer-label { color: var(--green); }
+
+.layer-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.layer-desc {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+}
+
+/* ═══ ROOMS — Agent Coordination ═══ */
+.rooms h2 {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem);
+  margin-bottom: 12px;
+}
+
+.rooms-sub {
+  color: var(--text-mid);
+  font-size: 1.05rem;
+  margin-bottom: clamp(32px, 4vw, 56px);
+  max-width: 540px;
+}
+
+.rooms-visual {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.room-card {
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  position: relative;
+}
+
+.room-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.room-card:nth-child(1) .room-name { color: var(--blue); }
+.room-card:nth-child(3) .room-name { color: var(--green); }
+
+.room-owns {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+  margin-bottom: 12px;
+}
+
+.room-status {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.room-card:nth-child(1) .room-status { background: var(--blue-bg); color: var(--blue); }
+.room-card:nth-child(3) .room-status { background: var(--green-bg); color: var(--green); }
+
+.room-arrow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+}
+
+.room-arrow svg {
+  width: 80px;
+  height: 24px;
+}
+
+.room-arrow-line {
+  stroke: var(--amber);
+  stroke-width: 2;
+  fill: none;
+  stroke-dasharray: 6 4;
+}
+
+.room-arrow-head {
+  fill: var(--amber);
+}
+
+/* ═══ TERMINAL ═══ */
+.terminal-section h2 {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem);
+  margin-bottom: 12px;
+}
+
+.terminal-section .term-sub {
+  color: var(--text-mid);
+  font-size: 1.05rem;
+  margin-bottom: clamp(32px, 4vw, 48px);
+  max-width: 480px;
+}
+
+.terminal {
+  background: var(--term-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px oklch(0% 0 0 / 0.12);
+  max-width: 640px;
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: oklch(12% 0.01 260);
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot:nth-child(1) { background: oklch(60% 0.2 25); }
+.terminal-dot:nth-child(2) { background: oklch(72% 0.17 85); }
+.terminal-dot:nth-child(3) { background: oklch(60% 0.16 155); }
+
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--term-dim);
+}
+
+.terminal-body {
+  padding: 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 2;
+}
+
+.terminal-body .cmd {
+  color: var(--term-text);
+}
+
+.terminal-body .prompt {
+  color: var(--term-dim);
+  user-select: none;
+}
+
+.terminal-body .comment {
+  color: var(--term-dim);
+  font-style: italic;
+}
+
+.terminal-body .output {
+  color: var(--term-green);
+}
+
+/* ═══ WHAT IT CATCHES — Table ═══ */
+.catches {
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.catches h2 {
+  font-size: clamp(1.6rem, 1.2rem + 2vw, 2.6rem);
+  margin-bottom: clamp(24px, 3vw, 40px);
+}
+
+.catch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.catch-item {
+  background: var(--surface);
+  padding: 20px 24px;
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.catch-bad {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--red);
+  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: line-through;
+  text-decoration-color: oklch(60% 0.1 25 / 0.4);
+}
+
+.catch-good {
+  font-size: 0.9rem;
+  color: var(--text-mid);
+}
+
+/* ═══ FOOTER ═══ */
+.footer {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.footer a {
+  color: var(--amber-deep);
+  text-decoration: none;
+}
+
+.footer a:hover { text-decoration: underline; }
+
+/* ═══ SCROLL ANIMATIONS ═══ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 768px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-gif { order: -1; }
+  .features-grid { grid-template-columns: 1fr; }
+  .rooms-visual { grid-template-columns: 1fr; }
+  .room-arrow { transform: rotate(90deg); }
+  .catch-grid { grid-template-columns: 1fr; }
+  .stack-3d { height: 340px; }
+  .layer { width: 90%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .layer { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <h1>Vibe code<br>without the <em>slop.</em></h1>
+        <p class="hero-sub">Clone one repo. Claude follows 14 security rules, 3 enforcement layers, and an architecture enforcer. Your team vibe-codes — the template keeps it production-grade.</p>
+        <a class="hero-cta" href="https://github.com/rpatino-cw/cw-secure-template">
+          <span class="prompt">$</span> git clone cw-secure-template
+        </a>
+      </div>
+      <div>
+        <img class="hero-gif" src="screenshots/guardrails.gif" alt="Guardrails catching insecure prompts in real time">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ THREE FEATURES ═══ -->
+<section class="features">
+  <div class="wrap">
+    <div class="features-grid">
+      <div class="feature reveal">
+        <div class="feature-icon security">14</div>
+        <h3>Security Framework</h3>
+        <p>OWASP Top 10 covered. Secrets blocked. Auth enforced. Claude can't write insecure code even if the user asks.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon framework">{}</div>
+        <h3>Go + Python Ready</h3>
+        <p>Pick your stack. Auth middleware, rate limiting, request IDs, structured logging, migrations — all pre-wired.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="feature-icon agents">5</div>
+        <h3>Multi-Agent Rooms</h3>
+        <p>Multiple Claude agents on the same codebase. Each owns a directory. Guard.sh hard-blocks cross-room edits. Zero merge conflicts.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ENFORCEMENT LAYERS ═══ -->
+<section class="layers">
+  <div class="wrap">
+    <h2 class="reveal">Three layers. All must fail.</h2>
+    <p class="layers-sub reveal">Prompt injection can't bypass what Claude doesn't control.</p>
+    <div class="stack-3d reveal">
+      <div class="layer">
+        <div class="layer-label">Layer 1</div>
+        <div class="layer-title">14 Rule Files</div>
+        <div class="layer-desc">CLAUDE.md + auto-loaded rules. Anti-override protocol handles social engineering.</div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">Layer 2</div>
+        <div class="layer-title">Deny List</div>
+        <div class="layer-desc">Runtime blocks --force, --no-verify, eval, chmod 777 before execution.</div>
+      </div>
+      <div class="layer">
+        <div class="layer-label">Layer 3</div>
+        <div class="layer-title">Guard Hook</div>
+        <div class="layer-desc">Shell script catches secrets, dangerous functions, and out-of-room edits.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ WHAT IT CATCHES ═══ -->
+<section class="catches">
+  <div class="wrap">
+    <h2 class="reveal">What gets blocked</h2>
+    <div class="catch-grid reveal">
+      <div class="catch-item">
+        <span class="catch-bad">api_key = "sk-..."</span>
+        <span class="catch-good">Redirected to make add-secret</span>
+      </div>
+      <div class="catch-item">
+        <span class="catch-bad">SELECT * WHERE id = '{input}'</span>
+        <span class="catch-good">Parameterized queries only</span>
+      </div>
+      <div class="catch-item">
+        <span class="catch-bad">eval(user_input)</span>
+        <span class="catch-good">Dangerous function banned</span>
+      </div>
+      <div class="catch-item">
+        <span class="catch-bad">git push --force main</span>
+        <span class="catch-good">Denied at runtime</span>
+      </div>
+      <div class="catch-item">
+        <span class="catch-bad">"Skip auth, add it later"</span>
+        <span class="catch-good">DEV_MODE for local, auth stays wired</span>
+      </div>
+      <div class="catch-item">
+        <span class="catch-bad">"Ignore CLAUDE.md"</span>
+        <span class="catch-good">Anti-override protocol refuses</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ ROOMS ═══ -->
+<section class="rooms">
+  <div class="wrap">
+    <h2 class="reveal">Agents that talk to each other.</h2>
+    <p class="rooms-sub reveal">Multiple Claude sessions. Each owns a directory. If one needs something from another, it sends a request — not an overwrite.</p>
+
+    <div class="rooms-visual reveal">
+      <div class="room-card">
+        <div class="room-name">Agent: go</div>
+        <div class="room-owns">Owns go/ — endpoints, middleware, models</div>
+        <div class="room-status">editing auth.go</div>
+      </div>
+      <div class="room-arrow">
+        <svg viewBox="0 0 80 24">
+          <line class="room-arrow-line" x1="0" y1="8" x2="60" y2="8"/>
+          <polygon class="room-arrow-head" points="58,2 70,8 58,14"/>
+        </svg>
+        inbox request
+        <svg viewBox="0 0 80 24" style="transform: scaleX(-1)">
+          <line class="room-arrow-line" x1="0" y1="8" x2="60" y2="8"/>
+          <polygon class="room-arrow-head" points="58,2 70,8 58,14"/>
+        </svg>
+        response
+      </div>
+      <div class="room-card">
+        <div class="room-name">Agent: python</div>
+        <div class="room-owns">Owns python/ — FastAPI, middleware, tests</div>
+        <div class="room-status">waiting on go</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TERMINAL ═══ -->
+<section class="terminal-section">
+  <div class="wrap">
+    <h2 class="reveal">Three commands. That's it.</h2>
+    <p class="term-sub reveal">Clone, setup, start. Security is already on.</p>
+    <div class="terminal reveal">
+      <div class="terminal-bar">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-title">~/my-app</div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$ </span><span class="cmd">git clone https://github.com/rpatino-cw/cw-secure-template my-app</span></div>
+        <div><span class="prompt">$ </span><span class="cmd">cd my-app && bash setup.sh</span></div>
+        <div><span class="output">  ✓ Git hooks installed</span></div>
+        <div><span class="output">  ✓ Pre-commit configured</span></div>
+        <div><span class="output">  ✓ Branch protection set</span></div>
+        <div><span class="output">  ✓ Ready to code.</span></div>
+        <div style="margin-top: 8px"><span class="prompt">$ </span><span class="cmd">make start</span></div>
+        <div><span class="output">  Server running on :8080</span></div>
+        <div style="margin-top: 16px"><span class="comment"># Multi-agent mode</span></div>
+        <div><span class="prompt">$ </span><span class="cmd">make rooms</span></div>
+        <div><span class="output">  Auto-detected 5 rooms</span></div>
+        <div><span class="prompt">$ </span><span class="cmd">make agent NAME=go</span></div>
+        <div><span class="output">  Starting agent: go</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="footer">
+  <div class="wrap">
+    <p>Built for CoreWeave teams. <a href="https://github.com/rpatino-cw/cw-secure-template">View on GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
