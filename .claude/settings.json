@@ -63,5 +63,48 @@
   },
   "env": {
     "DEV_MODE": "true"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --directory .claude/memory python hooks/session-start.py",
+            "timeout": 5000,
+            "statusMessage": "Loading knowledge base...",
+            "once": true
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --directory .claude/memory python hooks/session-end.py",
+            "timeout": 10000,
+            "statusMessage": "Saving session knowledge...",
+            "once": true,
+            "async": true
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --directory .claude/memory python hooks/pre-compact.py",
+            "timeout": 10000,
+            "statusMessage": "Saving knowledge before compact...",
+            "once": true,
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }

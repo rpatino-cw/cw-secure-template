@@ -199,6 +199,31 @@ tmp/
 *.pid.lock
 
 # ══════════════════════════════════════
+# MEMORY COMPILER (auto-generated)
+# ══════════════════════════════════════
+
+# Daily conversation logs (personal, auto-generated)
+daily/
+
+# Compiled knowledge base (personal, auto-generated)
+knowledge/concepts/
+knowledge/connections/
+knowledge/qa/
+
+# Memory compiler runtime state
+.claude/memory/scripts/state.json
+.claude/memory/scripts/last-flush.json
+.claude/memory/scripts/flush.log
+.claude/memory/scripts/compile.log
+.claude/memory/scripts/session-flush-*
+.claude/memory/scripts/flush-context-*
+.claude/memory/.venv/
+.claude/memory/uv.lock
+
+# Exception: memory compiler config is not a secrets file
+!.claude/memory/scripts/config.py
+
+# ══════════════════════════════════════
 # NODE (if JS/TS added later)
 # ══════════════════════════════════════
 

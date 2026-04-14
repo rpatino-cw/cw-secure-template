@@ -156,6 +156,30 @@ PROTECTION
   fi
 fi
 
+# ─── Memory compiler (auto-learning for Claude Code) ───
+echo ""
+echo "  Setting up auto-memory for Claude Code..."
+if command -v uv &>/dev/null; then
+  (cd .claude/memory && uv sync -q 2>/dev/null) && echo -e "  ${GREEN}Memory compiler ready.${NC} Claude will learn from every session." || echo -e "  ${YELLOW}Memory setup skipped — uv sync failed.${NC}"
+else
+  echo -e "  ${YELLOW}Install uv for auto-memory: curl -LsSf https://astral.sh/uv/install.sh | sh${NC}"
+  echo "  Then re-run: cd .claude/memory && uv sync"
+fi
+
+# Create knowledge base directories
+mkdir -p daily knowledge/{concepts,connections,qa} 2>/dev/null
+if [ ! -f knowledge/index.md ]; then
+  cat > knowledge/index.md << 'KBINDEX'
+# Knowledge Base Index
+
+| Article | Summary | Compiled From | Updated |
+|---------|---------|---------------|---------|
+KBINDEX
+fi
+if [ ! -f knowledge/log.md ]; then
+  echo "# Build Log" > knowledge/log.md
+fi
+
 # ─── Health check ───
 echo ""
 echo -e "${BOLD}  Checking your setup...${NC}"

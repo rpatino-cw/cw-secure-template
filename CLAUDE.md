@@ -482,6 +482,37 @@ This template requires Okta OIDC credentials. You cannot self-register — file 
 
 ---
 
+## Auto-Memory — Knowledge Base That Builds Itself
+
+This template includes an automatic memory system adapted from [Karpathy's LLM Knowledge Base](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) architecture. It captures knowledge from your Claude Code sessions and compiles it into a searchable knowledge base — no manual work required.
+
+**How it works (invisible to the user):**
+1. When a session ends, a hook extracts the conversation and sends it to a background agent
+2. The agent decides what's worth saving — decisions, patterns, gotchas, lessons learned
+3. Results are appended to `daily/YYYY-MM-DD.md` (today's log)
+4. After 6 PM, daily logs auto-compile into structured articles in `knowledge/`
+5. On session start, the knowledge index is injected so Claude "remembers" past sessions
+
+**Files:**
+- `daily/` — raw session logs (auto-generated, gitignored)
+- `knowledge/` — compiled articles: concepts, connections, Q&A (gitignored)
+- `.claude/memory/` — hooks, scripts, and schema (committed, ships with template)
+- `.claude/MEMORY.md` — manual project context (committed, user-editable)
+
+**Manual commands (optional):**
+```bash
+uv run --directory .claude/memory python .claude/memory/scripts/compile.py    # force compile
+uv run --directory .claude/memory python .claude/memory/scripts/query.py "?"  # ask the KB
+uv run --directory .claude/memory python .claude/memory/scripts/lint.py       # health check
+```
+
+**Rules for Claude:**
+- Never modify `daily/` files after creation — they are append-only source records
+- Never modify `knowledge/` articles manually unless running compile.py
+- The `.claude/memory/AGENTS.md` file is the full schema reference for the compiler
+
+---
+
 ## CW Compliance Alignment
 
 This template is built to align with CoreWeave's security standards:
