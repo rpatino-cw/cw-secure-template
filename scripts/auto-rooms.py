@@ -260,12 +260,12 @@ def generate_rooms(info: dict) -> dict:
             }
         assigned_dirs.add("scripts")
 
-    # 4. Remaining unassigned top-level dirs with substantial content
+    # 4. Remaining unassigned top-level dirs — only if substantial (5+ files)
     for dirname in info["top_dirs"]:
         if dirname in assigned_dirs:
             continue
-        if info["file_counts"].get(dirname, 0) < 2:
-            continue  # skip nearly-empty dirs
+        if info["file_counts"].get(dirname, 0) < 5:
+            continue  # skip small dirs — not worth a dedicated room
         if dirname in info["test_dirs"]:
             continue  # tests merge with their parent room
 
@@ -276,13 +276,51 @@ def generate_rooms(info: dict) -> dict:
         }
         assigned_dirs.add(dirname)
 
-    # 5. Determine shared files
-    shared_paths = [p for p in SHARED_PATTERNS if (REPO_ROOT / p).exists() or (REPO_ROOT / p.rstrip("/")).exists()]
+    # 5. Consolidate — merge small rooms into related ones, cap at 5
+    MAX_ROOMS = 5
+    if len(rooms) > MAX_ROOMS:
+        # Merge non-language rooms with fewest owned paths into nearest neighbor
+        # Priority to keep: language rooms > security > ci > everything else
+        keep_priority = []
+        merge_candidates = []
+        for name, room in rooms.items():
+            if name in info.get("lang_dirs", {}).values() or name in [d for d in info.get("lang_dirs", {})]:
+                keep_priority.append(name)
+            elif name == "security":
+                keep_priority.append(name)
+            elif name == "ci":
+                keep_priority.append(name)
+            else:
+                merge_candidates.append(name)
+
+        # Sort merge candidates by owned file count (smallest first)
+        merge_candidates.sort(key=lambda n: sum(
+            info["file_counts"].get(p.rstrip("/"), 0) for p in rooms[n]["owns"]
+        ))
+
+        # Merge smallest rooms into devex (or create it as the catch-all)
+        while len(rooms) > MAX_ROOMS and merge_candidates:
+            victim = merge_candidates.pop(0)
+            target = "devex" if "devex" in rooms else (keep_priority[-1] if keep_priority else list(rooms.keys())[0])
+            if target in rooms and victim in rooms:
+                rooms[target]["owns"].extend(rooms[victim]["owns"])
+                del rooms[victim]
+
+    # 6. Determine shared files — exclude any that are already owned by a room
+    all_owned = set()
+    for room in rooms.values():
+        for p in room["owns"]:
+            all_owned.add(p.rstrip("/"))
+    shared_paths = [
+        p for p in SHARED_PATTERNS
+        if (REPO_ROOT / p).exists() or (REPO_ROOT / p.rstrip("/")).exists()
+        if p.rstrip("/") not in all_owned
+    ]
 
     # Pick an approver — prefer security room, else first room
     approver = "security" if "security" in rooms else (list(rooms.keys())[0] if rooms else "none")
 
-    # 6. If no rooms were detected, create a single "dev" room that owns everything
+    # 7. If no rooms were detected, create a single "dev" room that owns everything
     if not rooms:
         rooms["dev"] = {
             "description": "All project source code",

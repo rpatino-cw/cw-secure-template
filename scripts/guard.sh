@@ -256,9 +256,15 @@ for p in room.get('owns', []):
 
     if [[ -n "$ALLOWED" ]]; then
       IN_ROOM=false
+      # Normalize file path: strip leading ./ and resolve to repo-relative
+      REPO_TOP="$(git rev-parse --show-toplevel 2>/dev/null)/"
+      REL_PATH="${FILE_PATH#$REPO_TOP}"
+      REL_PATH="${REL_PATH#./}"
       while IFS= read -r owned_path; do
         [[ -z "$owned_path" ]] && continue
-        if [[ "$FILE_PATH" == *"$owned_path"* ]]; then
+        owned_path="${owned_path#./}"
+        # Anchored match: path must START with the owned path
+        if [[ "$REL_PATH" == "$owned_path"* ]]; then
           IN_ROOM=true
           break
         fi

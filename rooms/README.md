@@ -1,52 +1,24 @@
 # Rooms — Multi-Agent Coordination
 
-This project uses **room-based coordination** so multiple Claude Code agents
-can work on the same codebase without overwriting each other's code.
-
-## How It Works
-
-```
-Each agent owns a "room" (a set of files/folders).
-Nobody edits files in anyone else's room.
+Multiple Claude Code agents work on the same codebase without conflicts.
+Each agent owns a set of files. Nobody edits anyone else's files.
 If you need a change in another room, you send a request.
-There is nothing to merge. There are no conflicts.
-```
 
 ## Quick Start
 
 ```bash
-# 1. Set up rooms (first time only)
-make rooms
-
-# 2. Start an agent session
-make agent NAME=go-dev    # opens Claude as the Go agent
-make agent NAME=py-dev    # opens Claude as the Python agent
-
-# 3. Check room status (pending requests, responses)
-make room-status
+make rooms                    # one-time setup (auto-detects project structure)
+make agent NAME=go-dev        # Terminal 1 — opens Claude as Go agent
+make agent NAME=py-dev        # Terminal 2 — opens Claude as Python agent
+make room-status              # check pending requests across all rooms
 ```
 
-## Rooms in This Project
+## How It Works
 
-| Room | Owns | Description |
-|------|------|-------------|
-| `ci` | .github/ | GitHub Actions, branch protection, CODEOWNERS, PR template |
-| `devex` | scripts/doctor.sh, scripts/security-fix.sh, scripts/security-quiz.sh, scripts/add-secret.sh, scripts/add-config.sh, scripts/init-project.sh, setup.sh, Makefile, docs/, security-dashboard.html | Setup, docs, Makefile, health checks, onboarding scripts |
-| `go-dev` | go/ | Go application — endpoints, middleware, models, migrations |
-| `py-dev` | python/ | Python application — FastAPI, middleware, models, migrations |
-| `security` | scripts/guard.sh, scripts/guard-bash.sh, scripts/git-hooks/, .pre-commit-config.yaml, SECURITY.md | Guard hooks, security rules, incident response, pre-commit |
-
-## Shared Files
-
-These files have no single owner. To edit them, send a request to **security**.
-
-- `CLAUDE.md`
-- `.claude/rules/`
-- `.claude/settings.json`
-- `.env.example`
-- `.gitignore`
-- `README.md`
-- `docker-compose.yml`
+1. Each agent owns specific files/directories (defined in `rooms.json`)
+2. `guard.sh` **hard-blocks** edits outside your room — the agent physically can't break the rule
+3. If an agent needs a change in another room, it writes a request to that room's inbox
+4. The owning agent checks its inbox, processes requests, and writes responses to its outbox
 
 ## Request Flow
 
@@ -54,43 +26,38 @@ These files have no single owner. To edit them, send a request to **security**.
 Agent py-dev needs a new Go function
          │
          ▼
-Writes:  rooms/go-dev/inbox/001-from-py-dev.md
+Writes:  rooms/go-dev/inbox/20260414-143022-from-py-dev.md
          "Add GetUserByEmail to go/models/user.go"
          │
          ▼
 Agent go-dev checks inbox → processes request
          │
          ▼
-Writes:  rooms/go-dev/outbox/001-done.md
+Writes:  rooms/go-dev/outbox/20260414-143500-to-py-dev.md
          "Added GetUserByEmail at line 45.
           Import: models.GetUserByEmail(ctx, email)"
          │
          ▼
-Agent py-dev reads the response → continues work
+Agent py-dev checks outboxes for responses → continues work
 ```
 
-## Error Responses
+## File Naming
 
-If an agent can't fulfill a request, they write an error response:
+Use timestamps, not sequential numbers (prevents collisions):
 
-```markdown
----
-to: py-dev
-status: error
-reason: architectural constraint
----
-
-Can't expose raw DB connection to the API layer.
-Suggestion: I'll create a GetUserByEmail(ctx, email) function
-that returns a clean struct. You call that instead.
-
-Waiting for approval before proceeding.
-```
+- Requests: `YYYYMMDD-HHMMSS-from-{your-room}.md`
+- Responses: `YYYYMMDD-HHMMSS-to-{requester}.md`
 
 ## Rules
 
-1. **Only edit files in your room.** Never touch another agent's files.
-2. **Check your inbox every response.** Process requests one at a time.
-3. **Always respond.** Done, error, or blocked — never leave a request hanging.
-4. **Shared files need approval.** Send a request to `security`.
-5. **No branches needed.** Everyone works on `main`. No merging.
+1. **Only edit files in your room.** Guard.sh enforces this — blocked edits explain what you own.
+2. **Check your inbox every response.** Process requests one at a time, oldest first.
+3. **Check outboxes for responses to you.** Look in `rooms/*/outbox/*-to-{your-room}.md`.
+4. **Always respond.** Done, error, or blocked — never leave a request hanging.
+5. **Shared files need approval.** Send a request to the approver room.
+6. **No branches needed.** Everyone works on `main`. No merging.
+
+## Customization
+
+Edit `rooms.json` to change room assignments. Then re-run `make rooms`.
+Delete `rooms.json` and run `make rooms` to auto-detect from scratch.

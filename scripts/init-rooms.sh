@@ -72,32 +72,33 @@ $(for path in $(jq -r ".rooms[\"$ROOM\"].owns[]" "$CONFIG"); do echo "- \`$path\
 ## Rules
 
 1. **Only edit files listed above.** If a file is not in your ownership list, you do NOT touch it.
-2. **Check your inbox first.** At the start of every response, read all files in \`rooms/$ROOM/inbox/\`. Process them one at a time, oldest first.
-3. **Respond to every request.** Write your response to \`rooms/$ROOM/outbox/\` using the same number as the request (e.g., inbox \`003-from-py-dev.md\` → outbox \`003-done.md\` or \`003-error.md\`).
-4. **If you can't do it, say why.** Never silently skip a request. Write an error response with an explanation and a suggestion.
-5. **If YOU need something from another room,** write a request to THEIR inbox: \`rooms/{other-room}/inbox/{number}-from-$ROOM.md\`. Then wait — check their outbox next cycle.
-6. **Shared files** (listed in rooms.json under "shared") require a request to the approver room. Never edit shared files directly.
+2. **Check your inbox first.** At the start of every response, read \`rooms/$ROOM/inbox/\`. Process requests one at a time, oldest first.
+3. **Check for responses to you.** Also check \`rooms/*/outbox/*-to-$ROOM.md\` for responses from other agents.
+4. **Respond to every request.** Write your response to \`rooms/$ROOM/outbox/\`. If you can't do it, say why — never silently skip.
+5. **If YOU need something from another room,** write a request to their inbox. Then wait — check their outbox next cycle.
+6. **Shared files** require a request to the approver room. Never edit shared files directly.
 
-## Request Format (when you write TO another room's inbox)
+## File Naming — Use Timestamps
 
+Requests: \`rooms/{target}/inbox/YYYYMMDD-HHMMSS-from-$ROOM.md\`
+Responses: \`rooms/$ROOM/outbox/YYYYMMDD-HHMMSS-to-{requester}.md\`
+
+Example request:
 \`\`\`markdown
 ---
 from: $ROOM
 priority: normal
 ---
-
 [What you need, in plain English]
 \`\`\`
 
-## Response Format (when you write TO your outbox)
-
+Example response:
 \`\`\`markdown
 ---
 to: [requesting-agent]
 status: done | error | blocked
 files_changed: [list of files you modified]
 ---
-
 [What you did, or why you couldn't]
 \`\`\`
 AGENT
@@ -169,46 +170,35 @@ $(for path in $(jq -r '.shared.paths[]' "$CONFIG"); do echo "- \`$path\`"; done)
 Agent py-dev needs a new Go function
          │
          ▼
-Writes:  rooms/go-dev/inbox/001-from-py-dev.md
+Writes:  rooms/go-dev/inbox/20260414-143022-from-py-dev.md
          "Add GetUserByEmail to go/models/user.go"
          │
          ▼
 Agent go-dev checks inbox → processes request
          │
          ▼
-Writes:  rooms/go-dev/outbox/001-done.md
+Writes:  rooms/go-dev/outbox/20260414-143500-to-py-dev.md
          "Added GetUserByEmail at line 45.
           Import: models.GetUserByEmail(ctx, email)"
          │
          ▼
-Agent py-dev reads the response → continues work
+Agent py-dev checks outboxes for responses → continues work
 \`\`\`
 
-## Error Responses
+## File Naming
 
-If an agent can't fulfill a request, they write an error response:
-
-\`\`\`markdown
----
-to: py-dev
-status: error
-reason: architectural constraint
----
-
-Can't expose raw DB connection to the API layer.
-Suggestion: I'll create a GetUserByEmail(ctx, email) function
-that returns a clean struct. You call that instead.
-
-Waiting for approval before proceeding.
-\`\`\`
+Use timestamps (prevents collisions between agents):
+- Requests: \`YYYYMMDD-HHMMSS-from-{your-room}.md\`
+- Responses: \`YYYYMMDD-HHMMSS-to-{requester}.md\`
 
 ## Rules
 
-1. **Only edit files in your room.** Never touch another agent's files.
-2. **Check your inbox every response.** Process requests one at a time.
-3. **Always respond.** Done, error, or blocked — never leave a request hanging.
-4. **Shared files need approval.** Send a request to \`$SHARED_APPROVER\`.
-5. **No branches needed.** Everyone works on \`main\`. No merging.
+1. **Only edit files in your room.** Guard.sh enforces this — blocked edits explain what you own.
+2. **Check your inbox every response.** Process requests one at a time, oldest first.
+3. **Check outboxes for responses to you.** Look in \`rooms/*/outbox/*-to-{your-room}.md\`.
+4. **Always respond.** Done, error, or blocked — never leave a request hanging.
+5. **Shared files need approval.** Send a request to \`$SHARED_APPROVER\`.
+6. **No branches needed.** Everyone works on \`main\`. No merging.
 EOF
 
 # ─── Update .gitignore ────────────────────────────────────
