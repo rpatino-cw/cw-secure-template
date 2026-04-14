@@ -8,6 +8,10 @@
   <img src="https://img.shields.io/badge/OWASP_Top_10-Covered-success" alt="OWASP">
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/guardrails.gif" alt="Guardrails — messy prompts in, clean code out" width="600">
+</p>
+
 ---
 
 Clone it. Claude follows 14 security rules, 3 enforcement layers, and an architecture enforcer automatically. No config.
@@ -57,6 +61,24 @@ All three must be defeated to bypass. Layers 2 and 3 aren't Claude's decision.
 <summary>Architecture enforcer</summary>
 
 Run `/arch-enforcer` in Claude Code — pick Go or Python framework, Claude locks in and refuses to deviate. Foundation Gate: infrastructure (config, logger, DB, middleware) must exist before any feature code.
+
+</details>
+
+<details>
+<summary>Multi-agent rooms</summary>
+
+Multiple Claude agents work on the same codebase without conflicts. Each agent owns a directory — `guard.sh` hard-blocks edits outside your room.
+
+```bash
+make rooms                    # auto-detects project structure, zero config
+make agent NAME=go            # Terminal 1
+make agent NAME=python        # Terminal 2
+make room-status              # see pending requests
+```
+
+Agents communicate via inbox/outbox markdown files. A live activity feed (`rooms/activity.md`) auto-warns agents when someone else is editing the same area.
+
+[Full docs →](rooms/README.md)
 
 </details>
 
