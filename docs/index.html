@@ -267,12 +267,12 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 <div class="container nav-inner">
   <div class="nav-logo">cw<span>/</span>vibe</div>
   <div class="nav-links">
-    <a href="#plan" class="nav-link active" data-section="plan">Plan</a>
+    <a href="#demo" class="nav-link active" data-section="demo">Demo</a>
     <a href="#scaffold" class="nav-link" data-section="scaffold">Scaffold</a>
-    <a href="#demo" class="nav-link" data-section="demo">Demo</a>
     <a href="#pipeline" class="nav-link" data-section="pipeline">Pipeline</a>
     <a href="#files" class="nav-link" data-section="files">Files</a>
     <a href="#policies" class="nav-link" data-section="policies">Policies</a>
+    <a href="#plan" class="nav-link" data-section="plan">Plan</a>
     <a href="#qa" class="nav-link" data-section="qa">Q&amp;A</a>
     <a href="#team" class="nav-link" data-section="team">Team</a>
   </div>
@@ -282,182 +282,10 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 <!-- HERO -->
 <section class="hero">
 <div class="container">
-  <h1>Plan it. Scaffold it.<br>Ship it secure.</h1>
-  <p class="hero-stat">Architecture before code. Security by default.</p>
-  <p class="hero-sub">This tool generates a PLAN.md for your next project. Fill out the form below, copy the output, and drop it into your repo. Claude reads it every session so your whole team stays aligned.</p>
-  <a href="#plan" class="hero-cta" onclick="document.getElementById('plan').scrollIntoView({behavior:'smooth'});return false;">Start Planning</a>
-</div>
-</section>
-
-<!-- ===== SECTION 1: PLAN ===== -->
-<section id="plan">
-<div class="container">
-  <h2>Generate Your PLAN.md</h2>
-  <p class="subtitle">Describe the app you're about to build. At the end, you'll get a PLAN.md to copy into your project. This doesn't build anything — it creates the blueprint Claude follows.</p>
-  <div class="step-progress" id="stepProgress">Step <strong>1</strong> of 8</div>
-  <div class="step-track" id="stepTrack"></div>
-
-  <!-- Step 1: Identity -->
-  <div class="step-card active" data-step="1">
-    <h3>1. Project Identity</h3>
-    <p>What app are you planning? This goes into the generated PLAN.md header.</p>
-    <div class="field-group"><label class="field-label" for="appName">App Name</label><input type="text" id="appName" placeholder="e.g. inventory-tracker" autocomplete="off"></div>
-    <div class="field-group"><label class="field-label" for="appDesc">One-Sentence Description</label><input type="text" id="appDesc" placeholder="e.g. Tracks rack inventory for DCT ops"></div>
-    <div class="field-group"><label class="field-label" for="teamName">Team / Slack Channel</label><input type="text" id="teamName" placeholder="e.g. dct-ops (#dct-eng)"></div>
-    <div class="btn-row"><button class="btn btn-primary" onclick="nextStep(1)">Next</button></div>
-  </div>
-
-  <!-- Step 2: Roles -->
-  <div class="step-card" data-step="2">
-    <h3>2. Users &amp; Roles</h3>
-    <p>Who uses this app and what can they do?</p>
-    <div class="dynamic-rows" id="rolesRows">
-      <div class="dynamic-row roles-row"><input type="text" placeholder="Role (e.g. Admin)" class="role-name"><input type="text" placeholder="Who (e.g. DCT leads)" class="role-who"><input type="text" placeholder="Permissions (e.g. Full CRUD)" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-      <div class="dynamic-row roles-row"><input type="text" placeholder="Role" class="role-name"><input type="text" placeholder="Who" class="role-who"><input type="text" placeholder="Permissions" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-    </div>
-    <button class="add-row-btn" onclick="addRoleRow()">+ Add Role</button>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(2)">Back</button><button class="btn btn-primary" onclick="nextStep(2)">Next</button></div>
-  </div>
-
-  <!-- Step 3: Data -->
-  <div class="step-card" data-step="3">
-    <h3>3. Data Schema</h3>
-    <p>What data does this app store? Define your tables.</p>
-    <div class="dynamic-rows" id="tableRows">
-      <div class="dynamic-row table-row"><input type="text" placeholder="Table name" class="tbl-name"><input type="text" placeholder="Fields (comma-separated)" class="tbl-fields"><input type="text" placeholder="Notes" class="tbl-notes"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-    </div>
-    <button class="add-row-btn" onclick="addTableRow()">+ Add Table</button>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(3)">Back</button><button class="btn btn-primary" onclick="nextStep(3)">Next</button></div>
-  </div>
-
-  <!-- Step 4: Endpoints -->
-  <div class="step-card" data-step="4">
-    <h3>4. API Endpoints</h3>
-    <p>What endpoints does the app expose?</p>
-    <div class="dynamic-rows" id="endpointRows">
-      <div class="dynamic-row endpoint-row"><select class="ep-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input type="text" placeholder="/api/resource" class="ep-path"><input type="text" placeholder="Auth role" class="ep-auth"><input type="text" placeholder="Description" class="ep-desc"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-    </div>
-    <button class="add-row-btn" onclick="addEndpointRow()">+ Add Endpoint</button>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(4)">Back</button><button class="btn btn-primary" onclick="nextStep(4)">Next</button></div>
-  </div>
-
-  <!-- Step 5: Flow -->
-  <div class="step-card" data-step="5">
-    <h3>5. User Flow</h3>
-    <p>Describe the main user journey. We'll generate a Mermaid diagram.</p>
-    <div class="field-group"><label class="field-label" for="flowDesc">Flow Description</label><textarea id="flowDesc" placeholder="e.g. User logs in via Okta -> sees dashboard -> selects a rack -> views/edits inventory -> changes auto-save -> admin can export CSV"></textarea></div>
-    <div class="field-group">
-      <label class="field-label">Or define nodes manually</label>
-      <div class="dynamic-rows" id="flowRows">
-        <div class="dynamic-row" style="grid-template-columns:1fr 40px 1fr 32px"><input type="text" placeholder="From (e.g. User)" class="flow-from"><span style="text-align:center;color:var(--text-tertiary);font-size:var(--text-lg)">&rarr;</span><input type="text" placeholder="To (e.g. Okta)" class="flow-to"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-      </div>
-      <button class="add-row-btn" onclick="addFlowRow()">+ Add Step</button>
-    </div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(5)">Back</button><button class="btn btn-primary" onclick="nextStep(5)">Next</button></div>
-  </div>
-
-  <!-- Step 6: Stack -->
-  <div class="step-card" data-step="6">
-    <h3>6. Tech Stack</h3>
-    <p>Pick your stack. CW-approved options highlighted.</p>
-    <label class="field-label">Language / Framework</label>
-    <div class="stack-options" id="langOptions">
-      <div class="stack-chip selected" data-val="Python (FastAPI)" onclick="selectChip(this)">Python (FastAPI)</div>
-      <div class="stack-chip" data-val="Python (Flask)" onclick="selectChip(this)">Python (Flask)</div>
-      <div class="stack-chip" data-val="Go" onclick="selectChip(this)">Go</div>
-      <div class="stack-chip" data-val="Node.js (Express)" onclick="selectChip(this)">Node.js (Express)</div>
-      <div class="stack-chip" data-val="Rust" onclick="selectChip(this)">Rust</div>
-    </div>
-    <label class="field-label">Database</label>
-    <div class="stack-options" id="dbOptions">
-      <div class="stack-chip selected" data-val="PostgreSQL" onclick="selectChip(this)">PostgreSQL</div>
-      <div class="stack-chip" data-val="MySQL" onclick="selectChip(this)">MySQL</div>
-      <div class="stack-chip" data-val="Redis" onclick="selectChip(this)">Redis</div>
-      <div class="stack-chip" data-val="SQLite" onclick="selectChip(this)">SQLite</div>
-      <div class="stack-chip" data-val="None" onclick="selectChip(this)">None</div>
-    </div>
-    <label class="field-label">Deployment</label>
-    <div class="stack-options" id="deployOptions">
-      <div class="stack-chip selected" data-val="Helm + Argo" onclick="selectChip(this)">Helm + Argo</div>
-      <div class="stack-chip" data-val="Docker Compose" onclick="selectChip(this)">Docker Compose</div>
-      <div class="stack-chip" data-val="Kubernetes (raw)" onclick="selectChip(this)">Kubernetes (raw)</div>
-      <div class="stack-chip" data-val="GitHub Pages" onclick="selectChip(this)">GitHub Pages</div>
-    </div>
-    <div class="field-group" style="margin-top:var(--space-md)"><label class="field-label" for="secAuth">Auth Provider</label><input type="text" id="secAuth" placeholder="e.g. Okta OIDC" value="Okta OIDC"></div>
-    <div class="field-group"><label class="field-label" for="secSecrets">Secrets Manager</label><input type="text" id="secSecrets" placeholder="e.g. Doppler" value="Doppler"></div>
-    <div class="field-group"><label class="field-label" for="secClass">Data Classification</label><select id="secClass"><option>Public</option><option selected>Internal</option><option>Confidential</option><option>Restricted</option></select></div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(6)">Back</button><button class="btn btn-primary" onclick="nextStep(6)">Next</button></div>
-  </div>
-
-  <!-- Step 7: Infrastructure -->
-  <div class="step-card" data-step="7">
-    <h3>7. Infrastructure &amp; Scaling</h3>
-    <p>Plan for production from the start. How does this app run at scale?</p>
-    <label class="field-label">Environments</label>
-    <div class="stack-options" id="envOptions">
-      <div class="stack-chip selected" data-val="dev" onclick="toggleChip(this)">Dev</div>
-      <div class="stack-chip selected" data-val="staging" onclick="toggleChip(this)">Staging</div>
-      <div class="stack-chip selected" data-val="prod" onclick="toggleChip(this)">Prod</div>
-    </div>
-    <div class="field-row">
-      <div class="field-group"><label class="field-label" for="replicasDev">Dev Replicas</label><input type="text" id="replicasDev" value="1" placeholder="1"></div>
-      <div class="field-group"><label class="field-label" for="replicasProd">Prod Replicas</label><input type="text" id="replicasProd" value="3" placeholder="3"></div>
-    </div>
-    <div class="field-row">
-      <div class="field-group"><label class="field-label" for="cpuLimit">CPU Limit</label><input type="text" id="cpuLimit" value="500m" placeholder="e.g. 500m, 1"></div>
-      <div class="field-group"><label class="field-label" for="memLimit">Memory Limit</label><input type="text" id="memLimit" value="512Mi" placeholder="e.g. 256Mi, 1Gi"></div>
-    </div>
-    <div class="field-group"><label class="field-label" for="scalingStrategy">Scaling Strategy</label><select id="scalingStrategy"><option>Fixed replicas</option><option selected>HPA (CPU-based)</option><option>HPA (custom metrics)</option><option>KEDA (event-driven)</option></select></div>
-    <div class="field-group"><label class="field-label" for="infraNotes">Infrastructure Notes</label><textarea id="infraNotes" placeholder="e.g. Needs GPU nodes, requires persistent volume, external load balancer needed..." style="min-height:60px"></textarea></div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(7)">Back</button><button class="btn btn-primary" onclick="nextStep(7)">Next</button></div>
-  </div>
-
-  <!-- Step 8: Scope Lock & GitHub -->
-  <div class="step-card" data-step="8">
-    <h3>8. Scope Lock &amp; GitHub</h3>
-    <p>Define what's in v1, what's deferred, and how the team ships code.</p>
-    <div class="field-group">
-      <label class="field-label">MVP Features (what ships in v1)</label>
-      <div class="dynamic-rows" id="mvpRows">
-        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CRUD for racks with auth" class="mvp-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-      </div>
-      <button class="add-row-btn" onclick="addMvpRow()">+ Add Feature</button>
-    </div>
-    <div class="field-group">
-      <label class="field-label">Deferred (explicitly NOT in v1)</label>
-      <div class="dynamic-rows" id="deferredRows">
-        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CSV export, email notifications" class="deferred-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
-      </div>
-      <button class="add-row-btn" onclick="addDeferredRow()">+ Add Deferred Item</button>
-    </div>
-    <div style="margin-top:var(--space-md);padding:var(--space-md);background:var(--warn-bg);border:1px solid oklch(80% 0.08 75);border-radius:10px;margin-bottom:var(--space-md)">
-      <p style="font-size:var(--text-sm);color:var(--warn);font-weight:500">Scope Lock: Features listed above are frozen for v1. Claude will reference this list and resist scope creep. If it's not in MVP, it waits.</p>
-    </div>
-    <label class="field-label">GitHub Practices</label>
-    <div style="display:flex;flex-direction:column;gap:var(--space-sm);margin-bottom:var(--space-md)">
-      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghBranchProtect" checked> Branch protection on main</label>
-      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghRequirePR" checked> Require PR reviews before merge</label>
-      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghRequireCI" checked> Require CI to pass before merge</label>
-      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghCodeowners" checked> CODEOWNERS file</label>
-      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghSignedCommits"> Require signed commits</label>
-      <label style="display:flex;align-items:center;gap:var(--space-sm);font-size:var(--text-sm);cursor:pointer"><input type="checkbox" id="ghConventional"> Conventional commit messages</label>
-    </div>
-    <div class="field-group"><label class="field-label" for="branchStrategy">Branching Strategy</label><select id="branchStrategy"><option selected>feature/* branches + PR to main</option><option>GitFlow (develop + release branches)</option><option>Trunk-based (short-lived branches)</option></select></div>
-    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(8)">Back</button><button class="btn btn-primary" onclick="generatePlan()">Generate PLAN.md</button></div>
-  </div>
-
-  <!-- Output -->
-  <div id="planOutput" style="display:none">
-    <div class="plan-output">
-      <div class="plan-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="plan-title">PLAN.md</span></div>
-      <div class="plan-body" id="planBody"></div>
-      <div class="plan-actions">
-        <button class="plan-copy-btn" onclick="copyPlan()">Copy to Clipboard</button>
-        <button class="plan-copy-btn" onclick="downloadPlan()">Download PLAN.md</button>
-        <button class="plan-copy-btn" onclick="resetForm()">Start Over</button>
-      </div>
-    </div>
-  </div>
+  <h1>You prompt Claude.<br>This keeps it secure.</h1>
+  <p class="hero-stat">Same prompt. Secure code. Zero extra work.</p>
+  <p class="hero-sub">Clone one repo. Every app you build with Claude gets auth, secret scanning, CI, and OWASP coverage automatically.</p>
+  <a href="#demo" class="hero-cta" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'});return false;">See it work</a>
 </div>
 </section>
 
@@ -598,6 +426,113 @@ textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
   </div>
   <div id="tree" style="font-family:'JetBrains Mono',monospace;font-size:var(--text-xs);line-height:2"></div>
   <div id="file-desc"></div>
+</div>
+</section>
+
+<!-- ===== PLAN FORM (hidden until user clicks Plan in nav) ===== -->
+<section id="plan" style="display:none">
+<div class="container">
+  <h2>Generate Your PLAN.md</h2>
+  <p class="subtitle">Ready to build? Describe your app and get a PLAN.md that Claude reads every session.</p>
+  <div class="step-progress" id="stepProgress">Step <strong>1</strong> of 8</div>
+  <div class="step-track" id="stepTrack"></div>
+  <div class="step-card active" data-step="1">
+    <h3>1. Project Identity</h3>
+    <p>What app are you planning?</p>
+    <div class="field-group"><label class="field-label" for="appName">App Name</label><input type="text" id="appName" placeholder="e.g. inventory-tracker" autocomplete="off"></div>
+    <div class="field-group"><label class="field-label" for="appDesc">One-Sentence Description</label><input type="text" id="appDesc" placeholder="e.g. Tracks rack inventory for DCT ops"></div>
+    <div class="field-group"><label class="field-label" for="teamName">Team / Slack Channel</label><input type="text" id="teamName" placeholder="e.g. dct-ops (#dct-eng)"></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="nextStep(1)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="2">
+    <h3>2. Users &amp; Roles</h3>
+    <p>Who uses this app and what can they do?</p>
+    <div class="dynamic-rows" id="rolesRows">
+      <div class="dynamic-row roles-row"><input type="text" placeholder="Role (e.g. Admin)" class="role-name"><input type="text" placeholder="Who (e.g. DCT leads)" class="role-who"><input type="text" placeholder="Permissions (e.g. Full CRUD)" class="role-perms"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+    </div>
+    <button class="add-row-btn" onclick="addRoleRow()">+ Add Role</button>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(2)">Back</button><button class="btn btn-primary" onclick="nextStep(2)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="3">
+    <h3>3. Data Schema</h3>
+    <p>What data does this app store?</p>
+    <div class="dynamic-rows" id="tableRows">
+      <div class="dynamic-row table-row"><input type="text" placeholder="Table name" class="tbl-name"><input type="text" placeholder="Fields (comma-separated)" class="tbl-fields"><input type="text" placeholder="Notes" class="tbl-notes"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+    </div>
+    <button class="add-row-btn" onclick="addTableRow()">+ Add Table</button>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(3)">Back</button><button class="btn btn-primary" onclick="nextStep(3)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="4">
+    <h3>4. API Endpoints</h3>
+    <p>What endpoints does the app expose?</p>
+    <div class="dynamic-rows" id="endpointRows">
+      <div class="dynamic-row endpoint-row"><select class="ep-method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select><input type="text" placeholder="/api/resource" class="ep-path"><input type="text" placeholder="Auth role" class="ep-auth"><input type="text" placeholder="Description" class="ep-desc"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+    </div>
+    <button class="add-row-btn" onclick="addEndpointRow()">+ Add Endpoint</button>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(4)">Back</button><button class="btn btn-primary" onclick="nextStep(4)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="5">
+    <h3>5. User Flow</h3>
+    <p>Describe the main user journey.</p>
+    <div class="field-group"><label class="field-label" for="flowDesc">Flow Description</label><textarea id="flowDesc" placeholder="e.g. User logs in via Okta -> sees dashboard -> selects a rack -> views/edits inventory"></textarea></div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(5)">Back</button><button class="btn btn-primary" onclick="nextStep(5)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="6">
+    <h3>6. Tech Stack</h3>
+    <p>Pick your stack.</p>
+    <label class="field-label">Language / Framework</label>
+    <div class="stack-options" id="langOptions">
+      <div class="stack-chip selected" data-val="Python (FastAPI)" onclick="selectChip(this)">Python (FastAPI)</div>
+      <div class="stack-chip" data-val="Go" onclick="selectChip(this)">Go</div>
+      <div class="stack-chip" data-val="Node.js (Express)" onclick="selectChip(this)">Node.js</div>
+    </div>
+    <label class="field-label">Database</label>
+    <div class="stack-options" id="dbOptions">
+      <div class="stack-chip selected" data-val="PostgreSQL" onclick="selectChip(this)">PostgreSQL</div>
+      <div class="stack-chip" data-val="SQLite" onclick="selectChip(this)">SQLite</div>
+      <div class="stack-chip" data-val="None" onclick="selectChip(this)">None</div>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(6)">Back</button><button class="btn btn-primary" onclick="nextStep(6)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="7">
+    <h3>7. Infrastructure</h3>
+    <p>How does this run at scale?</p>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label" for="replicasProd">Prod Replicas</label><input type="text" id="replicasProd" value="3"></div>
+      <div class="field-group"><label class="field-label" for="cpuLimit">CPU Limit</label><input type="text" id="cpuLimit" value="500m"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(7)">Back</button><button class="btn btn-primary" onclick="nextStep(7)">Next</button></div>
+  </div>
+  <div class="step-card" data-step="8">
+    <h3>8. Scope Lock</h3>
+    <p>What ships in v1? What waits?</p>
+    <div class="field-group">
+      <label class="field-label">MVP Features</label>
+      <div class="dynamic-rows" id="mvpRows">
+        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CRUD for racks with auth" class="mvp-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addMvpRow()">+ Add Feature</button>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Deferred</label>
+      <div class="dynamic-rows" id="deferredRows">
+        <div class="dynamic-row" style="grid-template-columns:1fr 32px"><input type="text" placeholder="e.g. CSV export" class="deferred-item"><button class="remove-row" onclick="removeRow(this)">&times;</button></div>
+      </div>
+      <button class="add-row-btn" onclick="addDeferredRow()">+ Add Deferred</button>
+    </div>
+    <div class="btn-row"><button class="btn btn-secondary" onclick="prevStep(8)">Back</button><button class="btn btn-primary" onclick="generatePlan()">Generate PLAN.md</button></div>
+  </div>
+  <div id="planOutput" style="display:none">
+    <div class="plan-output">
+      <div class="plan-chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="plan-title">PLAN.md</span></div>
+      <div class="plan-body" id="planBody"></div>
+      <div class="plan-actions">
+        <button class="plan-copy-btn" onclick="copyPlan()">Copy to Clipboard</button>
+        <button class="plan-copy-btn" onclick="downloadPlan()">Download PLAN.md</button>
+        <button class="plan-copy-btn" onclick="resetForm()">Start Over</button>
+      </div>
+    </div>
+  </div>
 </div>
 </section>
 
@@ -1247,14 +1182,18 @@ renderTree(FILETREE, document.getElementById('tree'));
 
 // Nav scroll tracking
 function updateNav() {
-  const sections = ['plan','scaffold','demo','pipeline','concepts','files','policies','qa','team'];
+  const sections = ['demo','scaffold','pipeline','concepts','files','plan','policies','qa','team'];
   let active = sections[0];
-  sections.forEach(id => { const el=document.getElementById(id); if(el&&el.getBoundingClientRect().top<=100)active=id; });
+  sections.forEach(id => { const el=document.getElementById(id); if(el&&el.offsetParent!==null&&el.getBoundingClientRect().top<=100)active=id; });
   document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.section === active));
 }
 window.addEventListener('scroll', updateNav, { passive: true });
 document.querySelectorAll('.nav-link').forEach(link => {
-  link.addEventListener('click', e => { e.preventDefault(); const t=document.getElementById(link.dataset.section); if(t)t.scrollIntoView({behavior:'smooth'}); });
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const t=document.getElementById(link.dataset.section);
+    if(t) { t.style.display=''; t.scrollIntoView({behavior:'smooth'}); }
+  });
 });
 </script>
 </body>
