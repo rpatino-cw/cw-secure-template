@@ -28,7 +28,6 @@
       "Bash(grep *)",
       "Bash(echo *)",
       "Bash(mkdir *)",
-      "Bash(cp *)",
       "Bash(which *)",
       "Bash(command *)",
       "Bash(date *)",
@@ -62,12 +61,19 @@
       "Bash(git config *)",
       "Bash(pre-commit uninstall *)",
       "Bash(mv CLAUDE.md *)",
-      "Bash(mv .claude *)"
+      "Bash(mv .claude *)",
+      "Bash(tee *)",
+      "Bash(perl -e *)",
+      "Bash(perl -p *)",
+      "Bash(ruby -e *)",
+      "Bash(python3 -c *)",
+      "Bash(dd *)"
     ],
     "ask": [
       "Bash(git push *)",
       "Bash(git commit *)",
       "Bash(rm *)",
+      "Bash(cp *)",
       "Bash(pip install *)",
       "Bash(go install *)",
       "Bash(docker *)",

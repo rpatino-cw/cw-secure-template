@@ -27,6 +27,13 @@ TOOL_NAME="$(read_field tool_name)"
 FILE_PATH="$(read_field file_path)"
 CONTENT="$(read_field content)"
 
+# --- Guard 0: Path traversal check ---
+if [[ "$FILE_PATH" == *".."* ]]; then
+  echo "BLOCKED: Path traversal detected: $FILE_PATH" >&2
+  echo "File paths must not contain '..' components." >&2
+  exit 2
+fi
+
 # --- Guard 1: Protect guardrail files from modification ---
 PROTECTED_FILES=(
   "CLAUDE.md"
@@ -89,14 +96,19 @@ fi
 # --- Guard 4: Check for dangerous patterns in code ---
 if [[ -n "$CONTENT" ]]; then
   DANGEROUS_PATTERNS=(
-    'eval('
-    'exec('
+    'eval\s*\('
+    'exec\s*\('
     'pickle\.loads'
-    'os\.system('
-    'subprocess.*shell=True'
-    'yaml\.load('
-    '__import__('
-    'InsecureSkipVerify:\s*true'
+    'os\.system\s*\('
+    'subprocess.*shell\s*=\s*True'
+    'yaml\.load\s*\('
+    '__import__\s*\('
+    'InsecureSkipVerify\s*:\s*true'
+    'getattr.*exec'
+    'getattr.*eval'
+    'getattr.*system'
+    'compile\s*\(.*exec'
+    'os\.popen\s*\('
   )
 
   for pattern in "${DANGEROUS_PATTERNS[@]}"; do
