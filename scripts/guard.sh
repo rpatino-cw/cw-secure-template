@@ -412,16 +412,62 @@ for p in room.get('owns', []):
           NEW_NAME=$(echo "$change" | cut -d: -f3)
           OUTSIDE=$(find_outside_refs "$NAME")
           if [[ -n "$OUTSIDE" ]]; then
-            # Don't block renames — warn on stdout (injected into Claude context)
+            TS=$(date +%Y%m%d-%H%M%S)
+
+            # Find which rooms are affected and auto-generate inbox requests
+            NOTIFIED_ROOMS=""
+            while IFS= read -r ref_line; do
+              [[ -z "$ref_line" ]] && continue
+              ref_file=$(echo "$ref_line" | cut -d: -f1)
+              ref_rel="${ref_file#$REPO_TOP/}"
+
+              # Find which room owns this file
+              TARGET_ROOM=$(python3 -c "
+import json, sys
+with open(sys.argv[1]) as f:
+    config = json.load(f)
+path = sys.argv[2]
+for name, room in config.get('rooms', {}).items():
+    for owned in room.get('owns', []):
+        if path.startswith(owned.strip('/')):
+            print(name)
+            break
+" "$ROOMS_CONFIG" "$ref_rel" 2>/dev/null || echo "")
+
+              if [[ -n "$TARGET_ROOM" && "$TARGET_ROOM" != "$AGENT_ROOM" && ! "$NOTIFIED_ROOMS" == *"$TARGET_ROOM"* ]]; then
+                # Auto-create inbox request
+                INBOX_DIR="$REPO_TOP/rooms/$TARGET_ROOM/inbox"
+                if [[ -d "$INBOX_DIR" ]]; then
+                  cat > "$INBOX_DIR/${TS}-from-${AGENT_ROOM}.md" << REQEOF
+---
+from: ${AGENT_ROOM}
+priority: high
+type: rename
+---
+
+**Function renamed** — please update your references:
+
+\`$NAME\` → \`$NEW_NAME\`
+
+File changed: $(basename "$FILE_PATH")
+
+Your files that reference the old name:
+$(echo -e "$OUTSIDE" | grep "$TARGET_ROOM" || echo -e "$OUTSIDE")
+REQEOF
+                  NOTIFIED_ROOMS="${NOTIFIED_ROOMS} ${TARGET_ROOM}"
+                fi
+              fi
+            done <<< "$(echo -e "$OUTSIDE")"
+
+            # Output confirmation to agent context
             echo "<dependency-rename>"
             echo "You renamed '$NAME' → '$NEW_NAME'"
             echo ""
-            echo "These files in OTHER rooms still reference the old name '$NAME':"
-            echo -e "$OUTSIDE"
-            echo "Send a request to each room's inbox asking them to update:"
-            echo "  '$NAME' → '$NEW_NAME'"
+            if [[ -n "$NOTIFIED_ROOMS" ]]; then
+              echo "Auto-sent inbox requests to:$NOTIFIED_ROOMS"
+              echo "They will see the rename and update their references."
+            fi
             echo "</dependency-rename>"
-            # Allow the edit — but the agent sees the warning
           fi
         fi
       done <<< "$CHANGES"
