@@ -1,152 +1,110 @@
 <p align="center">
-  <h1 align="center">CW Secure Template</h1>
+  <h1 align="center">CW Vibe</h1>
   <p align="center">
-    A complete Claude Code project framework.<br>
-    Memory, routing, security, deployment. All wired.
+    Plan it. Scaffold it. Ship it secure.<br>
+    The app builder for CoreWeave teams using Claude Code.
   </p>
   <p align="center">
-    <a href="https://rpatino-cw.github.io/cw-secure-template/"><img src="https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_CW_VIBE-Plan_%C2%B7_Scaffold_%C2%B7_Ship_Secure-ffffff?style=for-the-badge&labelColor=ffffff&color=4f46e5&logoColor=4f46e5" alt="CW Vibe — Plan, Scaffold, Ship Secure"></a>
+    <a href="https://rpatino-cw.github.io/cw-secure-template/"><img src="https://img.shields.io/badge/%E2%96%B6%EF%B8%8F_OPEN_PLATFORM-Plan_%C2%B7_Scaffold_%C2%B7_Ship-ffffff?style=for-the-badge&labelColor=ffffff&color=4f46e5&logoColor=4f46e5" alt="Open CW Vibe Platform"></a>
   </p>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/OWASP-10%2F10-22c55e?style=flat-square" alt="OWASP">
-  <img src="https://img.shields.io/badge/SOC_2-aligned-3b82f6?style=flat-square" alt="SOC 2">
-  <img src="https://img.shields.io/badge/coverage-80%25_gate-f59e0b?style=flat-square" alt="Coverage">
-  <img src="https://img.shields.io/badge/Go_%2B_Python-ready-6366f1?style=flat-square" alt="Stacks">
-  <img src="https://img.shields.io/badge/AI_slop-0%25_·_S%2B%2B-22c55e?style=flat-square" alt="Zero AI Slop">
-  <img src="https://img.shields.io/badge/.claude-full_structure-a855f7?style=flat-square" alt=".claude/">
+  <img src="https://img.shields.io/badge/8--step-planning_form-6366f1?style=flat-square" alt="8-Step Planning">
+  <img src="https://img.shields.io/badge/PLAN.md-generator-22c55e?style=flat-square" alt="PLAN.md Generator">
+  <img src="https://img.shields.io/badge/scope_lock-built_in-f59e0b?style=flat-square" alt="Scope Lock">
+  <img src="https://img.shields.io/badge/GitHub-best_practices-3b82f6?style=flat-square" alt="GitHub Practices">
+  <img src="https://img.shields.io/badge/6--layer-security_pipeline-22c55e?style=flat-square" alt="Security Pipeline">
+  <img src="https://img.shields.io/badge/CW_policies-22_enforced-a855f7?style=flat-square" alt="CW Policies">
 </p>
+
+---
+
+## What This Is
+
+A platform that helps CW teams — especially DCTs and ops folks — go from idea to deployed app without skipping steps or shipping insecure code.
+
+**Two parts, one repo:**
+
+| Part | What it does |
+|:-----|:-------------|
+| **[CW Vibe Platform](https://rpatino-cw.github.io/cw-secure-template/)** | Web tool: 8-step planning form, PLAN.md generator, guided terminal tour, pipeline visualization, CW policies reference |
+| **Template Code** | Clone it: secure scaffold with auth, hooks, CI, Helm deployment, Claude Code framework (memory, commands, rules, skills, agents) |
+
+The platform helps you plan. The template helps you build. Together they enforce architecture before code, security by default, and good GitHub practices from commit one.
+
+---
+
+## The Platform — Plan Before You Build
+
+Open **[CW Vibe](https://rpatino-cw.github.io/cw-secure-template/)** and walk through 8 steps:
+
+| Step | You Define | PLAN.md Gets |
+|:-----|:-----------|:-------------|
+| 1. Identity | App name, description, team | Project header |
+| 2. Roles | Who uses it, what they can do | Users & RBAC table |
+| 3. Schema | Tables, fields, relationships | Database schema |
+| 4. Endpoints | API routes, auth, descriptions | API spec table |
+| 5. Flow | User journey (auto-generates Mermaid) | Data flow diagram |
+| 6. Stack | Language, database, deployment | Stack decisions |
+| 7. Infrastructure | Replicas, CPU/memory limits, scaling, environments | Infra config |
+| 8. Scope Lock | MVP features, deferred items, GitHub practices, branching | Scope freeze + GitHub rules |
+
+At the end, you get a `PLAN.md` to copy into your project. Claude reads it every session so your whole team stays aligned.
+
+### Scope Lock
+
+Step 8 forces you to define what's in v1 and what's explicitly deferred. The generated PLAN.md includes:
+
+```markdown
+## Scope Lock
+> Features below are frozen for v1. Do not add scope without team approval.
+
+### MVP (v1)
+- [x] CRUD for racks with auth
+- [x] Dashboard view
+
+### Deferred (NOT in v1)
+- [ ] CSV export
+- [ ] Email notifications
+```
+
+Claude references this list and resists scope creep during building.
+
+### GitHub Best Practices
+
+Step 8 also locks in your GitHub workflow:
+
+- Branch protection on main
+- PR reviews required before merge
+- CI must pass before merge
+- CODEOWNERS file
+- Signed commits (optional)
+- Conventional commit messages (optional)
+- Branching strategy (feature branches, GitFlow, or trunk-based)
+
+These go into the PLAN.md so Claude enforces them from the first commit.
+
+---
+
+## The Template — Clone and Build
 
 ```
 git clone https://github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh
 ```
 
-That's it. Claude gets project memory, slash commands, security rules, auto-review skills, and subagent personas. Your app gets auth, secrets, scanning, rate limiting, CI, and deployment configs. All wired. Start building.
+### What You Get Immediately
 
----
+| Layer | What's wired |
+|:------|:------------|
+| **Claude Code** | CLAUDE.md (15 security rules), .claude/ folder (memory, 4 commands, 4 rules, skill, 2 agents), settings.json (dangerous commands blocked) |
+| **Pre-commit** | Gitleaks (secret scanning), ruff + bandit (Python), golangci-lint (Go), timestamp tracking |
+| **CI Pipeline** | CodeQL, SAST, dependency scanning, 80% coverage gate, hook integrity check |
+| **Auth** | Okta OIDC middleware, group-based RBAC, DEV_MODE for local dev |
+| **Runtime** | Rate limiting, request ID tracking, security headers, request size limits |
+| **Deployment** | Helm chart, ArgoCD, Chainguard images, env-specific values (dev/stg/prod) |
 
-This isn't just a security template. It's a full Claude Code project setup. When you clone this and run setup, Claude gets everything it needs to work in your project: memory that persists across sessions, slash commands for common tasks, rules that apply automatically based on file type, a security review skill that triggers on code changes, and subagent personas for audits and code review. Your app gets real Okta auth, rate limiting, secret management, CI with coverage gates, and Helm deployment configs. If you try to take a shortcut (hardcoding a key, skipping auth, pasting secrets), the template catches it and shows you the easy way. Plan your app, get a scaffold, and see the pipeline in action at **[CW Vibe](https://rpatino-cw.github.io/cw-secure-template/)** — the companion platform for this template.
-
----
-
-## Your Code Goes Through 6 Checkpoints
-
-Each one catches what the last one missed.
-
-<p align="center">
-  <img src="docs/pipeline-animation.svg" alt="Security Pipeline" width="100%">
-</p>
-
----
-
-## Claude Writes Secure Code For You
-
-Even if you ask it not to.
-
-<p align="center">
-  <img src="docs/claude-intercept.svg" alt="Claude Intercepts Bad Prompts" width="100%">
-</p>
-
----
-
-## Every Commit Is Checked Automatically
-
-You just write code. The pipeline handles the rest.
-
-<p align="center">
-  <img src="docs/commit-flow.svg" alt="Commit Flow" width="100%">
-</p>
-
----
-
-## If Something's Wrong, You'll Know Exactly What To Fix
-
-No cryptic error codes. Plain English.
-
-<p align="center">
-  <img src="docs/error-caught.svg" alt="Error Caught — Plain English" width="100%">
-</p>
-
----
-
-## The Lazy Path Is the Secure Path
-
-Every insecure shortcut has a faster secure alternative.
-
-| You want to... | Don't | Do this instead |
-|:--|:--|:--|
-| Use an API key | Paste it in code or Claude | `make add-secret` (hidden input, straight to .env) |
-| Use a config file (.json, .pem) | Drop it in the project folder | `make add-config` (stored in gitignored .secrets/) |
-| Use a database URL | Hardcode `postgres://user:pass@...` | `make add-secret` (password goes to .env) |
-| Share your .env | Paste it to Claude or Slack | `make add-secret` per value (never paste the whole file) |
-| Check for dropped files | Hope for the best | `make doctor` (scans for 20+ dangerous file patterns) |
-
----
-
-## Full `.claude/` Project Structure
-
-Claude Code reads this folder to know how to work in your project. Think of it as routing: commands route your requests to workflows, rules auto-apply based on file type, skills trigger on code changes, and agents are specialized personas for audits and reviews.
-
-```
-.claude/
-├── settings.json                 Permissions locked (deny force-push, --no-verify, eval)
-├── MEMORY.md                     Project memory across sessions
-├── commands/
-│   ├── check.md                  /project:check — full security suite
-│   ├── add-endpoint.md           /project:add-endpoint — secure route scaffold
-│   ├── add-secret.md             /project:add-secret — safe key storage
-│   └── security-review.md        /project:security-review — 10-point audit
-├── rules/
-│   ├── security.md               Secrets, auth, validation, dangerous functions
-│   ├── testing.md                Coverage, security tests, environment
-│   ├── code-style.md             Formatting, logging, imports
-│   └── api-conventions.md        REST, status codes, headers
-├── skills/
-│   └── security-review/SKILL.md  Auto-triggers on code changes
-└── agents/
-    ├── security-auditor.md       Deep OWASP + CW compliance audit
-    └── code-reviewer.md          PR review agent
-```
-
-> `settings.json` blocks dangerous commands at the harness level — Claude literally cannot run `--no-verify`, `force-push`, or `eval`. This is structural enforcement, not just instructions.
-
----
-
-## Get Started
-
-> **First time?** Follow the [step-by-step Getting Started guide](docs/getting-started.md) — it walks you through everything from opening Terminal to running your first app.
-
-Already comfortable with the terminal:
-
-```bash
-git clone https://github.com/rpatino-cw/cw-secure-template my-app
-cd my-app
-bash setup.sh
-make start
-```
-
-Setup asks for your **app name, team, and data classification** — then Claude knows your project context in every session. No more generic code.
-
----
-
-## Personalize It
-
-`make init` turns the generic template into YOUR project. 5 questions, 6 files updated:
-
-| It asks | It updates |
-|:--------|:-----------|
-| App name | Helm chart, go.mod / pyproject.toml |
-| What it does | `.claude/MEMORY.md` (Claude reads this every session) |
-| Team name | CODEOWNERS (required PR reviewers) |
-| Slack channel | SECURITY.md (incident contacts) |
-| Data classification | `.claude/MEMORY.md` (Claude adjusts access controls) |
-
-After init, Claude doesn't generate generic code — it uses your app name for logging, your team for RBAC, and your data sensitivity for access decisions.
-
----
-
-## 3 Commands
+### 3 Commands
 
 ```
 make start    Run your app
@@ -154,50 +112,72 @@ make check    Before pull requests
 make help     Everything else
 ```
 
+### Personalize It
+
+```
+make init
+```
+
+5 questions → 6 files updated. Claude knows your app name, team, data classification, and Slack channel. No more generic code.
+
 ---
 
-## Can't Break It
+## The Pipeline — 6 Layers, No Shortcuts
 
-> In-repo enforcement (hooks, CI, CLAUDE.md, settings.json) works anywhere. Full enforcement requires a [CW org repo](docs/repo-governance.md) with Okta + Doppler configured.
+```
+Your Code → CLAUDE.md → Pre-commit → CI Pipeline → PR Review → Deploy
+```
 
 | "I'll just..." | What catches it |
 |:--|:--|
-| Skip hooks with `--no-verify` | CI checks the timestamp + settings.json blocks the command |
-| Delete the security rules | CI blocks the PR |
-| Remove the rate limiter | CI middleware check blocks the PR |
-| Hardcode a secret | Gitleaks blocks the commit AND the PR |
+| Hardcode a secret | Gitleaks blocks the commit |
+| Skip auth | CLAUDE.md refuses + auth is wired |
+| Use `--no-verify` | CI timestamp check blocks the PR |
+| Delete security rules | CI blocks the PR |
 | Push without tests | Pre-push hook blocks it |
 | Commit to main | Branch protection requires a PR |
-| Ship without auth | Auth is wired from day 1 |
 | Ask Claude to force-push | settings.json deny list blocks it |
 
 ---
 
-[Okta OIDC](docs/okta-ticket-template.md) · [Doppler + ESO](docs/doppler-onboarding.md) · [Chainguard images](docs/approved-images.md) · CodeQL · SOC 2 · ISO 27001 · OWASP Top 10
+## The Guided Tour — 11 Interactive Demos
 
-> **Going to production?** Use the [AppSec Review Pack](docs/appsec-review-pack/) and [CW Integration Guide](docs/cw-integration.md).
+The [platform](https://rpatino-cw.github.io/cw-secure-template/) includes a guided tour with live terminal simulations:
+
+| # | Demo | What You See |
+|:--|:-----|:-------------|
+| 1 | The Problem | Same prompt, with vs. without template |
+| 2 | Clone & Setup | Full setup from `git clone` to `make start` |
+| 3 | Start Your App | Running app with auth, headers, request tracking |
+| 4 | Build + Commit + Push | Feature → 6 security checkpoints → PR ready |
+| 5 | Claude Blocks Bad Ideas | 3 insecure shortcuts intercepted in real time |
+| 6 | Secret Caught | API key blocked at commit with plain English fix |
+| 7 | CI Catches --no-verify | Timestamp integrity check blocks the PR |
+| 8 | Rate Limiter | 100 req/min per IP, other users unaffected |
+| 9 | Safe Secret Storage | `make add-secret` with hidden input |
+| 10 | Slash Commands | /check, /add-endpoint, /security-review |
+| 11 | Project Init | `make init` personalizes 6 files |
+
+Each stop auto-plays with typing animation and shows a takeaway when complete.
 
 ---
 
-<details>
-<summary><b>FAQ</b></summary>
-<br>
+## CW Policy Compliance
 
-**Do I need to know security?** No. The template handles it.
+The platform visualizes 22 CW security policies:
 
-**How do I test without Okta?** `DEV_MODE=true` is already set. Works out of the box.
+- **Remediation timelines**: Critical (15 days), High (30), Medium (60), Low (90)
+- **Data classification**: Public → Internal → Confidential → Restricted
+- **8 policy categories**: Authentication, Secrets, Code Security, Data Protection, Access Control, Deployment, Monitoring, SDLC
 
-**What if a hook blocks me?** Run `make fix`. It explains everything in plain English.
+The template enforces these policies structurally — not as guidelines, as code.
 
-**How do I get Okta credentials?** File an IT/Freshservice ticket. [Details](CLAUDE.md#okta-app-registration--how-to-get-credentials)
+---
 
-**What's `/project:check`?** A Claude Code slash command. Type it in Claude and it runs the full security suite.
-
-</details>
+## What's Inside (92 files)
 
 <details>
-<summary><b>What's inside (92 files)</b></summary>
-<br>
+<summary>Expand</summary>
 
 ```
 CLAUDE.md                     AI security rules (15 rules, anti-jailbreak)
@@ -212,14 +192,33 @@ scripts/                      Git hooks, doctor, fix, quiz, add-secret, add-conf
 go/                           Go starter + Okta auth middleware + Dockerfile
 python/                       Python starter + Okta auth middleware + Dockerfile
 deploy/                       Helm chart + ArgoCD + env-specific values
-docs/                         Getting started, handbook, AppSec review pack,
-                              Okta ticket, Doppler onboarding, approved images
+docs/                         Platform site, getting started, handbook, AppSec pack
 ```
 
 </details>
 
 ---
 
+<details>
+<summary><b>FAQ</b></summary>
+<br>
+
+**What is CW Vibe?** A planning tool + secure scaffold + educational guide for CW teams building internal apps with Claude Code.
+
+**Who is it for?** Anyone at CW — DCTs, ops, engineers — who wants to build an internal tool without worrying about security, GitHub setup, or architecture decisions.
+
+**Do I need to know security?** No. The template handles it.
+
+**What's a PLAN.md?** A markdown file that describes your app's architecture. Claude reads it every session so it knows what you're building, who uses it, and what's in scope.
+
+**How do I test without Okta?** `DEV_MODE=true` is already set. Works out of the box.
+
+**What if a hook blocks me?** Run `make fix`. It explains everything in plain English.
+
+</details>
+
+---
+
 <p align="center">
-  <sub>Built at CoreWeave · <a href="https://rpatino-cw.github.io/cw-secure-template/">CW Vibe</a> · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/architecture.md">Architecture Diagrams</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
+  <sub>Built at CoreWeave · <a href="https://rpatino-cw.github.io/cw-secure-template/">CW Vibe Platform</a> · <a href="docs/getting-started.md">Getting Started</a> · <a href="docs/security-handbook.md">Security Handbook</a></sub>
 </p>
