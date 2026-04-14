@@ -65,22 +65,34 @@ Run `/arch-enforcer` in Claude Code — pick Go or Python framework, Claude lock
 </details>
 
 <details>
-<summary>Multi-agent rooms</summary>
+<summary>Multi-agent rooms — team vibe coding</summary>
+
+Each teammate opens a terminal and gets their own Claude agent. Agents stay in their lane and talk to each other when they need something.
+
+```
+Alice                    Bob                     Charlie
+  ↓                       ↓                        ↓
+make agent NAME=go    make agent NAME=python   make agent NAME=ci
+  ↓                       ↓                        ↓
+owns go/              owns python/             owns .github/
+```
+
+Alice tells her agent "build a login page." Bob tells his "add a user API." Both vibe code in parallel — Claude handles the coordination:
 
 <p align="center">
   <img src="docs/screenshots/agents-animation.gif" alt="Agent coordination — Go and Python agents passing notes instead of overwriting code" width="600">
 </p>
 
-Multiple Claude agents work on the same codebase without conflicts. Each agent owns a directory — `guard.sh` hard-blocks edits outside your room.
-
 ```bash
 make rooms                    # auto-detects project structure, zero config
-make agent NAME=go            # Terminal 1
-make agent NAME=python        # Terminal 2
-make room-status              # see pending requests
+make agent NAME=go            # Alice's terminal
+make agent NAME=python        # Bob's terminal
+make room-status              # see pending requests across the team
 ```
 
-Agents communicate via inbox/outbox markdown files. A live activity feed (`rooms/activity.md`) auto-warns agents when someone else is editing the same area.
+- `guard.sh` **hard-blocks** edits outside your room — agents can't break the rules
+- Agents communicate via **inbox/outbox** markdown files — no merge conflicts
+- A live **activity feed** auto-warns agents when someone else is editing nearby
 
 [Full docs →](rooms/README.md)
 

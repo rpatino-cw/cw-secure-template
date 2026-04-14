@@ -614,6 +614,99 @@ section {
   color: var(--text-mid);
 }
 
+/* ═══ TEAM FLOW — How vibe coding works ═══ */
+.team-flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(16px, 2vw, 32px);
+  margin-bottom: clamp(40px, 5vw, 64px);
+}
+
+.team-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.tm-person {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  border: 2px solid;
+}
+
+.tm-person.alice { background: var(--blue-bg); border-color: oklch(75% 0.06 250); }
+.tm-person.bob { background: var(--green-bg); border-color: oklch(75% 0.06 155); }
+.tm-person.charlie { background: var(--amber-bg); border-color: oklch(75% 0.06 65); }
+
+.tm-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.tm-arrow {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.tm-terminal {
+  background: var(--term-bg);
+  color: var(--term-green);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  padding: 8px 14px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.tm-arrow2 {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.tm-room {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 6px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.03em;
+}
+
+.tm-room.go-room { background: var(--blue-bg); color: var(--blue); }
+.tm-room.py-room { background: var(--green-bg); color: var(--green); }
+.tm-room.ci-room { background: var(--amber-bg); color: var(--amber-deep); }
+
+.team-label {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.then-arrow {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: clamp(16px, 2vw, 24px);
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+@media (max-width: 768px) {
+  .team-flow { grid-template-columns: 1fr; gap: 24px; }
+  .team-member { flex-direction: row; text-align: left; gap: 10px; }
+  .tm-arrow, .tm-arrow2 { display: none; }
+}
+
 /* ═══ FOOTER ═══ */
 .footer {
   padding: 48px 0;
@@ -763,11 +856,43 @@ section {
   </div>
 </section>
 
-<!-- ═══ ROOMS — Animated Story ═══ -->
+<!-- ═══ ROOMS — Team Vibe Coding ═══ -->
 <section class="rooms">
   <div class="wrap">
-    <h2 class="reveal">Agents that talk to each other.</h2>
-    <p class="rooms-sub reveal">Each agent owns a room. They pass notes instead of overwriting each other's work.</p>
+    <h2 class="reveal">Your team vibe codes. Agents coordinate.</h2>
+    <p class="rooms-sub reveal">Each teammate opens a terminal and gets their own Claude agent. The agents stay in their lane and talk to each other when they need something.</p>
+
+    <!-- Step 1: Team Setup -->
+    <p class="team-label reveal">Each person runs one command:</p>
+    <div class="team-flow reveal">
+      <div class="team-member">
+        <div class="tm-person alice">A</div>
+        <div class="tm-name">Alice</div>
+        <div class="tm-arrow">↓</div>
+        <div class="tm-terminal">make agent NAME=go</div>
+        <div class="tm-arrow2">↓</div>
+        <div class="tm-room go-room">owns go/</div>
+      </div>
+      <div class="team-member">
+        <div class="tm-person bob">B</div>
+        <div class="tm-name">Bob</div>
+        <div class="tm-arrow">↓</div>
+        <div class="tm-terminal">make agent NAME=python</div>
+        <div class="tm-arrow2">↓</div>
+        <div class="tm-room py-room">owns python/</div>
+      </div>
+      <div class="team-member">
+        <div class="tm-person charlie">C</div>
+        <div class="tm-name">Charlie</div>
+        <div class="tm-arrow">↓</div>
+        <div class="tm-terminal">make agent NAME=ci</div>
+        <div class="tm-arrow2">↓</div>
+        <div class="tm-room ci-room">owns .github/</div>
+      </div>
+    </div>
+
+    <!-- Step 2: What happens when agents need each other -->
+    <div class="then-arrow reveal">↓ then when Alice's agent needs something from Bob's...</div>
 
     <div class="stage reveal" id="agentStage">
       <div class="room-boundary"></div>
