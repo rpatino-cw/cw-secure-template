@@ -34,7 +34,30 @@ data = json.loads(sys.argv[1])
 print(data.get('tool_input', {}).get('old_string', ''))
 " "$INPUT" 2>/dev/null || echo "")
 
-# --- Guard 0: Path traversal check ---
+# --- Guard 0a: Stack lock — block wrong-stack code ---
+REPO_ROOT_G="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+STACK_FILE="$REPO_ROOT_G/.stack"
+if [[ -f "$STACK_FILE" && -n "$FILE_PATH" ]]; then
+  LOCKED_STACK=$(cat "$STACK_FILE" | tr -d '[:space:]')
+  case "$LOCKED_STACK" in
+    go)
+      if [[ "$FILE_PATH" == *"python/"* ]]; then
+        echo "BLOCKED: This project is locked to Go. Cannot edit Python files." >&2
+        echo "The Python starter was removed during 'make init'." >&2
+        exit 2
+      fi
+      ;;
+    python)
+      if [[ "$FILE_PATH" == *"go/"* ]]; then
+        echo "BLOCKED: This project is locked to Python. Cannot edit Go files." >&2
+        echo "The Go starter was removed during 'make init'." >&2
+        exit 2
+      fi
+      ;;
+  esac
+fi
+
+# --- Guard 0b: Path traversal check ---
 if [[ "$FILE_PATH" == *".."* ]]; then
   echo "BLOCKED: Path traversal detected: $FILE_PATH" >&2
   echo "File paths must not contain '..' components." >&2

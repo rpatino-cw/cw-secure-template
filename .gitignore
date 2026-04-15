@@ -236,6 +236,9 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
+# Stack lock (set by make init)
+.stack
+
 # Room coordination (ephemeral agent messages and activity)
 rooms/*/inbox/*.md
 rooms/*/outbox/*.md

@@ -20,6 +20,45 @@ echo "  This customizes the template for your specific app."
 echo "  Claude will use this context every time you prompt it."
 echo ""
 
+# ─── Stack selection (one-time, permanent) ───
+HAS_GO=$([ -f go/go.mod ] && echo "1" || echo "0")
+HAS_PY=$([ -f python/pyproject.toml ] && echo "1" || echo "0")
+
+if [ "$HAS_GO" = "1" ] && [ "$HAS_PY" = "1" ]; then
+  echo "  Pick your stack (the other will be removed):"
+  echo ""
+  echo "    1) Go"
+  echo "    2) Python"
+  echo ""
+  read -rp "  Enter 1 or 2: " STACK_CHOICE
+
+  case "$STACK_CHOICE" in
+    1)
+      echo ""
+      echo -e "  ${GREEN}✓${NC} Locked to Go. Removing Python starter..."
+      rm -rf python/
+      echo "go" > .stack
+      ;;
+    2)
+      echo ""
+      echo -e "  ${GREEN}✓${NC} Locked to Python. Removing Go starter..."
+      rm -rf go/
+      echo "python" > .stack
+      ;;
+    *)
+      echo "  Invalid choice. Run make init again."
+      exit 1
+      ;;
+  esac
+  echo ""
+elif [ "$HAS_GO" = "1" ]; then
+  echo -e "  ${DIM}Stack: Go (only Go starter found)${NC}"
+  echo "go" > .stack
+elif [ "$HAS_PY" = "1" ]; then
+  echo -e "  ${DIM}Stack: Python (only Python starter found)${NC}"
+  echo "python" > .stack
+fi
+
 # ─── App name ───
 read -rp "  App name (e.g. inventory-tracker): " APP_NAME
 APP_NAME=${APP_NAME:-my-app}
@@ -197,6 +236,10 @@ echo -e "  ${DIM}  App: ${APP_NAME}${NC}"
 echo -e "  ${DIM}  Purpose: ${APP_DESC}${NC}"
 echo -e "  ${DIM}  Team: ${TEAM_NAME} (${SLACK_CHANNEL})${NC}"
 echo -e "  ${DIM}  Data: ${DATA_DESC}${NC}"
+echo ""
+STACK_LOCKED=""
+[ -f .stack ] && STACK_LOCKED=$(cat .stack)
+[ -n "$STACK_LOCKED" ] && echo -e "  ${GREEN}\u2713${NC} Stack locked: ${BOLD}${STACK_LOCKED}${NC} (cannot switch)"
 echo ""
 echo "  Next: start building! Claude will use this context automatically."
 echo ""
