@@ -142,8 +142,7 @@ Each file in `.claude/rules/` covers one part of the codebase. Claude reads and 
 
 ## Docs
 
-- **[How it works](https://rpatino-cw.github.io/cw-secure-template/visualizer.html)** — interactive visualizer with animated flowcharts and code explainer (`make viz`)
-- **[Landing page](https://rpatino-cw.github.io/cw-secure-template/)** — visual overview with live agent demo
+- **[Live site](https://rpatino-cw.github.io/cw-secure-template/)** — visual overview, live agent demo, and deep-dive explainer (`make viz`)
 - [Getting started](docs/getting-started.md) — clone to running in 6 steps
 - [Security handbook](docs/security-handbook.md) — plain-English OWASP guide with glossary
 
