@@ -609,9 +609,8 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
   width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--border);
-  transition: background 0.3s ease, transform 0.3s ease;
+  transition: background 0.3s ease;
 }
-.step-dot.active { background: var(--amber); transform: scale(1.3); }
 
 /* Team flow  */
 .team-flow {
@@ -1144,6 +1143,166 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
   padding: 10px 16px;
   border-radius: var(--radius);
   display: inline-block;
+  max-width: 100%;
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+/* Guide — Prereqs */
+.guide-prereq {
+  background: var(--bg-alt);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 48px;
+}
+.prereq-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+.prereq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+@media (max-width: 640px) { .prereq-grid { grid-template-columns: 1fr; } }
+
+.prereq-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.prereq-item strong { display: block; color: var(--text); }
+.prereq-hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.prereq-hint code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  background: var(--surface);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.prereq-check {
+  width: 20px; height: 20px; flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  margin-top: 2px;
+  position: relative;
+}
+.prereq-check::after {
+  content: '';
+  position: absolute;
+  left: 5px; top: 1px;
+  width: 6px; height: 10px;
+  border: solid var(--green);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  opacity: 0;
+}
+.prereq-item:hover .prereq-check::after { opacity: 1; transition: opacity 0.2s; }
+
+/* Guide — What Happened / Tips */
+.guide-what-happened {
+  margin-top: 14px;
+  background: var(--bg-alt);
+  border-radius: 8px;
+  padding: 16px 20px;
+  border-left: 3px solid var(--green);
+}
+.gwh-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 8px;
+}
+.gwh-list { display: flex; flex-direction: column; gap: 6px; }
+.gwh-item {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gwh-icon {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; flex-shrink: 0;
+  font-weight: 700;
+}
+.gwh-icon.ok { background: var(--green-bg); color: var(--green); }
+
+.guide-tip {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+  padding: 12px 16px;
+  background: var(--amber-bg);
+  border-radius: 8px;
+  border-left: 3px solid var(--amber);
+}
+.guide-tip strong { color: var(--amber-deep); display: block; margin-bottom: 2px; }
+.guide-tip code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  background: oklch(100% 0 0 / 0.5);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Guide — FAQ */
+.guide-faq {
+  margin-top: 56px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+}
+.faq-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media (max-width: 640px) { .faq-grid { grid-template-columns: 1fr; } }
+
+.faq-item {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: border-color 0.2s;
+}
+.faq-item:hover { border-color: var(--text-dim); }
+.faq-q {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.faq-a {
+  font-size: 0.85rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+.faq-a code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  background: var(--bg-alt);
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 
 /* ═══ FOOTER ═══ */
@@ -1173,6 +1332,290 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
   border-radius: 50%;
   border: 2px solid currentColor;
   animation: pulse-ring 2s cubic-bezier(.16,1,.3,1) infinite;
+}
+
+/* ═══ ENHANCED ROOMS ANIMATIONS ═══ */
+
+/* Agent typing bob — loops while active */
+@keyframes agent-typing {
+  0%, 100% { transform: translateY(0); }
+  25% { transform: translateY(-3px); }
+  50% { transform: translateY(-1px); }
+  75% { transform: translateY(-4px); }
+}
+.agent-avatar.typing {
+  animation: agent-typing 0.6s ease-in-out infinite;
+}
+
+/* Agent idle floating */
+@keyframes agent-idle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.agent-avatar.idle-float {
+  animation: agent-idle-float 3s ease-in-out infinite;
+}
+
+/* Blocked shield shake */
+@keyframes shield-shake {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  15% { transform: translate(-50%, -50%) scale(1.05) rotate(-6deg); }
+  30% { transform: translate(-50%, -50%) scale(1) rotate(5deg); }
+  45% { transform: translate(-50%, -50%) scale(1.02) rotate(-4deg); }
+  60% { transform: translate(-50%, -50%) scale(1) rotate(3deg); }
+  75% { transform: translate(-50%, -50%) scale(1.01) rotate(-1deg); }
+}
+.blocked-shield.shake {
+  animation: shield-shake 0.5s ease-out forwards;
+}
+
+/* Note trail effect */
+.note::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to left, var(--amber), transparent);
+  filter: blur(4px);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.note.flying::after { opacity: 0.7; }
+.note.flying-back::after {
+  opacity: 0.7;
+  right: auto;
+  left: 100%;
+  background: linear-gradient(to right, var(--green), transparent);
+}
+
+/* Step dot pulse */
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(72% 0.17 65 / 0.4); }
+  50% { box-shadow: 0 0 0 6px oklch(72% 0.17 65 / 0); }
+}
+.step-dot.active {
+  background: var(--amber);
+  transform: scale(1.3);
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+
+/* Desk file glow */
+.desk {
+  position: relative;
+}
+.desk::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: -4px;
+  right: -4px;
+  height: 12px;
+  border-radius: 50%;
+  filter: blur(8px);
+  opacity: 0.5;
+}
+.agent-go .desk::after { background: oklch(52% 0.12 250 / 0.4); }
+.agent-py .desk::after { background: oklch(55% 0.16 155 / 0.4); }
+
+/* Room boundary pulse */
+@keyframes boundary-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.room-boundary {
+  animation: boundary-pulse 3s ease-in-out infinite;
+}
+
+/* Room rules strip */
+.room-rules-strip {
+  max-width: 640px;
+  margin: 0 auto clamp(32px, 4vw, 48px);
+  background: var(--term-bg);
+  border-radius: 8px;
+  padding: 20px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  overflow: hidden;
+}
+.room-rules-header {
+  font-size: 0.75rem;
+  color: var(--term-dim);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.room-rules-header code {
+  color: var(--amber);
+  font-weight: 500;
+}
+.room-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 5px 0;
+  font-size: 0.78rem;
+  color: var(--term-text);
+  opacity: 0;
+  transform: translateX(-12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.room-rule.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.room-rule-check {
+  color: var(--term-green);
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  position: relative;
+}
+@keyframes check-draw {
+  0% { clip-path: inset(0 100% 0 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+.room-rule.visible .room-rule-check {
+  animation: check-draw 0.3s ease-out forwards;
+}
+
+/* Inbox/outbox protocol */
+.inbox-protocol {
+  max-width: 640px;
+  margin: clamp(32px, 4vw, 48px) auto 0;
+}
+.inbox-protocol-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.inbox-file {
+  background: var(--term-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.inbox-file-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: oklch(12% 0.01 260);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--term-dim);
+}
+.inbox-file-bar .ipath { color: var(--amber); margin-left: auto; }
+.inbox-file-body {
+  padding: 14px 18px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.73rem;
+  line-height: 1.8;
+  color: var(--term-text);
+  min-height: 64px;
+}
+.inbox-file-body .ifrontmatter {
+  color: var(--term-dim);
+}
+.inbox-file-body .ikey {
+  color: oklch(65% 0.12 250);
+}
+.inbox-file-body .ival {
+  color: var(--term-green);
+}
+.inbox-file-body .imsg {
+  color: #fafaf9;
+}
+.inbox-typing-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--term-green);
+  vertical-align: text-bottom;
+  animation: cursor-blink 0.8s step-end infinite;
+}
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Then-arrow styled callout */
+.then-callout {
+  text-align: center;
+  margin-bottom: clamp(16px, 2vw, 24px);
+  padding: 14px 24px;
+  background: var(--amber-bg);
+  border: 1px solid oklch(72% 0.17 65 / 0.3);
+  border-radius: 8px;
+  color: var(--amber-deep);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+.then-callout-icon {
+  font-size: 1.1rem;
+}
+
+/* ═══ ENHANCED LIVE DEMO ═══ */
+
+/* Event flash */
+@keyframes ev-flash {
+  0% { background: oklch(90% 0.06 65 / 0.3); }
+  100% { background: transparent; }
+}
+.demo-ev.ev-flash {
+  animation: ev-flash 0.6s ease-out forwards;
+}
+
+/* File shake on block */
+@keyframes file-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+.demo-file.shake {
+  animation: file-shake 0.35s ease-out;
+}
+
+/* Stat spring overshoot */
+@keyframes stat-spring {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.25); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+.demo-stat-val.spring {
+  animation: stat-spring 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Live indicator */
+.demo-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(60% 0.2 25);
+  margin-right: 6px;
+  vertical-align: middle;
+  position: relative;
+}
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 oklch(60% 0.2 25 / 0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 4px oklch(60% 0.2 25 / 0); }
+}
+.demo-live-dot {
+  animation: live-pulse 1.5s ease-in-out infinite;
 }
 
 /* ═══ RESPONSIVE ═══ */
@@ -1443,8 +1886,17 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
       </div>
     </div>
 
+    <!-- Room Rules Strip -->
+    <div class="room-rules-strip reveal" id="roomRulesStrip">
+      <div class="room-rules-header"><code>guard.sh</code> enforces 4 rules on every edit:</div>
+      <div class="room-rule" data-delay="0"><span class="room-rule-check">&#10003;</span> Can only edit files you own</div>
+      <div class="room-rule" data-delay="1"><span class="room-rule-check">&#10003;</span> Can't delete functions used by other rooms</div>
+      <div class="room-rule" data-delay="2"><span class="room-rule-check">&#10003;</span> Renames auto-notify affected rooms</div>
+      <div class="room-rule" data-delay="3"><span class="room-rule-check">&#10003;</span> Shared files require approver room's permission</div>
+    </div>
+
     <!-- Agent Story Animation -->
-    <div class="then-arrow reveal">&#8595; then when Alice's agent needs something from Bob's...</div>
+    <div class="then-callout reveal"><span class="then-callout-icon">&#8595;</span> When Alice's agent needs something from Bob's...</div>
 
     <div class="stage reveal" id="agentStage">
       <div class="room-boundary"></div>
@@ -1474,6 +1926,25 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
       <div class="step-dot" data-step="3"></div>
       <div class="step-dot" data-step="4"></div>
       <div class="step-dot" data-step="5"></div>
+    </div>
+
+    <!-- Inbox/Outbox Protocol -->
+    <div class="inbox-protocol reveal" id="inboxProtocol">
+      <div class="inbox-protocol-label">The actual file that gets created</div>
+      <div class="inbox-file" id="inboxRequest">
+        <div class="inbox-file-bar">
+          <span>&#128196;</span>
+          <span class="ipath">rooms/python/inbox/20260415-143022-from-go.md</span>
+        </div>
+        <div class="inbox-file-body" id="inboxReqBody"></div>
+      </div>
+      <div class="inbox-file" id="inboxResponse" style="opacity:0;transform:translateY(8px);transition:opacity 0.4s,transform 0.4s">
+        <div class="inbox-file-bar">
+          <span>&#128196;</span>
+          <span class="ipath" style="color:var(--term-green)">rooms/go/outbox/20260415-143055-to-go.md</span>
+        </div>
+        <div class="inbox-file-body" id="inboxResBody"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1538,7 +2009,7 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
     <div class="demo-log">
       <div class="demo-log-bar">
         <span></span><span></span><span></span>
-        <div class="demo-log-title">live event log</div>
+        <div class="demo-log-title"><span class="demo-live-dot"></span>live event log</div>
       </div>
       <div class="demo-events" id="demoEvents"></div>
     </div>
@@ -1865,59 +2336,152 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
   </div>
 </section>
 
-<!-- ═══ 12. GETTING STARTED ═══ -->
+<!-- ═══ 12. GETTING STARTED — BEGINNER FRIENDLY ═══ -->
 <section id="guide">
   <div class="container">
-    <div class="section-label reveal">Getting Started</div>
-    <h2 class="section-title reveal">From zero to<br>secure app</h2>
+    <div class="section-label reveal">New Here?</div>
+    <h2 class="section-title reveal">Your first secure app<br>in 5 minutes</h2>
+    <p class="section-desc reveal">Never used Claude Code? Never heard of OWASP? No problem. Follow these steps exactly and you'll have a running, secured app before your coffee gets cold.</p>
 
+    <!-- PREREQS -->
+    <div class="guide-prereq reveal">
+      <div class="prereq-title">Before you start, you need:</div>
+      <div class="prereq-grid">
+        <div class="prereq-item">
+          <div class="prereq-check"></div>
+          <div>
+            <strong>A terminal</strong>
+            <span class="prereq-hint">Mac: open Terminal. Windows: use WSL. Linux: you already know.</span>
+          </div>
+        </div>
+        <div class="prereq-item">
+          <div class="prereq-check"></div>
+          <div>
+            <strong>Git installed</strong>
+            <span class="prereq-hint">Type <code>git --version</code>. If it says "not found", run <code>brew install git</code></span>
+          </div>
+        </div>
+        <div class="prereq-item">
+          <div class="prereq-check"></div>
+          <div>
+            <strong>Python 3.11+ or Go 1.21+</strong>
+            <span class="prereq-hint">Check: <code>python3 --version</code> or <code>go version</code></span>
+          </div>
+        </div>
+        <div class="prereq-item">
+          <div class="prereq-check"></div>
+          <div>
+            <strong>Claude Code</strong>
+            <span class="prereq-hint">The AI coding tool. Install: <code>npm install -g @anthropic-ai/claude-code</code></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEPS -->
     <div class="guide-steps reveal">
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Clone and setup</h4>
-          <p>One command installs git hooks, creates .env, and wires up the guard. Takes about 30 seconds.</p>
-          <div class="guide-cmd">git clone github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh</div>
+          <h4>Clone the framework</h4>
+          <p>This downloads the entire security system to your computer. The <code>setup.sh</code> script installs git hooks, creates your config file, and wires up the guard — automatically.</p>
+          <div class="guide-cmd">git clone https://github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh</div>
+          <div class="guide-what-happened">
+            <div class="gwh-title">What just happened?</div>
+            <div class="gwh-list">
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Pre-commit hook installed — scans for leaked secrets before every commit</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Pre-push hook installed — runs tests before code leaves your machine</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Guard.sh registered — checks every file Claude tries to edit</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> .env created from template — your secrets go here, never in code</div>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Pick your stack</h4>
-          <p>Go or Python — choose one and the other gets removed. This locks the project so Claude never mixes languages.</p>
+          <h4>Pick your language</h4>
+          <p>Go or Python — pick one. The other gets deleted. This "locks" the project so Claude can't accidentally mix languages. You can't undo this (by design).</p>
           <div class="guide-cmd">make init</div>
+          <div class="guide-tip">
+            <strong>Not sure which to pick?</strong> If you're new to programming, choose Python. If you're building a high-performance API, choose Go.
+          </div>
         </div>
       </div>
+
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Store your secrets</h4>
-          <p>API keys, database URLs, tokens — all go through hidden input. Never in code, never in git.</p>
+          <h4>Store your secrets safely</h4>
+          <p>Got an API key? A database URL? <strong>Never paste them in code.</strong> This command stores them in a hidden file (<code>.env</code>) that git ignores. The input is hidden — no one can see what you type.</p>
           <div class="guide-cmd">make add-secret</div>
+          <div class="guide-tip">
+            <strong>Why not just put the key in my code?</strong> Because if you commit it to git, it's in the history forever — even if you delete it later. Attackers scan GitHub for leaked keys. <code>.env</code> is gitignored, so it never leaves your machine.
+          </div>
         </div>
       </div>
+
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Start building</h4>
-          <p>Open Claude Code and start prompting. Auth, rate limiting, CORS, headers — all pre-wired. The guard watches every edit.</p>
+          <h4>Open Claude Code and start building</h4>
+          <p>Type <code>claude</code> in your terminal to start Claude Code. Then just tell it what you want: "Build me a user registration API" or "Add a login page." The guard watches every edit Claude makes — you don't need to know security, the framework handles it.</p>
           <div class="guide-cmd">make start</div>
+          <div class="guide-what-happened">
+            <div class="gwh-title">What's running now?</div>
+            <div class="gwh-list">
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Your app is live at <strong>http://localhost:8080</strong></div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Auth middleware active (bypassed locally with DEV_MODE=true)</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Rate limiting: 100 requests/min per IP</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Security headers on every response</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Request ID tracking for debugging</div>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Check before shipping</h4>
-          <p>Runs lint, tests, and security scan. If anything fails, fix it. CI runs the same checks.</p>
+          <h4>Check everything before sharing</h4>
+          <p>Before you push code or open a pull request, run this. It checks code style, runs your tests, and scans for security issues. If something fails, it tells you exactly what to fix.</p>
           <div class="guide-cmd">make check</div>
+          <div class="guide-tip">
+            <strong>What if it fails?</strong> Run <code>make fix</code> — it auto-fixes most lint and style issues. For security issues, it gives you plain-English instructions.
+          </div>
         </div>
       </div>
+
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Learn while you build</h4>
-          <p>Take the 15-question OWASP quiz to level up your security knowledge. Read the handbook for deeper dives.</p>
+          <h4>Level up your security knowledge</h4>
+          <p>Take a 15-question quiz about the most common security mistakes (the "OWASP Top 10"). You'll learn why each rule exists — not just that it exists. No studying needed — the questions teach you as you go.</p>
           <div class="guide-cmd">make learn</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMMON QUESTIONS -->
+    <div class="guide-faq reveal">
+      <h3 class="faq-title">Common questions from beginners</h3>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <div class="faq-q">What if Claude tries to write bad code?</div>
+          <div class="faq-a">The guard blocks it before it's saved. You'll see a red "BLOCKED" message explaining why and what to do instead. You don't need to catch it — the system does.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Do I need to understand security?</div>
+          <div class="faq-a">No. The framework enforces security automatically. But you'll learn it naturally — Claude adds <code>// SECURITY LESSON:</code> comments explaining every decision it makes.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">What if I break something?</div>
+          <div class="faq-a">Run <code>make doctor</code> — it checks your entire security pipeline and tells you if anything is misconfigured. Run <code>make fix</code> to auto-repair common issues.</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">Can I use this with a team?</div>
+          <div class="faq-a">Yes — that's what rooms are for. Run <code>make rooms</code> to set up multi-agent coordination. Each person gets their own Claude agent that can only edit their files.</div>
         </div>
       </div>
     </div>
@@ -1969,7 +2533,7 @@ const navObs = new IntersectionObserver((entries) => {
 }, { threshold: 0.3 });
 sections.forEach(s => navObs.observe(s));
 
-// ═══ AGENT ANIMATION (vanilla JS) ═══
+// ═══ AGENT ANIMATION (vanilla JS — enhanced) ═══
 (function() {
   const stage = document.getElementById('agentStage');
   if (!stage) return;
@@ -1979,6 +2543,8 @@ sections.forEach(s => navObs.observe(s));
   const shield = document.getElementById('blockedShield');
   const noteReq = document.getElementById('noteRequest');
   const noteRes = document.getElementById('noteResponse');
+  const goAvatar = go.querySelector('.agent-avatar');
+  const pyAvatar = py.querySelector('.agent-avatar');
   const caps = [
     document.getElementById('cap1'),
     document.getElementById('cap2'),
@@ -1997,6 +2563,15 @@ sections.forEach(s => navObs.observe(s));
     dots.forEach((d, i) => d.classList.toggle('active', i === idx));
   }
 
+  function setTyping(avatar, on) {
+    avatar.classList.remove('typing', 'idle-float');
+    if (on) avatar.classList.add('typing');
+  }
+  function setIdle(avatar, on) {
+    avatar.classList.remove('typing', 'idle-float');
+    if (on) avatar.classList.add('idle-float');
+  }
+
   function animate(el, props, duration) {
     duration = duration || 600;
     return new Promise(function(resolve) {
@@ -2009,6 +2584,8 @@ sections.forEach(s => navObs.observe(s));
     });
   }
 
+  function delay(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
   function resetAll() {
     [go, py, shield, noteReq, noteRes].forEach(function(el) {
       el.style.transition = 'none';
@@ -2017,14 +2594,20 @@ sections.forEach(s => navObs.observe(s));
     });
     shield.style.transform = 'translate(-50%, -50%) scale(0)';
     shield.style.opacity = '0';
+    shield.classList.remove('shake');
     noteReq.style.opacity = '0';
     noteReq.style.left = '28%';
+    noteReq.classList.remove('flying', 'flying-back');
     noteRes.style.opacity = '0';
     noteRes.style.left = '';
     noteRes.style.right = '28%';
+    noteRes.classList.remove('flying', 'flying-back');
     go.querySelector('.agent-mouth').style.cssText = '';
     py.querySelector('.agent-mouth').style.cssText = '';
-    go.querySelector('.agent-avatar').style.transform = '';
+    goAvatar.style.transform = '';
+    goAvatar.classList.remove('typing', 'idle-float');
+    pyAvatar.style.transform = '';
+    pyAvatar.classList.remove('typing', 'idle-float');
   }
 
   async function runCycle() {
@@ -2032,77 +2615,94 @@ sections.forEach(s => navObs.observe(s));
     running = true;
     resetAll();
 
-    // Step 1: Both coding happily
+    // Step 1: Both coding happily (typing bob)
     setCaption(0);
-    await animate(go.querySelector('.agent-avatar'), { transform: 'translateY(-3px)' }, 400);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(-3px)' }, 400);
-    await animate(go.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 400);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 400);
-    await new Promise(function(r) { setTimeout(r, 800); });
+    setTyping(goAvatar, true);
+    setTyping(pyAvatar, true);
+    await delay(1200);
 
-    // Step 2: Go reaches right, gets BLOCKED
+    // Step 2: Go reaches right, gets BLOCKED with shake
     setCaption(1);
-    await animate(go, { transform: 'translateX(60px)' }, 700);
-    await new Promise(function(r) { setTimeout(r, 200); });
+    setTyping(goAvatar, false);
+    setIdle(pyAvatar, true);
+    await animate(go, { transform: 'translateX(60px)' }, 500);
+    await delay(100);
     shield.style.transition = 'none';
     shield.style.transform = 'translate(-50%, -50%) scale(0)';
     shield.style.opacity = '0';
-    await new Promise(function(r) { setTimeout(r, 50); });
-    await animate(shield, { transform: 'translate(-50%, -50%) scale(1)', opacity: '1' }, 400);
+    shield.classList.remove('shake');
+    await delay(30);
+    await animate(shield, { transform: 'translate(-50%, -50%) scale(1)', opacity: '1' }, 280);
+    shield.classList.add('shake');
     var goMouth = go.querySelector('.agent-mouth');
     goMouth.style.borderBottom = 'none';
     goMouth.style.borderTop = '2.5px solid var(--text)';
     goMouth.style.borderRadius = '50% 50% 0 0';
     goMouth.style.bottom = '18px';
-    await animate(go, { transform: 'translateX(-10px)' }, 500);
-    await new Promise(function(r) { setTimeout(r, 1000); });
-    await animate(shield, { transform: 'translate(-50%, -50%) scale(0)', opacity: '0' }, 400);
+    await animate(go, { transform: 'translateX(-10px)' }, 350);
+    await delay(500);
+    await animate(shield, { transform: 'translate(-50%, -50%) scale(0)', opacity: '0' }, 300);
 
-    // Step 3: Go writes a note, sends it
+    // Step 3: Go writes a note, sends it with trail
     setCaption(2);
     goMouth.style.cssText = '';
-    go.style.transition = 'all 500ms cubic-bezier(0.16, 1, 0.3, 1)';
+    setTyping(goAvatar, true);
+    go.style.transition = 'all 350ms cubic-bezier(0.16, 1, 0.3, 1)';
     go.style.transform = '';
-    await new Promise(function(r) { setTimeout(r, 500); });
+    await delay(350);
+    setTyping(goAvatar, false);
     noteReq.style.transition = 'none';
     noteReq.style.left = '28%';
     noteReq.style.opacity = '0';
     noteReq.style.top = '145px';
-    await new Promise(function(r) { setTimeout(r, 50); });
-    await animate(noteReq, { opacity: '1', transform: 'scale(1)' }, 400);
-    await new Promise(function(r) { setTimeout(r, 400); });
-    await animate(noteReq, { left: '62%' }, 900);
-    await new Promise(function(r) { setTimeout(r, 600); });
+    noteReq.style.transform = '';
+    noteReq.classList.remove('flying');
+    await delay(30);
+    await animate(noteReq, { opacity: '1', transform: 'scale(1)' }, 250);
+    await delay(200);
+    noteReq.classList.add('flying');
+    await animate(noteReq, { left: '62%' }, 600);
+    noteReq.classList.remove('flying');
+    await delay(200);
 
-    // Step 4: Python reads and works
+    // Step 4: Python reads and works (typing bob)
     setCaption(3);
-    await animate(noteReq, { opacity: '0', transform: 'scale(0.8)' }, 300);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(-4px)' }, 300);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 300);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(-4px)' }, 300);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 300);
-    await new Promise(function(r) { setTimeout(r, 600); });
+    await animate(noteReq, { opacity: '0', transform: 'scale(0.8)' }, 200);
+    setTyping(pyAvatar, true);
+    setIdle(goAvatar, true);
+    await delay(900);
 
-    // Step 5: Response flies back
+    // Step 5: Response flies back with trail
     setCaption(4);
+    setTyping(pyAvatar, false);
     noteRes.style.transition = 'none';
     noteRes.style.right = '';
     noteRes.style.left = '62%';
     noteRes.style.top = '145px';
     noteRes.style.opacity = '0';
-    await new Promise(function(r) { setTimeout(r, 50); });
-    await animate(noteRes, { opacity: '1' }, 300);
-    await animate(noteRes, { left: '28%' }, 900);
-    await new Promise(function(r) { setTimeout(r, 300); });
-    await animate(noteRes, { opacity: '0', transform: 'scale(0.8)' }, 300);
+    noteRes.style.transform = '';
+    noteRes.classList.remove('flying-back');
+    await delay(30);
+    await animate(noteRes, { opacity: '1' }, 200);
+    noteRes.classList.add('flying-back');
+    await animate(noteRes, { left: '28%' }, 600);
+    noteRes.classList.remove('flying-back');
+    await delay(150);
+    await animate(noteRes, { opacity: '0', transform: 'scale(0.8)' }, 200);
 
-    await animate(go.querySelector('.agent-avatar'), { transform: 'translateY(-6px)' }, 300);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(-6px)' }, 300);
-    await new Promise(function(r) { setTimeout(r, 200); });
-    await animate(go.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 300);
-    await animate(py.querySelector('.agent-avatar'), { transform: 'translateY(0)' }, 300);
+    // Celebration — both bob
+    setIdle(goAvatar, false);
+    setTyping(goAvatar, true);
+    setTyping(pyAvatar, true);
+    await delay(600);
+    setTyping(goAvatar, false);
+    setTyping(pyAvatar, false);
+    setIdle(goAvatar, true);
+    setIdle(pyAvatar, true);
 
-    await new Promise(function(r) { setTimeout(r, 1500); });
+    await delay(800);
+    setIdle(goAvatar, false);
+    setIdle(pyAvatar, false);
 
     running = false;
     if (looping) runCycle();
@@ -2120,6 +2720,92 @@ sections.forEach(s => navObs.observe(s));
   }, { threshold: 0.2 });
 
   stageObserver.observe(stage);
+
+  // Room rules staggered reveal on scroll
+  var rulesStrip = document.getElementById('roomRulesStrip');
+  if (rulesStrip) {
+    var rulesObs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          var rules = rulesStrip.querySelectorAll('.room-rule');
+          rules.forEach(function(rule, i) {
+            setTimeout(function() { rule.classList.add('visible'); }, 200 + i * 250);
+          });
+          rulesObs.unobserve(rulesStrip);
+        }
+      });
+    }, { threshold: 0.5 });
+    rulesObs.observe(rulesStrip);
+  }
+
+  // Inbox/outbox typewriter animation
+  var inboxProto = document.getElementById('inboxProtocol');
+  if (inboxProto) {
+    var reqLines = [
+      { cls: 'ifrontmatter', text: '---' },
+      { cls: 'ikey', text: 'from: ', valCls: 'ival', val: 'go' },
+      { cls: 'ikey', text: 'priority: ', valCls: 'ival', val: 'normal' },
+      { cls: 'ifrontmatter', text: '---' },
+      { cls: 'imsg', text: 'I need a GetUser() function returning name + email.' },
+      { cls: 'imsg', text: 'Can you expose it in services/user.py?' },
+    ];
+    var resLines = [
+      { cls: 'ifrontmatter', text: '---' },
+      { cls: 'ikey', text: 'from: ', valCls: 'ival', val: 'python' },
+      { cls: 'ikey', text: 'status: ', valCls: 'ival', val: 'done' },
+      { cls: 'ifrontmatter', text: '---' },
+      { cls: 'imsg', text: 'Done. GetUser() added to services/user.py:42.' },
+      { cls: 'imsg', text: 'Returns {"name": str, "email": str}.' },
+    ];
+
+    function typeLines(bodyEl, lines, cb) {
+      var lineIdx = 0;
+      bodyEl.innerHTML = '';
+      function typeLine() {
+        if (lineIdx >= lines.length) { if (cb) cb(); return; }
+        var ln = lines[lineIdx];
+        var div = document.createElement('div');
+        var span = document.createElement('span');
+        span.className = ln.cls;
+        span.textContent = ln.text;
+        div.appendChild(span);
+        if (ln.val) {
+          var vs = document.createElement('span');
+          vs.className = ln.valCls;
+          vs.textContent = ln.val;
+          div.appendChild(vs);
+        }
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(4px)';
+        bodyEl.appendChild(div);
+        requestAnimationFrame(function() {
+          div.style.transition = 'opacity 0.25s, transform 0.25s';
+          div.style.opacity = '1';
+          div.style.transform = 'translateY(0)';
+        });
+        lineIdx++;
+        setTimeout(typeLine, 120);
+      }
+      typeLine();
+    }
+
+    var inboxObs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          typeLines(document.getElementById('inboxReqBody'), reqLines, function() {
+            setTimeout(function() {
+              var resEl = document.getElementById('inboxResponse');
+              resEl.style.opacity = '1';
+              resEl.style.transform = 'translateY(0)';
+              typeLines(document.getElementById('inboxResBody'), resLines);
+            }, 600);
+          });
+          inboxObs.unobserve(inboxProto);
+        }
+      });
+    }, { threshold: 0.4 });
+    inboxObs.observe(inboxProto);
+  }
 })();
 
 // ═══ LIVE DEMO (GSAP) ═══
@@ -2160,7 +2846,7 @@ sections.forEach(s => navObs.observe(s));
     var cls = sc.type==='pass'?'demo-ev-pass':sc.type==='block'?'demo-ev-block':'demo-ev-guard';
     var icon = sc.type==='pass'?'&#10003;':sc.type==='block'?'&#10007;':'&#9889;';
     var el = document.createElement('div');
-    el.className = 'demo-ev '+cls;
+    el.className = 'demo-ev '+cls+' ev-flash';
     el.innerHTML = '<span class="demo-ev-time">'+fmt(D.clock)+'</span><span class="demo-ev-icon">'+icon+'</span><span class="demo-ev-who" style="color:'+d.color+'">'+d.name+'</span><span class="demo-ev-msg">'+sc.msg+'</span>';
     ev.prepend(el);
     gsap.fromTo(el,{opacity:0,y:8},{opacity:1,y:0,duration:0.3});
@@ -2176,6 +2862,7 @@ sections.forEach(s => navObs.observe(s));
     var bc=sc.type==='pass'?d.color:sc.type==='block'?'var(--red)':'var(--amber)';
     var bg=sc.type==='pass'?d.glow:sc.type==='block'?'var(--red-bg)':'var(--amber-bg)';
     gsap.to(f,{borderColor:bc,background:bg,duration:0.3});
+    if(sc.type==='block'){f.classList.add('shake');setTimeout(function(){f.classList.remove('shake');},400);}
     var tag=f.querySelector('.dtag');
     if(tag&&sc.type==='pass'){tag.style.color=d.color;tag.textContent=d.name;gsap.to(tag,{opacity:1,duration:0.3});}
     var lk=f.querySelector('.dlock');
@@ -2194,12 +2881,30 @@ sections.forEach(s => navObs.observe(s));
     if(d) gsap.timeline().to(d,{scale:1.03,duration:0.12}).to(d,{scale:1,duration:0.25});
   }
 
+  function springVal(el) {
+    el.classList.remove('spring');
+    void el.offsetWidth;
+    el.classList.add('spring');
+    setTimeout(function(){el.classList.remove('spring');},500);
+  }
+
   function stats(sc) {
-    if(sc.type==='pass'){D.edits++;document.getElementById('dEdits').textContent=D.edits;}
-    else{
-      if(sc.msg.includes('uncommitted')){D.conflicts++;document.getElementById('dConflicts').textContent=D.conflicts;}
-      D.blocks++;var el=document.getElementById('dBlocks');el.textContent=D.blocks;
-      gsap.fromTo(el,{scale:1.15,color:'oklch(60% 0.25 25)'},{scale:1,color:'var(--red)',duration:0.3});
+    if(sc.type==='pass'){
+      D.edits++;
+      var edEl=document.getElementById('dEdits');
+      edEl.textContent=D.edits;
+      springVal(edEl);
+    } else {
+      if(sc.msg.includes('uncommitted')){
+        D.conflicts++;
+        var coEl=document.getElementById('dConflicts');
+        coEl.textContent=D.conflicts;
+        springVal(coEl);
+      }
+      D.blocks++;
+      var el=document.getElementById('dBlocks');
+      el.textContent=D.blocks;
+      springVal(el);
     }
   }
 
