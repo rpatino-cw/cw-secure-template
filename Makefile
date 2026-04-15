@@ -22,7 +22,12 @@ ifdef GO_EXISTS
 	@cd go && go run .
 endif
 ifdef PY_EXISTS
-	@cd python && uvicorn src.main:app --reload --port $${PORT:-8080}
+	@cd python && \
+	if [ -f .venv/bin/uvicorn ]; then \
+		.venv/bin/uvicorn src.main:app --reload --port $${PORT:-8080}; \
+	else \
+		uvicorn src.main:app --reload --port $${PORT:-8080}; \
+	fi
 endif
 
 .PHONY: check

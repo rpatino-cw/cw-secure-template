@@ -129,7 +129,38 @@ fi
 if [ -f python/pyproject.toml ]; then
   echo ""
   echo "  Installing Python dependencies..."
-  (cd python && pip install -e ".[dev]" -q 2>/dev/null) && echo -e "  ${GREEN}Done.${NC}" || echo -e "  ${YELLOW}Failed — need Python 3.11+${NC}"
+  PYTHON_INSTALLED=false
+
+  # Try uv first (fastest, already required for memory system)
+  if command -v uv &>/dev/null; then
+    if (cd python && uv venv .venv -q 2>/dev/null && uv pip install -e ".[dev]" -q --python .venv/bin/python 2>/dev/null); then
+      PYTHON_INSTALLED=true
+      echo -e "  ${GREEN}Done (uv).${NC}"
+      echo -e "  ${DIM}Activate venv: source python/.venv/bin/activate${NC}"
+    fi
+  fi
+
+  # Fallback: pip with venv
+  if [ "$PYTHON_INSTALLED" = false ]; then
+    if (cd python && python3 -m venv .venv 2>/dev/null && .venv/bin/pip install -e ".[dev]" -q 2>/dev/null); then
+      PYTHON_INSTALLED=true
+      echo -e "  ${GREEN}Done (pip).${NC}"
+      echo -e "  ${DIM}Activate venv: source python/.venv/bin/activate${NC}"
+    fi
+  fi
+
+  # Last resort: system pip
+  if [ "$PYTHON_INSTALLED" = false ]; then
+    if (cd python && pip install -e ".[dev]" -q 2>/dev/null); then
+      PYTHON_INSTALLED=true
+      echo -e "  ${GREEN}Done (system pip).${NC}"
+    fi
+  fi
+
+  if [ "$PYTHON_INSTALLED" = false ]; then
+    echo -e "  ${YELLOW}Failed to install deps. Try manually:${NC}"
+    echo -e "    cd python && python3 -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'"
+  fi
 fi
 
 # ─── Initial commit ───
