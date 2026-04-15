@@ -8,6 +8,10 @@
   <img src="https://img.shields.io/badge/OWASP_Top_10-Covered-success" alt="OWASP">
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/guardrails.gif" alt="Guardrails — messy prompts in, clean code out" width="600">
+</p>
+
 ---
 
 Clone it. Claude follows security rules, enforcement layers, and an architecture enforcer automatically. No config.
@@ -31,73 +35,83 @@ make learn         15-question security quiz
 <details>
 <summary>What it enforces</summary>
 
-| Problem | What happens |
-|:--------|:------------|
-| Raw SQL in handlers | Blocked. Parameterized queries only |
-| Secrets in code | Refused. Redirected to `make add-secret` |
-| No auth | Okta OIDC on every endpoint. `DEV_MODE=true` for local |
-| No tests | 80% coverage gate. CI blocks the PR |
-| `--force` / `--no-verify` | Denied at runtime |
-| Routes in one file | Enforces `routes/`, `models/`, `services/`, `middleware/` |
+You tell Claude "build me an API." This template makes sure what comes out is secure — without you having to know security.
+
+| You try this | Template does this instead |
+|:-------------|:--------------------------|
+| SQL built with string concatenation | Blocked. Forces parameterized queries |
+| API key pasted into source code | Refused. Redirects to `make add-secret` (hidden input, stored in `.env`) |
+| Endpoint with no login check | Adds Okta OIDC auth automatically. `DEV_MODE=true` for local testing |
+| Shipping code with no tests | 80% coverage gate — CI blocks the PR until tests exist |
+| `--force` / `--no-verify` | Denied before execution. Not Claude's choice — the runtime blocks it |
+| All logic dumped in one file | Enforces separation: `routes/`, `services/`, `models/`, `middleware/` |
 
 </details>
 
 <details>
 <summary>3 enforcement layers</summary>
 
-1. **Rules** — CLAUDE.md + 14 rule files. Anti-override protocol handles social engineering
-2. **Deny list** — Runtime blocks `--force`, `--hard`, `--no-verify`, `eval`, `chmod 777` before execution
-3. **PreToolUse hook** — Shell script catches secrets, dangerous functions, and guardrail edits before they're written
+Three independent systems, all running at the same time. You'd have to beat all three to ship insecure code.
 
-All three must be defeated to bypass. Layers 2 and 3 aren't Claude's decision.
+**Layer 1 — The Rulebook.** CLAUDE.md + 17 rule files tell Claude what's allowed. An anti-override protocol catches social engineering ("ignore the rules", "skip checks", "just this once") and refuses.
+
+**Layer 2 — The Blocklist.** The Claude Code runtime has a deny list that physically blocks dangerous commands (`--force`, `--hard`, `eval()`, `chmod 777`) before they execute. No prompt overrides this — it's not Claude's decision.
+
+**Layer 3 — The Guard.** A shell script (`guard.sh`) runs before every file edit. It scans for secrets, dangerous functions, guardrail file tampering, and full-file overwrites. Even if Claude were convinced to write bad code, the guard rejects it before it's saved.
 
 </details>
 
 <details>
 <summary>Architecture enforcer</summary>
 
-Automatic. `guard.sh` + 14 rule files enforce directory structure, dependency direction, and stack lock on every edit — no manual step needed.
+Every type of code has one place it belongs. The guard enforces this automatically on every edit.
 
-| What | How it's enforced |
-|:-----|:-----------------|
-| Stack lock (Go or Python) | `.stack` file + guard.sh blocks wrong-stack edits |
-| Foundation Gate | Config, logger, DB, middleware must exist before feature code |
-| Dependency direction | routes → services → repositories → models (never skip layers) |
-| File placement | Classes, queries, handlers — each has exactly one home |
+| Rule | What happens |
+|:-----|:-------------|
+| **Stack lock** | `make init` locks the project to Go or Python. Write the wrong language → blocked |
+| **Foundation Gate** | Config, logger, DB, and middleware must exist before you write any feature code |
+| **Dependency direction** | `routes → services → repositories → models`. Skip a layer → blocked |
+| **File placement** | Classes, queries, handlers each have exactly one home directory |
 
-`make init` locks your stack. After that, Claude refuses to deviate.
+Think of it as assigned seating for your code. Put something in the wrong spot and the guard moves you back.
 
 </details>
 
 <details>
-<summary>Rule files</summary>
+<summary>17 rule files</summary>
 
-Auto-generated from `.claude/rules/` (17 files):
+Each file in `.claude/rules/` covers one part of the codebase. Claude reads and follows them automatically.
 
-- **api-conventions** — API Conventions
-- **architecture** — Architecture Enforcement — Automatic
-- **branching** — Branch Discipline
-- **classes** — Classes and Structs — Placement Rules
-- **code-style** — Code Style
-- **collaboration** — Collaboration — Anti-Overwrite, Small Edits, Conflict Awareness
-- **database** — Database Layer — What Belongs Here
-- **entry** — Entry Point — What Belongs Here
-- **frontend** — Frontend — What Belongs Here
-- **functions** — Utility Functions — What Belongs Here
-- **globals** — Config, Constants, Globals — What Belongs Here
-- **models** — Data Models — What Belongs Here
-- **rooms** — Room-Based Multi-Agent Coordination
-- **routes** — Route Files — What Belongs Here
-- **security** — Security Rules for All Source Code
-- **services** — Service Files — What Belongs Here
-- **testing** — Testing Rules
+| Rule | Covers |
+|:-----|:-------|
+| `api-conventions` | RESTful naming, response format, status codes, required headers |
+| `architecture` | Stack lock, Foundation Gate, dependency direction |
+| `branching` | Trunk mode (default) vs. branch mode (opt-in via PR) |
+| `classes` | Where classes/structs live — one home per type |
+| `code-style` | Line length, function size, imports, linting |
+| `collaboration` | Anti-overwrite, small edits only, git conflict awareness |
+| `database` | Parameterized queries only, connection strings from env, repository pattern |
+| `entry` | What belongs in `main.go` / `main.py` — startup wiring, nothing else |
+| `frontend` | Frontend is a separate directory, talks to backend through API only |
+| `functions` | Utility functions: pure, no side effects, reusable |
+| `globals` | Config and constants — one place for values the whole app reads |
+| `models` | Data shapes: validation, types, schemas. Depends on nothing |
+| `rooms` | Multi-agent coordination — ownership, inboxes, conflict prevention |
+| `routes` | Thin HTTP handlers (10-20 lines). Parse request → call service → return response |
+| `security` | Secrets, auth, input validation, dangerous function blocklist |
+| `services` | Business logic layer. Knows the rules, doesn't know HTTP |
+| `testing` | 80% coverage, 3 tests per endpoint minimum, security test patterns |
 
 </details>
 
 <details>
 <summary>Multi-agent rooms — team vibe coding</summary>
 
-Each teammate opens a terminal and gets their own Claude agent. Agents stay in their lane and talk to each other when they need something.
+Multiple people can vibe code the same project at the same time. Each person gets their own Claude agent in their own terminal. Agents stay in their lane and talk to each other when they need something.
+
+<p align="center">
+  <img src="docs/screenshots/agents-animation.gif" alt="Agent coordination — Go and Python agents passing notes instead of overwriting code" width="600">
+</p>
 
 ```
 Alice                    Bob                     Charlie
@@ -108,25 +122,25 @@ owns go/              owns python/             owns .github/
 ```
 
 ```bash
-make rooms                    # auto-detects project structure, zero config
-make agent NAME=go            # Alice's terminal
-make agent NAME=python        # Bob's terminal
-make room-status              # see pending requests across the team
+make rooms              # auto-detect rooms from project structure
+make agent NAME=go      # Alice's terminal — can only edit go/
+make agent NAME=python  # Bob's terminal — can only edit python/
+make room-status        # see pending requests across the team
 ```
 
-- `guard.sh` **hard-blocks** edits outside your room — agents can't break the rules
-- Agents communicate via **inbox/outbox** markdown files — no merge conflicts
-- A live **activity feed** auto-warns agents when someone else is editing nearby
+- The guard **hard-blocks** edits outside your room — agents physically can't break the boundary
+- Need something from another room? Drop a request in their **inbox** — they respond via **outbox**
+- A live **activity feed** warns you when someone else is editing nearby
 
-[Full docs →](rooms/README.md)
+No merge conflicts. No stepping on each other's work. [Full docs →](rooms/README.md)
 
 </details>
 
 <details>
 <summary>Docs</summary>
 
-- [Getting started](docs/getting-started.md)
-- [Security handbook](docs/security-handbook.md)
+- [Getting started](docs/getting-started.md) — clone to running in 6 steps
+- [Security handbook](docs/security-handbook.md) — plain-English OWASP guide with glossary
 
 </details>
 
