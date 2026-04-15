@@ -2456,9 +2456,19 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
       <div class="guide-step">
         <div class="guide-num"></div>
         <div class="guide-body">
-          <h4>Level up your security knowledge</h4>
-          <p>Take a 15-question quiz about the most common security mistakes (the "OWASP Top 10"). You'll learn why each rule exists — not just that it exists. No studying needed — the questions teach you as you go.</p>
-          <div class="guide-cmd">make learn</div>
+          <h4>Ship it</h4>
+          <p>Push your code. The pre-push hook runs tests and security scans automatically — if it passes, you're good. CI runs the same checks on the remote. Your app is secure by default. You never had to think about it.</p>
+          <div class="guide-cmd">git push</div>
+          <div class="guide-what-happened">
+            <div class="gwh-title">What runs automatically on push?</div>
+            <div class="gwh-list">
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Tests pass (80% coverage gate)</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> No hardcoded secrets in source</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> No dangerous functions (eval, exec, pickle)</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Guard files intact (CLAUDE.md, guard.sh)</div>
+              <div class="gwh-item"><span class="gwh-icon ok">&#10003;</span> Room config valid (if using multi-agent)</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
