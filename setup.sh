@@ -42,6 +42,7 @@ case "$lang_choice" in
       mv go/ .archived/go/ 2>/dev/null || true
       echo -e "  ${DIM}(Go starter archived to .archived/go/ — you can restore it later)${NC}"
     fi
+    echo "python" > .stack
     ;;
   2)
     echo ""
@@ -51,6 +52,7 @@ case "$lang_choice" in
       mv python/ .archived/python/ 2>/dev/null || true
       echo -e "  ${DIM}(Python starter archived to .archived/python/ — you can restore it later)${NC}"
     fi
+    echo "go" > .stack
     ;;
   3)
     echo ""
@@ -63,6 +65,7 @@ case "$lang_choice" in
       mkdir -p .archived 2>/dev/null
       mv go/ .archived/go/ 2>/dev/null || true
     fi
+    echo "python" > .stack
     ;;
 esac
 
@@ -139,11 +142,12 @@ fi
 # ─── Auto branch protection ───
 if command -v gh &>/dev/null; then
   REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner' 2>/dev/null || true)
-  if [ -n "$REPO" ]; then
+  # Skip if origin still points to the template repo (not the user's own repo)
+  if [ -n "$REPO" ] && [ "$REPO" != "rpatino-cw/cw-secure-template" ]; then
     echo ""
     echo "  Configuring branch protection..."
     gh api -X PUT "repos/${REPO}/branches/main/protection" \
-      --input - <<'PROTECTION' 2>/dev/null && echo -e "  ${GREEN}Branch protection enabled.${NC}" || true
+      --input - <<'PROTECTION' >/dev/null 2>/dev/null && echo -e "  ${GREEN}Branch protection enabled.${NC}" || echo -e "  ${DIM}Skipped — push your repo to GitHub first, then re-run setup.${NC}"
 {
   "required_status_checks": { "strict": true, "contexts": [] },
   "enforce_admins": false,
@@ -153,6 +157,9 @@ if command -v gh &>/dev/null; then
   "allow_deletions": false
 }
 PROTECTION
+  else
+    echo ""
+    echo -e "  ${DIM}Branch protection: skipped (push to your own repo first, then re-run setup)${NC}"
   fi
 fi
 
