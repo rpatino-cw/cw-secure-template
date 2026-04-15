@@ -184,6 +184,10 @@ room-lint: ## Validate room config (runs automatically on push)
 review: ## AI code review on your unpushed changes
 	@bash scripts/agent-review.sh
 
+.PHONY: repo-lint
+repo-lint: ## Check repo hygiene (LICENSE, OG tags, homepage, etc.)
+	@bash scripts/repo-lint.sh
+
 .PHONY: branch
 branch: ## Create a feature branch (NAME=my-feature)
 	@bash scripts/create-branch.sh $(NAME)

@@ -116,4 +116,8 @@ if [ "$FAILED" -ne 0 ]; then
 fi
 
 echo -e "  ${GREEN}All checks passed. Pushing...${NC}"
-echo ""
+
+# ── 5. Post-push repo lint (informational — never blocks) ──
+if [ -f scripts/repo-lint.sh ]; then
+  bash scripts/repo-lint.sh 2>/dev/null || true
+fi
