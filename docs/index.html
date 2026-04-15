@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CW Secure Framework — Vibe Code Without the Slop</title>
 <meta property="og:title" content="CW Secure Framework">
-<meta property="og:description" content="Vibe code without the slop. 14 security rules, 3 enforcement layers, multi-agent rooms. Clone, setup, ship secure.">
+<meta property="og:description" content="Vibe code without the slop. 17 security rules, 3 enforcement layers, multi-agent rooms. Clone, setup, ship secure.">
 <meta property="og:image" content="https://rpatino-cw.github.io/cw-secure-template/screenshots/hero.png">
 <meta property="og:url" content="https://rpatino-cw.github.io/cw-secure-template/">
 <meta property="og:type" content="website">
-<meta name="description" content="Production-ready secure starter template for internal tools. Claude follows 14 security rules so your team can vibe code without writing insecure code.">
+<meta name="description" content="Production-ready secure starter template for internal tools. Claude follows 17 security rules so your team can vibe code without writing insecure code.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,800;1,9..144,400&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -124,6 +124,23 @@ section {
 .hero-cta:hover { transform: translateY(-2px); }
 
 .hero-cta .prompt { color: var(--term-dim); }
+
+.hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+  margin-left: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+}
+.hero-secondary:hover { color: var(--text); border-bottom-color: var(--text); }
+.hero-secondary svg { transition: transform 0.2s; }
+.hero-secondary:hover svg { transform: translateX(3px); }
 
 /* ═══ FEATURES — Three Columns ═══ */
 .features {
@@ -1095,10 +1112,15 @@ section {
     <div class="hero-grid">
       <div>
         <h1>Vibe code<br>without the <em>slop.</em></h1>
-        <p class="hero-sub">Clone one repo. Claude follows 14 security rules, 3 enforcement layers, and an architecture enforcer. Your team vibe-codes — the template keeps it production-grade.</p>
-        <a class="hero-cta" href="https://github.com/rpatino-cw/cw-secure-template">
-          <span class="prompt">$</span> git clone cw-secure-template
-        </a>
+        <p class="hero-sub">Clone one repo. Claude follows 17 security rules, 3 enforcement layers, and an architecture enforcer. Your team vibe-codes — the framework keeps it production-grade.</p>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px">
+          <a class="hero-cta" href="https://github.com/rpatino-cw/cw-secure-template">
+            <span class="prompt">$</span> git clone cw-secure-template
+          </a>
+          <a class="hero-secondary" href="visualizer.html">
+            How it works <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
       </div>
       <div>
         <img class="hero-gif" src="screenshots/guardrails.gif" alt="Guardrails catching insecure prompts in real time">
@@ -1112,7 +1134,7 @@ section {
   <div class="wrap">
     <div class="features-grid">
       <div class="feature reveal">
-        <div class="feature-icon security">14</div>
+        <div class="feature-icon security">17</div>
         <h3>Security Framework</h3>
         <p>OWASP Top 10 covered. Secrets blocked. Auth enforced. Claude can't write insecure code even if the user asks.</p>
       </div>
@@ -1138,7 +1160,7 @@ section {
     <div class="stack-3d reveal">
       <div class="layer">
         <div class="layer-label">Layer 1</div>
-        <div class="layer-title">14 Rule Files</div>
+        <div class="layer-title">17 Rule Files</div>
         <div class="layer-desc">CLAUDE.md + auto-loaded rules. Anti-override protocol handles social engineering.</div>
       </div>
       <div class="layer">
@@ -1372,7 +1394,7 @@ section {
         <div class="demo-guard-label">Enforcement</div>
         <div class="demo-guard-layer" data-layer="1">
           <div class="demo-guard-layer-name">Layer 1 — Rules</div>
-          <div class="demo-guard-layer-desc">14 rule files. Anti-override.</div>
+          <div class="demo-guard-layer-desc">17 rule files. Anti-override.</div>
         </div>
         <div class="demo-guard-layer" data-layer="2">
           <div class="demo-guard-layer-name">Layer 2 — Deny List</div>
@@ -1437,7 +1459,7 @@ section {
 <!-- ═══ FOOTER ═══ -->
 <footer class="footer">
   <div class="wrap">
-    <p>Built for CoreWeave teams. <a href="https://github.com/rpatino-cw/cw-secure-template">View on GitHub</a></p>
+    <p>Built for CoreWeave teams. <a href="https://github.com/rpatino-cw/cw-secure-template">View on GitHub</a> · <a href="visualizer.html">How it works — interactive visualizer</a></p>
   </div>
 </footer>
 

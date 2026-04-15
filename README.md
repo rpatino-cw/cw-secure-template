@@ -1,14 +1,14 @@
 <h1 align="center">CW Secure Framework</h1>
 
-<p align="center"><strong>A modular, secure-by-default framework for building internal AI apps.</strong><br>Pick a blueprint. Answer a few questions. Ship.</p>
+<p align="center"><strong>Security framework for AI-assisted coding. 3 layers that make it physically impossible to ship insecure code.</strong></p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go&logoColor=white" alt="Go">
   <img src="https://img.shields.io/badge/OWASP_Top_10-Covered-success" alt="OWASP">
-  <img src="https://img.shields.io/badge/Blueprints-3-blueviolet" alt="Blueprints">
   <img src="https://img.shields.io/badge/Rules-17-orange" alt="Rules">
-  <img src="https://img.shields.io/badge/Guards-30_checks-red" alt="Guards">
+  <img src="https://img.shields.io/badge/Guard_Tests-30/30-brightgreen" alt="Guard Tests">
+  <img src="https://img.shields.io/badge/Self--Protection-45_deny_rules-red" alt="Self-Protection">
 </p>
 
 <p align="center">
@@ -23,34 +23,16 @@
 git clone https://github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh
 ```
 
-The setup wizard picks your language, your blueprint, and wires everything — auth, security scanning, CI, and architecture enforcement. No config files to edit.
+Clone, pick your stack (Go or Python), and start building. Auth, secret scanning, CI gates, and architecture enforcement are wired from the first command.
 
 ```
-make new           Pick a blueprint and scaffold your app
 make start         Run your app
 make check         All checks before a PR
 make doctor        Security health check
+make viz           Interactive visualizer — how it all works
 ```
 
 **Requires:** `brew install git gitleaks` + Python 3.11+ or Go 1.21+
-
----
-
-## Blueprints
-
-Not a blank canvas. Not a one-size-fits-all starter. Each blueprint is an opinionated, production-ready shape with routes, services, tests, dependencies, and a CLAUDE.md overlay with type-specific rules.
-
-| Blueprint | What you get | Stack |
-|:----------|:-------------|:------|
-| **API Service** | REST API with auth, rate limiting, CRUD endpoints | Python, Go |
-| **Chat Assistant** | Claude-powered chat with streaming, token budgeting, audit logging | Python |
-| **Batch Processor** | Background job worker with retry logic and dead letter queue | Python |
-| **Blank** | Just the security framework — bring your own code | Any |
-
-```bash
-make new                              # Interactive — pick from a menu
-make new BLUEPRINT=chat-assistant     # Direct — skip the menu
-```
 
 ---
 
@@ -160,7 +142,8 @@ Each file in `.claude/rules/` covers one part of the codebase. Claude reads and 
 
 ## Docs
 
-- **[How it works](docs/visualizer.html)** — interactive visualizer with animated flowcharts and code explainer
+- **[How it works](https://rpatino-cw.github.io/cw-secure-template/visualizer.html)** — interactive visualizer with animated flowcharts and code explainer (`make viz`)
+- **[Landing page](https://rpatino-cw.github.io/cw-secure-template/)** — visual overview with live agent demo
 - [Getting started](docs/getting-started.md) — clone to running in 6 steps
 - [Security handbook](docs/security-handbook.md) — plain-English OWASP guide with glossary
 

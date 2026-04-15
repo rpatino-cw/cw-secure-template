@@ -133,7 +133,7 @@
   "respectGitignore": true,
   "attribution": {
     "commit": "Co-Authored-By: Claude <noreply@anthropic.com>",
-    "pr": "Generated with [Claude Code](https://claude.ai/code) using CW Secure Template"
+    "pr": "Generated with [Claude Code](https://claude.ai/code) using CW Secure Framework"
   },
   "env": {
     "DEV_MODE": "true"
