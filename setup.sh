@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# === CW Secure Template — Setup ===
+# === CW Secure Framework — Setup ===
 # One command. Everything installed. App running in 2 minutes.
 
 GREEN='\033[0;32m'
@@ -13,7 +13,7 @@ NC='\033[0m'
 
 clear
 echo ""
-echo -e "${BOLD}  Welcome to the CW Secure Template${NC}"
+echo -e "${BOLD}  Welcome to the CW Secure Framework${NC}"
 echo "  ──────────────────────────────────"
 echo ""
 echo "  This will set up a secure project with:"
@@ -66,6 +66,43 @@ case "$lang_choice" in
       mv go/ .archived/go/ 2>/dev/null || true
     fi
     echo "python" > .stack
+    ;;
+esac
+
+# ─── Blueprint selection ───
+echo ""
+echo -e "${BOLD}  What type of app are you building?${NC}"
+echo ""
+echo -e "  1) API Service       ${GREEN}<- default${NC} (REST API with CRUD endpoints)"
+echo "  2) Chat Assistant    (Claude-powered chatbot with streaming)"
+echo "  3) Batch Processor   (background job worker with retry logic)"
+echo "  4) Blank             (just the security framework, no starter code)"
+echo ""
+read -rp "  Enter 1-4 [default: 1]: " bp_choice
+bp_choice=${bp_choice:-1}
+
+case "$bp_choice" in
+  1)
+    echo -e "  ${GREEN}API Service selected.${NC}"
+    echo "api-service" > .blueprint
+    ;;
+  2)
+    echo -e "  ${GREEN}Chat Assistant selected.${NC}"
+    echo "chat-assistant" > .blueprint
+    bash scripts/apply-blueprint.sh chat-assistant
+    ;;
+  3)
+    echo -e "  ${GREEN}Batch Processor selected.${NC}"
+    echo "batch-processor" > .blueprint
+    bash scripts/apply-blueprint.sh batch-processor
+    ;;
+  4)
+    echo -e "  ${GREEN}Blank — framework only.${NC}"
+    echo "blank" > .blueprint
+    ;;
+  *)
+    echo -e "  ${GREEN}Defaulting to API Service.${NC}"
+    echo "api-service" > .blueprint
     ;;
 esac
 

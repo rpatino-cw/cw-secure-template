@@ -19,7 +19,7 @@ A plain-English guide to application security at CoreWeave, written for people w
 
 ### Defense in Depth — the Idea
 
-Security is not one lock on one door. It is a series of locked doors, each behind the other, so that an attacker who picks one lock still faces nine more. This concept is called **defense in depth**. The CW Secure Template embeds security checks at every stage of your development workflow — in your editor, in your git hooks, in your CI pipeline, in your pull request review, and in your deployed infrastructure. No single layer is expected to catch everything. Each layer catches what the previous one missed. If a secret slips past your local scan, CI catches it. If CI misses a vulnerability pattern, CodeQL finds it. If CodeQL misses it, the PR reviewer has a checklist. If the reviewer misses it, production infrastructure (TLS, network policies, RBAC) limits the blast radius.
+Security is not one lock on one door. It is a series of locked doors, each behind the other, so that an attacker who picks one lock still faces nine more. This concept is called **defense in depth**. The CW Secure Framework embeds security checks at every stage of your development workflow — in your editor, in your git hooks, in your CI pipeline, in your pull request review, and in your deployed infrastructure. No single layer is expected to catch everything. Each layer catches what the previous one missed. If a secret slips past your local scan, CI catches it. If CI misses a vulnerability pattern, CodeQL finds it. If CodeQL misses it, the PR reviewer has a checklist. If the reviewer misses it, production infrastructure (TLS, network policies, RBAC) limits the blast radius.
 
 ### What It Protects Against
 

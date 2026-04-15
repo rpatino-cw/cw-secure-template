@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Security Auto-Fix ===
+# === CW Secure Framework — Security Auto-Fix ===
 # Runs security scanners, auto-fixes what's possible,
 # prints human-readable guidance for everything else.
 # Run: make fix

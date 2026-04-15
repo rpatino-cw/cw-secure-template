@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Pre-Commit Hook ===
+# === CW Secure Framework — Pre-Commit Hook ===
 set -uo pipefail
 
 GREEN='\033[0;32m'

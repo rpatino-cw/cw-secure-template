@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Secure Secret Pipeline ===
+# === CW Secure Framework — Secure Secret Pipeline ===
 # Safely stores API keys and secrets in .env without ever displaying them.
 # Usage: make add-secret
 #

@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "blueprints": {
+    "api-service": {
+      "name": "API Service",
+      "description": "REST API with auth, rate limiting, and CRUD endpoints",
+      "stacks": ["python", "go"],
+      "complexity": "starter",
+      "tags": ["api", "crud", "rest"]
+    },
+    "chat-assistant": {
+      "name": "Chat Assistant",
+      "description": "Claude-powered chat with streaming, token budgeting, and audit logging",
+      "stacks": ["python"],
+      "complexity": "starter",
+      "tags": ["ai", "chat", "llm", "anthropic"]
+    },
+    "batch-processor": {
+      "name": "Batch Processor",
+      "description": "Background job worker with retry logic and dead letter queue",
+      "stacks": ["python"],
+      "complexity": "starter",
+      "tags": ["worker", "queue", "batch", "jobs"]
+    }
+  }
+}

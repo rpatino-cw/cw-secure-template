@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Pre-Push Hook ===
+# === CW Secure Framework — Pre-Push Hook ===
 # Runs tests, security checks, and room config lint before code leaves your machine.
 set -uo pipefail
 

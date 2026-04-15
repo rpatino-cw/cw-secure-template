@@ -21,7 +21,7 @@ def _get_project_info() -> dict:
     """Read project context from .claude/MEMORY.md and environment."""
     info = {
         "name": "My App",
-        "purpose": "An internal tool built with CW Secure Template",
+        "purpose": "An internal tool built with CW Secure Framework",
         "team": "your-team",
         "stack": "Python",
         "dev_mode": os.environ.get("DEV_MODE", "false").lower() == "true",

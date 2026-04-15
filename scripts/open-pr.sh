@@ -130,7 +130,7 @@ cat >> "$PR_BODY_FILE" << 'PREOF'
 - [ ] `make check` passes locally
 
 ---
-Generated with [Claude Code](https://claude.ai/code) using CW Secure Template
+Generated with [Claude Code](https://claude.ai/code) using CW Secure Framework
 PREOF
 
 PR_URL=$(gh pr create \

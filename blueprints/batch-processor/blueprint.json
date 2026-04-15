@@ -1,0 +1,27 @@
+{
+  "name": "batch-processor",
+  "display_name": "Batch Processor",
+  "version": "1.0.0",
+  "description": "Background job worker with retry logic, dead letter queue, and structured logging.",
+  "stacks": ["python"],
+  "requires": {
+    "env_vars": [
+      "REDIS_URL",
+      "WORKER_CONCURRENCY",
+      "MAX_RETRIES"
+    ],
+    "middleware": ["requestid"],
+    "dependencies": {
+      "python": ["redis>=5.0.0", "rq>=1.16.0"]
+    }
+  },
+  "files": {
+    "python": {
+      "copy": [
+        { "src": "python/services/worker.py", "dest": "src/services/worker.py" },
+        { "src": "python/tests/test_worker.py", "dest": "tests/test_worker.py" }
+      ]
+    }
+  },
+  "post_apply": ["make test"]
+}

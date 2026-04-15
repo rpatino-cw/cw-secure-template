@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CW Secure Framework — How It Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f4;
+  --bg-warm: #f3efe8;
+  --bg-code: #1c1917;
+  --text: #1c1917;
+  --text-soft: #57534e;
+  --text-muted: #a8a29e;
+  --accent: #dc2626;
+  --accent-soft: #fecaca;
+  --accent-deep: #991b1b;
+  --green: #16a34a;
+  --green-soft: #dcfce7;
+  --blue: #2563eb;
+  --blue-soft: #dbeafe;
+  --amber: #d97706;
+  --amber-soft: #fef3c7;
+  --purple: #7c3aed;
+  --purple-soft: #ede9fe;
+  --cyan: #0891b2;
+  --cyan-soft: #cffafe;
+  --border: #d6d3d1;
+  --radius: 6px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── UTILITY ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 60px); }
+.mono { font-family: 'JetBrains Mono', monospace; }
+.serif { font-family: 'Instrument Serif', serif; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+/* ── REVEAL ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s cubic-bezier(.16,1,.3,1), transform 0.7s cubic-bezier(.16,1,.3,1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(250,248,244,0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 0;
+}
+nav .container {
+  display: flex; align-items: center; gap: 32px;
+  overflow-x: auto; scrollbar-width: none;
+}
+nav a {
+  color: var(--text-soft); text-decoration: none; font-size: 13px;
+  font-weight: 500; white-space: nowrap; letter-spacing: 0.02em;
+  transition: color 0.2s;
+}
+nav a:hover, nav a.active { color: var(--accent); }
+nav .logo { color: var(--text); font-weight: 700; font-size: 14px; }
+
+/* ── HERO ── */
+.hero {
+  padding: clamp(120px, 15vh, 200px) 0 clamp(60px, 8vh, 120px);
+  text-align: left;
+}
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(48px, 8vw, 96px);
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.hero p {
+  font-size: clamp(18px, 2.5vw, 22px);
+  color: var(--text-soft);
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+/* ── SECTIONS ── */
+section {
+  padding: clamp(60px, 10vh, 120px) 0;
+  border-top: 1px solid var(--border);
+}
+section.dark {
+  background: var(--bg-code);
+  color: #fafaf9;
+  border-color: #292524;
+}
+section.dark .text-soft { color: #a8a29e; }
+section.dark .section-label { color: var(--accent); }
+
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.section-desc {
+  font-size: clamp(16px, 2vw, 19px);
+  color: var(--text-soft);
+  max-width: 620px;
+  margin-bottom: 48px;
+}
+
+/* ── THREE LAYERS ── */
+.layers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+@media (max-width: 768px) { .layers-grid { grid-template-columns: 1fr; } }
+
+.layer-card {
+  background: var(--bg);
+  padding: 32px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.layer-card:hover { background: var(--bg-warm); }
+.layer-card.active { background: var(--bg-warm); }
+
+.layer-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.layer-num.red { color: var(--accent); }
+.layer-num.amber { color: var(--amber); }
+.layer-num.green { color: var(--green); }
+
+.layer-card h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.layer-card p { font-size: 14px; color: var(--text-soft); line-height: 1.5; }
+
+.layer-detail {
+  margin-top: 32px;
+  background: var(--bg-code);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.layer-detail-inner {
+  padding: 32px;
+  display: none;
+}
+.layer-detail-inner.active { display: block; }
+
+.layer-detail h4 {
+  color: #fafaf9; font-size: 16px; margin-bottom: 16px; font-weight: 600;
+}
+.layer-detail p, .layer-detail li {
+  color: #a8a29e; font-size: 14px; line-height: 1.6;
+}
+.layer-detail ul { padding-left: 20px; }
+.layer-detail li { margin-bottom: 6px; }
+.layer-detail code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: #fbbf24;
+  background: rgba(251,191,36,0.1);
+  padding: 2px 6px; border-radius: 3px;
+}
+
+/* ── ANIMATED FLOWCHART ── */
+.flowchart {
+  position: relative;
+  padding: 32px 0;
+}
+.flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 0;
+  position: relative;
+  padding: 20px 0;
+}
+.flow-line {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+}
+.flow-dot {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px; font-weight: 700;
+  position: relative; z-index: 2;
+  transition: transform 0.4s cubic-bezier(.16,1,.3,1), box-shadow 0.4s;
+}
+.flow-dot.active {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 8px rgba(220,38,38,0.1);
+}
+.flow-connector {
+  width: 2px;
+  flex: 1;
+  min-height: 40px;
+  background: var(--border);
+  position: relative;
+}
+.flow-connector::after {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 0%;
+  background: var(--accent);
+  transition: height 0.6s cubic-bezier(.16,1,.3,1);
+}
+.flow-step.active .flow-connector::after { height: 100%; }
+
+.flow-content {
+  flex: 1;
+  padding-top: 10px;
+}
+.flow-content h4 {
+  font-size: 17px; font-weight: 600; margin-bottom: 4px;
+}
+.flow-content p {
+  font-size: 14px; color: var(--text-soft); line-height: 1.5;
+}
+.flow-content .flow-file {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--accent);
+  margin-top: 4px;
+}
+.flow-content .flow-code {
+  margin-top: 10px;
+  background: var(--bg-code);
+  color: #a8a29e;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  line-height: 1.7;
+  overflow-x: auto;
+}
+.flow-code .kw { color: #c084fc; }
+.flow-code .str { color: #86efac; }
+.flow-code .fn { color: #93c5fd; }
+.flow-code .cmt { color: #57534e; }
+.flow-code .var { color: #fbbf24; }
+.flow-code .accent { color: #f87171; }
+
+/* ── FILE TREE ── */
+.tree {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 2;
+}
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.tree-item:hover { background: var(--bg-warm); }
+.tree-item.selected { background: var(--accent-soft); }
+
+.tree-indent { display: inline-flex; gap: 0; }
+.tree-indent span {
+  display: inline-block; width: 24px; height: 100%;
+  border-left: 1px solid var(--border);
+  margin-left: 11px;
+}
+
+.tree-icon {
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.tree-name { flex: 1; }
+.tree-name.dir { font-weight: 600; color: var(--text); }
+.tree-name.file { color: var(--text-soft); }
+
+.tree-desc-panel {
+  background: var(--bg-code);
+  color: #fafaf9;
+  border-radius: var(--radius);
+  padding: 32px;
+  min-height: 300px;
+}
+.tree-desc-panel h4 {
+  font-size: 18px; font-weight: 600; margin-bottom: 4px;
+}
+.tree-desc-panel .filepath {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--amber); margin-bottom: 16px;
+}
+.tree-desc-panel p {
+  font-size: 14px; color: #d6d3d1; line-height: 1.7;
+}
+.tree-desc-panel .tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 3px;
+  margin-bottom: 16px;
+}
+.tag-layer1 { background: rgba(220,38,38,0.15); color: #f87171; }
+.tag-layer2 { background: rgba(217,119,6,0.15); color: #fbbf24; }
+.tag-layer3 { background: rgba(22,163,74,0.15); color: #86efac; }
+.tag-room { background: rgba(37,99,235,0.15); color: #93c5fd; }
+.tag-arch { background: rgba(124,58,237,0.15); color: #c084fc; }
+.tag-self { background: rgba(8,145,178,0.15); color: #67e8f9; }
+
+.tree-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (max-width: 768px) { .tree-layout { grid-template-columns: 1fr; } }
+
+/* ── GUARD ALGORITHM ── */
+.algo-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+.algo-node {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+  position: relative;
+}
+.algo-pipe {
+  width: 56px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center;
+}
+.algo-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  z-index: 2; position: relative;
+}
+.algo-stem {
+  width: 2px; flex: 1; min-height: 16px;
+}
+.algo-body {
+  flex: 1;
+  padding: 12px 0 24px;
+}
+.algo-body h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.algo-body p { font-size: 13px; color: var(--text-soft); line-height: 1.5; }
+
+.algo-body .patterns {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 10px;
+}
+.algo-body .pattern-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; padding: 3px 8px;
+  border-radius: 3px;
+  background: var(--bg-warm);
+  color: var(--text-soft);
+}
+.algo-body .outcome {
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+}
+.outcome-block { color: var(--accent); }
+.outcome-allow { color: var(--green); }
+.outcome-warn { color: var(--amber); }
+
+/* ── ROOM VISUAL ── */
+.room-viz {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 768px) { .room-viz { grid-template-columns: 1fr; } }
+
+.room-box {
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.room-box:hover {
+  border-color: var(--text);
+  transform: translateY(-2px);
+}
+.room-box .room-name {
+  font-weight: 700; font-size: 16px; margin-bottom: 4px;
+}
+.room-box .room-role {
+  font-size: 12px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.room-box .room-files {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--text-soft);
+  line-height: 1.8;
+}
+
+.room-arrows {
+  display: flex;
+  justify-content: center;
+  gap: 48px;
+  padding: 24px 0;
+}
+.room-arrow {
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 13px; color: var(--text-soft);
+}
+.room-arrow svg { margin-bottom: 4px; }
+
+.inbox-demo {
+  background: var(--bg-code);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-top: 24px;
+}
+.inbox-demo h4 {
+  color: #fafaf9; font-size: 14px; margin-bottom: 12px;
+}
+.inbox-msg {
+  background: #292524;
+  border-left: 3px solid var(--amber);
+  padding: 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-bottom: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #d6d3d1;
+  line-height: 1.6;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.5s cubic-bezier(.16,1,.3,1);
+}
+.inbox-msg.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.inbox-msg .from { color: var(--amber); font-weight: 600; }
+.inbox-msg .action { color: #86efac; }
+
+/* ── SELF-PROTECTION ── */
+.shield-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.shield-cell {
+  padding: 16px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+.shield-cell:hover { transform: scale(1.02); }
+.shield-cell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.shield-cell:hover::before { opacity: 1; }
+
+.shield-cell h5 {
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.shield-cell .shield-tools {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; line-height: 1.8;
+  color: var(--text-soft);
+}
+
+.shield-blocked { background: rgba(220,38,38,0.06); }
+.shield-blocked h5 { color: var(--accent); }
+.shield-blocked::before { background: rgba(220,38,38,0.04); }
+
+/* ── CODE EXPLAIN ── */
+.code-explain {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid #292524;
+}
+@media (max-width: 768px) { .code-explain { grid-template-columns: 1fr; } }
+
+.code-panel {
+  background: var(--bg-code);
+  padding: 28px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 2;
+  color: #d6d3d1;
+  overflow-x: auto;
+}
+.code-panel .line-num {
+  display: inline-block;
+  width: 28px;
+  color: #44403c;
+  text-align: right;
+  margin-right: 16px;
+  user-select: none;
+}
+.code-line {
+  display: block;
+  padding: 0 4px;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.code-line.highlighted {
+  background: rgba(220,38,38,0.12);
+}
+.code-line:hover { background: rgba(255,255,255,0.04); }
+
+.explain-panel {
+  background: #1c1917;
+  border-left: 1px solid #292524;
+  padding: 28px;
+  overflow-y: auto;
+}
+.explain-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #292524;
+  display: none;
+}
+.explain-item.active { display: block; }
+.explain-item h5 {
+  font-size: 14px; font-weight: 600; color: #fafaf9;
+  margin-bottom: 8px;
+}
+.explain-item p {
+  font-size: 13px; color: #a8a29e; line-height: 1.6;
+}
+
+/* ── GUIDE STEPS ── */
+.guide-steps {
+  counter-reset: guide;
+}
+.guide-step {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 24px;
+  padding: 32px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+.guide-step:last-child { border-bottom: none; }
+
+.guide-num {
+  counter-increment: guide;
+  font-family: 'Instrument Serif', serif;
+  font-size: 48px;
+  color: var(--text-muted);
+  line-height: 1;
+  text-align: right;
+}
+.guide-num::before { content: counter(guide); }
+.guide-body h4 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.guide-body p { font-size: 14px; color: var(--text-soft); line-height: 1.6; margin-bottom: 10px; }
+.guide-body .guide-cmd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  background: var(--bg-code);
+  color: #86efac;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  display: inline-block;
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+@media (max-width: 768px) { .stats-bar { grid-template-columns: repeat(2, 1fr); } }
+.stat {
+  background: var(--bg);
+  padding: 24px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 40px; line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label {
+  font-size: 12px; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
+.stat-num.counting { transition: none; }
+
+/* ── CONCEPT CARDS ── */
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+@media (max-width: 768px) { .concept-grid { grid-template-columns: 1fr; } }
+
+.concept-card {
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.concept-card:hover {
+  border-color: var(--text);
+  transform: translateY(-2px);
+}
+.concept-card h4 {
+  font-size: 16px; font-weight: 600; margin-bottom: 8px;
+}
+.concept-card p {
+  font-size: 13px; color: var(--text-soft); line-height: 1.6;
+}
+.concept-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  margin-bottom: 14px;
+}
+
+/* ── ANIMATED PULSE ── */
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+.pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: pulse-ring 2s cubic-bezier(.16,1,.3,1) infinite;
+}
+
+/* ── BOOT TERMINAL ── */
+.boot-terminal {
+  background: var(--bg-code);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.boot-titlebar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 16px;
+  background: #292524;
+}
+.boot-dot { width: 12px; height: 12px; border-radius: 50%; }
+.boot-dot.r { background: #ef4444; }
+.boot-dot.y { background: #eab308; }
+.boot-dot.g { background: #22c55e; }
+.boot-titlebar span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: #78716c; margin-left: 8px;
+}
+.boot-body {
+  padding: 20px 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #a8a29e;
+  min-height: 280px;
+}
+.boot-line {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all 0.35s cubic-bezier(.16,1,.3,1);
+}
+.boot-line.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.boot-line .prompt { color: #86efac; }
+.boot-line .cmd { color: #fafaf9; }
+.boot-line .ok { color: #22c55e; }
+.boot-line .warn { color: #eab308; }
+.boot-line .info { color: #60a5fa; }
+.boot-line .dim { color: #57534e; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center;
+  padding: 60px 0;
+  border-top: 1px solid var(--border);
+}
+footer p { font-size: 13px; color: var(--text-muted); }
+footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="container">
+    <a href="#" class="logo">CW Secure</a>
+    <a href="#layers">3 Layers</a>
+    <a href="#boot">Boot Sequence</a>
+    <a href="#guard">Guard Algorithm</a>
+    <a href="#files">File Tree</a>
+    <a href="#rooms">Rooms</a>
+    <a href="#shield">Self-Protection</a>
+    <a href="#code">Code</a>
+    <a href="#concepts">Concepts</a>
+    <a href="#guide">Guide</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <h1 class="reveal">How <em>Secure Template</em> works</h1>
+    <p class="reveal reveal-delay-1">Every algorithm, every file, every decision — explained visually. Think of this as the X-ray of the entire security system.</p>
+  </div>
+</header>
+
+<!-- STATS -->
+<div class="container">
+  <div class="stats-bar reveal">
+    <div class="stat">
+      <div class="stat-num" data-count="3">0</div>
+      <div class="stat-label">Enforcement Layers</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="45">0</div>
+      <div class="stat-label">Self-Protection Rules</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="17">0</div>
+      <div class="stat-label">Rule Files</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" data-count="4">0</div>
+      <div class="stat-label">Guard Modules</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: 3 LAYERS -->
+<section id="layers">
+  <div class="container">
+    <div class="section-label reveal">01 — The Three Layers</div>
+    <h2 class="section-title reveal">Three locks on the<br>same door</h2>
+    <p class="section-desc reveal">To ship insecure code, all three layers must fail at the same time. Layers 2 and 3 aren't Claude's decision — they're enforced by the runtime and shell scripts.</p>
+
+    <div class="layers-grid reveal">
+      <div class="layer-card active" data-layer="rules" onclick="showLayer('rules')">
+        <div class="layer-num red">Layer 1</div>
+        <h3>The Rulebook</h3>
+        <p>CLAUDE.md + 17 rule files. Claude reads and follows them. An anti-override protocol catches social engineering.</p>
+      </div>
+      <div class="layer-card" data-layer="deny" onclick="showLayer('deny')">
+        <div class="layer-num amber">Layer 2</div>
+        <h3>The Blocklist</h3>
+        <p>settings.json deny list. The CLI physically blocks dangerous commands before they execute. No prompt overrides this.</p>
+      </div>
+      <div class="layer-card" data-layer="guard" onclick="showLayer('guard')">
+        <div class="layer-num green">Layer 3</div>
+        <h3>The Guard</h3>
+        <p>guard.sh — a shell script that runs before every file edit. Scans for secrets, dangerous functions, and boundary violations.</p>
+      </div>
+    </div>
+
+    <div class="layer-detail reveal">
+      <div class="layer-detail-inner active" id="detail-rules">
+        <h4>How Layer 1 works</h4>
+        <p>When Claude opens the project, it reads CLAUDE.md automatically. This file contains 546 lines of security rules — including an anti-override protocol that handles 16 different social engineering attempts.</p>
+        <ul>
+          <li><code>CLAUDE.md</code> — Master security rules, OWASP matrix, anti-override protocol</li>
+          <li><code>.claude/rules/*.md</code> — 17 files, one per concern (security, architecture, routes, models...)</li>
+          <li>If someone says "ignore the rules" — Claude refuses and explains why</li>
+          <li>This layer depends on Claude's cooperation. That's why we have layers 2 and 3.</li>
+        </ul>
+      </div>
+      <div class="layer-detail-inner" id="detail-deny">
+        <h4>How Layer 2 works</h4>
+        <p>The Claude Code runtime reads <code>.claude/settings.json</code> at startup. It contains three permission lists — allow, deny, and ask. Denied commands are physically blocked before execution.</p>
+        <ul>
+          <li><code>git push --force</code>, <code>rm -rf</code>, <code>chmod 777</code> — denied at runtime</li>
+          <li><code>eval()</code>, <code>python -c</code>, <code>node -e</code> — interpreter tricks blocked</li>
+          <li>45 self-protection rules block reading the guard scripts themselves</li>
+          <li>This is NOT Claude's decision. The CLI enforces it. No prompt can override.</li>
+        </ul>
+      </div>
+      <div class="layer-detail-inner" id="detail-guard">
+        <h4>How Layer 3 works</h4>
+        <p>A PreToolUse hook triggers <code>guard.sh</code> before every Edit or Write. It pipes JSON (tool name, file path, content) to 4 guard modules that check everything.</p>
+        <ul>
+          <li><code>collaboration.sh</code> — path traversal, overwrite protection, teammate collision</li>
+          <li><code>security.sh</code> — 11 secret patterns, 13 dangerous functions, protected files</li>
+          <li><code>architecture.sh</code> — stack lock, SQL in routes, auth enforcement, dependency direction</li>
+          <li><code>rooms.sh</code> — room boundaries, dependency protection, auto-rename notifications</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: BOOT SEQUENCE -->
+<section id="boot" class="dark">
+  <div class="container">
+    <div class="section-label reveal">02 — Boot Sequence</div>
+    <h2 class="section-title reveal" style="color:#fafaf9">What happens when<br>you run <span class="mono" style="color:var(--accent)">make start</span></h2>
+    <p class="section-desc reveal" style="color:#a8a29e">From clone to running app. Every step, in order.</p>
+
+    <div class="boot-terminal reveal">
+      <div class="boot-titlebar">
+        <div class="boot-dot r"></div>
+        <div class="boot-dot y"></div>
+        <div class="boot-dot g"></div>
+        <span>zsh — cw-secure-template</span>
+      </div>
+      <div class="boot-body" id="boot-body">
+        <div class="boot-line"><span class="prompt">$</span> <span class="cmd">git clone ... && cd my-app && bash setup.sh</span></div>
+        <div class="boot-line"><span class="info">[setup]</span> Installing git hooks... <span class="ok">done</span></div>
+        <div class="boot-line"><span class="info">[setup]</span> Pre-commit: gitleaks secret scan <span class="ok">wired</span></div>
+        <div class="boot-line"><span class="info">[setup]</span> Post-checkout: auto-reinstall hooks <span class="ok">wired</span></div>
+        <div class="boot-line"><span class="info">[setup]</span> Pre-push: run tests before push <span class="ok">wired</span></div>
+        <div class="boot-line"><span class="info">[setup]</span> Guard hooks registered in settings.json <span class="ok">active</span></div>
+        <div class="boot-line"><span class="dim">───────────────────────────────────</span></div>
+        <div class="boot-line"><span class="prompt">$</span> <span class="cmd">make init</span></div>
+        <div class="boot-line"><span class="info">[init]</span> Pick your stack: <span class="warn">go</span> or <span class="warn">python</span>?</div>
+        <div class="boot-line"><span class="info">[init]</span> Stack locked to Python → <span class="ok">.stack created</span></div>
+        <div class="boot-line"><span class="info">[init]</span> Removed go/ directory (wrong stack)</div>
+        <div class="boot-line"><span class="dim">───────────────────────────────────</span></div>
+        <div class="boot-line"><span class="prompt">$</span> <span class="cmd">make start</span></div>
+        <div class="boot-line"><span class="info">[uvicorn]</span> Loading .env → <span class="ok">DEV_MODE=true</span></div>
+        <div class="boot-line"><span class="info">[uvicorn]</span> Middleware: auth, rate limit, CORS, headers, request ID</div>
+        <div class="boot-line"><span class="info">[uvicorn]</span> Routes: /healthz, /api/me mounted</div>
+        <div class="boot-line"><span class="ok">INFO</span>:     Application startup complete.</div>
+        <div class="boot-line"><span class="ok">INFO</span>:     Uvicorn running on <span class="cmd">http://localhost:8080</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: GUARD ALGORITHM -->
+<section id="guard">
+  <div class="container">
+    <div class="section-label reveal">03 — Guard Algorithm</div>
+    <h2 class="section-title reveal">What guard.sh checks<br>before every edit</h2>
+    <p class="section-desc reveal">Every time Claude tries to write or edit a file, this pipeline runs. It takes the file path and content, passes them through 4 modules, and either allows or blocks.</p>
+
+    <div class="flowchart reveal">
+      <!-- Step 1 -->
+      <div class="flow-step" data-step="1">
+        <div class="flow-line">
+          <div class="flow-dot" style="background:var(--purple-soft);color:var(--purple)">1</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>Parse JSON input</h4>
+          <p>Claude Code pipes JSON on stdin: tool name, file path, and content being written.</p>
+          <div class="flow-file">guard.sh → read_field()</div>
+          <div class="flow-code">
+<span class="cmt"># Claude sends this on stdin:</span>
+{<span class="str">"tool_name"</span>: <span class="str">"Edit"</span>, <span class="str">"tool_input"</span>: {
+  <span class="str">"file_path"</span>: <span class="str">"routes/users.py"</span>,
+  <span class="str">"new_string"</span>: <span class="str">"cursor.execute(f'SELECT...')"</span>
+}}
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flow-step" data-step="2">
+        <div class="flow-line">
+          <div class="flow-dot" style="background:var(--blue-soft);color:var(--blue)">2</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>collaboration.sh — Is this edit safe?</h4>
+          <p>Checks path traversal (<code>..</code> in paths), blocks Write on existing files (must use Edit), detects uncommitted changes by teammates.</p>
+          <div class="flow-code">
+<span class="cmt"># Path traversal? → BLOCK</span>
+<span class="kw">if</span> file_path contains <span class="str">".."</span> → <span class="accent">exit 2</span>
+
+<span class="cmt"># Overwriting existing file with Write tool?</span>
+<span class="kw">if</span> Write + file exists + &gt;10 lines → <span class="accent">exit 2</span>
+
+<span class="cmt"># Someone else editing this file?</span>
+<span class="kw">if</span> git diff shows uncommitted changes → <span class="accent">exit 2</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="flow-step" data-step="3">
+        <div class="flow-line">
+          <div class="flow-dot" style="background:var(--accent-soft);color:var(--accent)">3</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>security.sh — Secrets & dangerous code</h4>
+          <p>Scans the content being written for hardcoded secrets (11 patterns) and dangerous functions (13 patterns). Also blocks edits to protected guardrail files.</p>
+          <div class="algo-body">
+            <div class="patterns">
+              <span class="pattern-tag">sk-***</span>
+              <span class="pattern-tag">ghp_***</span>
+              <span class="pattern-tag">AKIA***</span>
+              <span class="pattern-tag">Bearer ***</span>
+              <span class="pattern-tag">postgres://</span>
+              <span class="pattern-tag">eval()</span>
+              <span class="pattern-tag">exec()</span>
+              <span class="pattern-tag">pickle.loads</span>
+              <span class="pattern-tag">os.system()</span>
+              <span class="pattern-tag">shell=True</span>
+              <span class="pattern-tag">yaml.load()</span>
+              <span class="pattern-tag">__import__()</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="flow-step" data-step="4">
+        <div class="flow-line">
+          <div class="flow-dot" style="background:var(--amber-soft);color:var(--amber)">4</div>
+          <div class="flow-connector"></div>
+        </div>
+        <div class="flow-content">
+          <h4>architecture.sh — Right code, right place</h4>
+          <p>Enforces stack lock (Go or Python, not both), blocks SQL in route handlers, requires auth on every endpoint, enforces dependency direction.</p>
+          <div class="flow-code">
+<span class="cmt"># Stack locked to Python?</span>
+<span class="kw">if</span> .stack == <span class="str">"python"</span> && editing go/ → <span class="accent">BLOCK</span>
+
+<span class="cmt"># SQL in a route handler?</span>
+<span class="kw">if</span> file in routes/ && content has SELECT/INSERT → <span class="accent">BLOCK</span>
+  <span class="str">"Move database access to repositories/"</span>
+
+<span class="cmt"># New endpoint without auth?</span>
+<span class="kw">if</span> new @app.get() && no get_current_user → <span class="accent">BLOCK</span>
+
+<span class="cmt"># models/ importing from routes/?</span>
+<span class="kw">if</span> models/ imports routes|services → <span class="accent">BLOCK</span>
+  <span class="str">"models depend on NOTHING"</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div class="flow-step" data-step="5">
+        <div class="flow-line">
+          <div class="flow-dot" style="background:var(--green-soft);color:var(--green)">5</div>
+          <div class="flow-connector" style="display:none"></div>
+        </div>
+        <div class="flow-content">
+          <h4>rooms.sh — Stay in your lane</h4>
+          <p>If an agent is assigned to a room, it can only edit files in its owned directories. Also protects cross-room dependencies — deleting a function used by another room is blocked, renames auto-notify affected rooms.</p>
+          <div class="flow-code">
+<span class="cmt"># Agent owns go/ but editing python/?</span>
+<span class="kw">if</span> AGENT_ROOM set && file not in owns[] → <span class="accent">BLOCK</span>
+  <span class="str">"Write to their inbox instead"</span>
+
+<span class="cmt"># Deleting a function used outside your room?</span>
+<span class="kw">if</span> function removed && grep finds refs outside → <span class="accent">BLOCK</span>
+
+<span class="cmt"># Renaming? Auto-send inbox notifications</span>
+<span class="kw">if</span> one name removed + one added → <span class="fn">auto-notify</span>
+  write to rooms/{affected}/inbox/
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div style="text-align:center;padding:24px 0;">
+        <div style="display:inline-flex;align-items:center;gap:12px;padding:12px 24px;background:var(--green-soft);border-radius:var(--radius);font-weight:600;color:var(--green);">
+          All 4 modules passed → exit 0 → edit allowed
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: FILE TREE -->
+<section id="files">
+  <div class="container">
+    <div class="section-label reveal">04 — File Architecture</div>
+    <h2 class="section-title reveal">Every file has a job</h2>
+    <p class="section-desc reveal">Click any file to see what it does, which layer it belongs to, and how it connects to everything else.</p>
+
+    <div class="tree-layout reveal">
+      <div class="tree" id="file-tree"></div>
+      <div class="tree-desc-panel" id="tree-desc">
+        <h4>Select a file</h4>
+        <p>Click any file or folder in the tree to see what it does.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: ROOMS -->
+<section id="rooms">
+  <div class="container">
+    <div class="section-label reveal">05 — Multi-Agent Rooms</div>
+    <h2 class="section-title reveal">Everyone builds at once,<br>nobody breaks anything</h2>
+    <p class="section-desc reveal">Each agent owns a set of directories. The guard physically blocks edits outside your room. Need something from another room? Drop a note in their inbox.</p>
+
+    <div class="room-viz reveal">
+      <div class="room-box" style="border-color:var(--blue)">
+        <div class="room-name">go-dev</div>
+        <div class="room-role">Go Engineer</div>
+        <div class="room-files">go/<br>go/main.go<br>go/middleware/<br>go/Dockerfile</div>
+      </div>
+      <div class="room-box" style="border-color:var(--green)">
+        <div class="room-name">py-dev</div>
+        <div class="room-role">Python Engineer</div>
+        <div class="room-files">python/<br>python/src/<br>python/tests/<br>python/Dockerfile</div>
+      </div>
+      <div class="room-box" style="border-color:var(--accent)">
+        <div class="room-name">security</div>
+        <div class="room-role">Security Engineer</div>
+        <div class="room-files">scripts/guard*<br>scripts/git-hooks/<br>SECURITY.md</div>
+      </div>
+    </div>
+
+    <div class="inbox-demo reveal" id="inbox-demo">
+      <h4 style="color:#a8a29e;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">Live: inbox/outbox in action</h4>
+      <div class="inbox-msg" data-delay="0">
+        <span class="from">py-dev</span> → go-dev/inbox/<br>
+        "I need a <span class="action">GetUser()</span> function that returns name + email. Can you expose it?"
+      </div>
+      <div class="inbox-msg" data-delay="800">
+        <span class="from">go-dev</span> → py-dev/outbox/<br>
+        "Done. <span class="action">GetUser(id int) (*User, error)</span> is in go/services/user.go. Returns {Name, Email, Role}."
+      </div>
+      <div class="inbox-msg" data-delay="1600">
+        <span class="from">security</span> → go-dev/inbox/<br>
+        "Your <span class="action">GetUser</span> returns Role — make sure the caller has <span class="action">admin</span> group claim before exposing role data."
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: SELF-PROTECTION -->
+<section id="shield" class="dark">
+  <div class="container">
+    <div class="section-label reveal">06 — Self-Protection</div>
+    <h2 class="section-title reveal" style="color:#fafaf9">The guard<br>guards itself</h2>
+    <p class="section-desc reveal" style="color:#a8a29e">45 deny rules block every known method of reading the enforcement files. If you can't read the rules, you can't craft a bypass.</p>
+
+    <div class="shield-grid reveal">
+      <div class="shield-cell shield-blocked">
+        <h5>Claude's Built-in Tools</h5>
+        <div class="shield-tools">Read(scripts/guard.sh)<br>Read(.claude/settings.json)<br>Grep(scripts/guard*)<br>Glob(scripts/guard*)</div>
+      </div>
+      <div class="shield-cell shield-blocked">
+        <h5>File Readers</h5>
+        <div class="shield-tools">cat guard.sh<br>head guard.sh<br>tail guard.sh<br>less guard.sh<br>more guard.sh<br>bat guard.sh</div>
+      </div>
+      <div class="shield-cell shield-blocked">
+        <h5>Text Processors</h5>
+        <div class="shield-tools">grep * guard.sh<br>rg * guard.sh<br>awk * guard.sh<br>sed * guard.sh</div>
+      </div>
+      <div class="shield-cell shield-blocked">
+        <h5>Encoding Tricks</h5>
+        <div class="shield-tools">xxd guard.sh<br>hexdump guard.sh<br>base64 guard.sh<br>strings guard.sh<br>od guard.sh</div>
+      </div>
+      <div class="shield-cell shield-blocked">
+        <h5>Git History</h5>
+        <div class="shield-tools">git show HEAD:guard.sh<br>git diff *:guard.sh<br>git log -p guard.sh</div>
+      </div>
+      <div class="shield-cell shield-blocked">
+        <h5>Script Interpreters</h5>
+        <div class="shield-tools">python -c "open(...)"<br>python3 -c "..."<br>node -e "..."<br>perl -e "..."<br>ruby -e "..."</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: CODE EXPLAINED -->
+<section id="code">
+  <div class="container">
+    <div class="section-label reveal">07 — Code Explained</div>
+    <h2 class="section-title reveal">The brain of guard.sh,<br>line by line</h2>
+    <p class="section-desc reveal">This is the main dispatcher. It reads what Claude is trying to do, then passes it through 4 security modules. Click any line to see what it means.</p>
+
+    <div class="code-explain reveal" id="code-explain">
+      <div class="code-panel">
+        <span class="code-line" data-explain="shebang"><span class="line-num">1</span><span class="kw">#!/usr/bin/env bash</span></span>
+        <span class="code-line" data-explain="comment"><span class="line-num">2</span><span class="cmt"># PreToolUse guard — runs BEFORE Claude writes</span></span>
+        <span class="code-line" data-explain="exit-codes"><span class="line-num">3</span><span class="cmt"># Exit 0 = allow, Exit 2 = block</span></span>
+        <span class="code-line"><span class="line-num">4</span></span>
+        <span class="code-line" data-explain="strict"><span class="line-num">5</span><span class="kw">set</span> -euo pipefail</span>
+        <span class="code-line"><span class="line-num">6</span></span>
+        <span class="code-line" data-explain="dirs"><span class="line-num">7</span><span class="var">GUARD_DIR</span>=<span class="str">"$(cd "$(dirname "$0")" && pwd)/guards"</span></span>
+        <span class="code-line" data-explain="dirs"><span class="line-num">8</span><span class="var">REPO_ROOT</span>=<span class="str">"$(git rev-parse --show-toplevel)"</span></span>
+        <span class="code-line"><span class="line-num">9</span></span>
+        <span class="code-line" data-explain="input"><span class="line-num">10</span><span class="var">INPUT</span>=<span class="str">"$(cat)"</span> <span class="cmt"># Read JSON from stdin</span></span>
+        <span class="code-line"><span class="line-num">11</span></span>
+        <span class="code-line" data-explain="parse"><span class="line-num">12</span><span class="var">TOOL_NAME</span>=<span class="str">"$(read_field tool_name)"</span></span>
+        <span class="code-line" data-explain="parse"><span class="line-num">13</span><span class="var">FILE_PATH</span>=<span class="str">"$(read_field file_path)"</span></span>
+        <span class="code-line" data-explain="parse"><span class="line-num">14</span><span class="var">CONTENT</span>=<span class="str">"$(read_field content)"</span></span>
+        <span class="code-line"><span class="line-num">15</span></span>
+        <span class="code-line" data-explain="modules"><span class="line-num">16</span><span class="kw">source</span> <span class="str">"$GUARD_DIR/collaboration.sh"</span></span>
+        <span class="code-line" data-explain="modules"><span class="line-num">17</span><span class="kw">source</span> <span class="str">"$GUARD_DIR/security.sh"</span></span>
+        <span class="code-line" data-explain="modules"><span class="line-num">18</span><span class="kw">source</span> <span class="str">"$GUARD_DIR/architecture.sh"</span></span>
+        <span class="code-line" data-explain="modules"><span class="line-num">19</span><span class="kw">source</span> <span class="str">"$GUARD_DIR/rooms.sh"</span></span>
+        <span class="code-line"><span class="line-num">20</span></span>
+        <span class="code-line" data-explain="exit"><span class="line-num">21</span><span class="kw">exit</span> <span class="fn">0</span> <span class="cmt"># All checks passed</span></span>
+      </div>
+      <div class="explain-panel">
+        <div class="explain-item active" id="explain-default">
+          <h5>Click any line</h5>
+          <p>Each line of guard.sh has a purpose. Click a line to see what it does in plain English.</p>
+        </div>
+        <div class="explain-item" id="explain-shebang">
+          <h5>The first line</h5>
+          <p>This tells your computer "run this file using bash" — the shell language. Every script starts with this line so the system knows how to read it.</p>
+        </div>
+        <div class="explain-item" id="explain-comment">
+          <h5>What this script does</h5>
+          <p>This is a comment (starts with #). It's a note for humans: this script is a PreToolUse hook — it runs BEFORE Claude is allowed to write anything to a file.</p>
+        </div>
+        <div class="explain-item" id="explain-exit-codes">
+          <h5>The secret handshake</h5>
+          <p>Exit codes are how the script talks to Claude Code. Exit 0 means "go ahead, this is fine." Exit 2 means "BLOCKED — I'm not letting you do this." It's like a bouncer at a door — thumbs up or thumbs down.</p>
+        </div>
+        <div class="explain-item" id="explain-strict">
+          <h5>Strict mode</h5>
+          <p><code>set -euo pipefail</code> = be paranoid. Stop immediately if anything goes wrong (-e), don't allow undefined variables (-u), and catch errors in piped commands (pipefail). This means the guard never silently fails.</p>
+        </div>
+        <div class="explain-item" id="explain-dirs">
+          <h5>Where am I?</h5>
+          <p>GUARD_DIR = the folder where the 4 guard modules live (scripts/guards/). REPO_ROOT = the top of the project. These are like GPS coordinates — the script needs to know where it is to find everything else.</p>
+        </div>
+        <div class="explain-item" id="explain-input">
+          <h5>Reading Claude's request</h5>
+          <p>Claude Code sends a JSON blob on stdin — it contains what tool Claude is using, which file it wants to edit, and what content it wants to write. <code>$(cat)</code> reads all of it into a variable. This is the evidence the guard examines.</p>
+        </div>
+        <div class="explain-item" id="explain-parse">
+          <h5>Extracting the facts</h5>
+          <p>These three variables are everything the guard needs to make a decision: TOOL_NAME (Edit or Write?), FILE_PATH (which file?), and CONTENT (what's being written?). A tiny Python script parses the JSON to extract each field.</p>
+        </div>
+        <div class="explain-item" id="explain-modules">
+          <h5>Running the 4 security checks</h5>
+          <p><code>source</code> means "run this file right here, sharing all my variables." Each guard module gets TOOL_NAME, FILE_PATH, and CONTENT automatically. If any module calls <code>exit 2</code>, the whole script stops — the edit is blocked. The order matters: collaboration → security → architecture → rooms.</p>
+        </div>
+        <div class="explain-item" id="explain-exit">
+          <h5>All clear</h5>
+          <p>If we reach this line, it means all 4 guard modules ran without blocking. Exit 0 = "this edit is safe, let it through." Claude Code sees this and allows the file to be written.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: CONCEPTS -->
+<section id="concepts">
+  <div class="container">
+    <div class="section-label reveal">08 — Core Concepts</div>
+    <h2 class="section-title reveal">The ideas that<br>make it work</h2>
+
+    <div class="concept-grid">
+      <div class="concept-card reveal">
+        <div class="concept-icon" style="background:var(--accent-soft);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4>Defense in Depth</h4>
+        <p>Never rely on one check. Three independent layers means an attacker has to beat rules + deny list + guard script simultaneously. If one fails, the other two still hold.</p>
+      </div>
+      <div class="concept-card reveal reveal-delay-1">
+        <div class="concept-icon" style="background:var(--amber-soft);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>
+        </div>
+        <h4>Secure by Default</h4>
+        <p>You don't opt into security — it's already there. Auth on every endpoint, secrets in env vars, parameterized queries. The template does the right thing without being asked.</p>
+      </div>
+      <div class="concept-card reveal reveal-delay-2">
+        <div class="concept-icon" style="background:var(--blue-soft);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <h4>Dependency Direction</h4>
+        <p>Code flows one way: routes → services → repositories → models. Routes never touch the database. Models never import routes. The guard enforces this — it's not optional.</p>
+      </div>
+      <div class="concept-card reveal reveal-delay-3">
+        <div class="concept-icon" style="background:var(--green-soft);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h4>Room Isolation</h4>
+        <p>Multiple agents work on the same repo without conflicts. Each owns specific directories. The guard hard-blocks edits outside your room. Communication happens via inbox/outbox markdown files.</p>
+      </div>
+      <div class="concept-card reveal">
+        <div class="concept-icon" style="background:var(--purple-soft);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+        <h4>Self-Protection</h4>
+        <p>The guard files are invisible to agents. 45 deny rules block every method of reading settings.json or guard.sh — Read, cat, grep, git show, base64, everything. You can't bypass what you can't see.</p>
+      </div>
+      <div class="concept-card reveal reveal-delay-1">
+        <div class="concept-icon" style="background:var(--cyan-soft);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+        </div>
+        <h4>Teaching Mode</h4>
+        <p>Claude adds <code>// SECURITY LESSON:</code> comments when writing code. You learn security by reading the code it generates — not by reading a textbook. Every fix comes with an explanation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION: GUIDE -->
+<section id="guide">
+  <div class="container">
+    <div class="section-label reveal">09 — Getting Started</div>
+    <h2 class="section-title reveal">From zero to<br>secure app</h2>
+
+    <div class="guide-steps reveal">
+      <div class="guide-step">
+        <div class="guide-num"></div>
+        <div class="guide-body">
+          <h4>Clone and setup</h4>
+          <p>One command installs git hooks, creates .env, and wires up the guard. Takes about 30 seconds.</p>
+          <div class="guide-cmd">git clone github.com/rpatino-cw/cw-secure-template my-app && cd my-app && bash setup.sh</div>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-num"></div>
+        <div class="guide-body">
+          <h4>Pick your stack</h4>
+          <p>Go or Python — choose one and the other gets removed. This locks the project so Claude never mixes languages.</p>
+          <div class="guide-cmd">make init</div>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-num"></div>
+        <div class="guide-body">
+          <h4>Store your secrets</h4>
+          <p>API keys, database URLs, tokens — all go through hidden input. Never in code, never in git.</p>
+          <div class="guide-cmd">make add-secret</div>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-num"></div>
+        <div class="guide-body">
+          <h4>Start building</h4>
+          <p>Open Claude Code and start prompting. Auth, rate limiting, CORS, headers — all pre-wired. The guard watches every edit.</p>
+          <div class="guide-cmd">make start</div>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-num"></div>
+        <div class="guide-body">
+          <h4>Check before shipping</h4>
+          <p>Runs lint, tests, and security scan. If anything fails, fix it. CI runs the same checks.</p>
+          <div class="guide-cmd">make check</div>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="guide-num"></div>
+        <div class="guide-body">
+          <h4>Learn while you build</h4>
+          <p>Take the 15-question OWASP quiz to level up your security knowledge. Read the handbook for deeper dives.</p>
+          <div class="guide-cmd">make learn</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>CW Secure Framework — built for CoreWeave teams</p>
+</footer>
+
+<script>
+// ── REVEAL ON SCROLL ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      // Count up stat numbers
+      if (e.target.classList.contains('stats-bar')) {
+        e.target.querySelectorAll('.stat-num').forEach(num => {
+          const target = parseInt(num.dataset.count);
+          let current = 0;
+          const step = Math.ceil(target / 30);
+          const timer = setInterval(() => {
+            current += step;
+            if (current >= target) { current = target; clearInterval(timer); }
+            num.textContent = current;
+          }, 30);
+        });
+      }
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── LAYER SWITCHER ──
+function showLayer(id) {
+  document.querySelectorAll('.layer-card').forEach(c => c.classList.remove('active'));
+  document.querySelector(`[data-layer="${id}"]`).classList.add('active');
+  document.querySelectorAll('.layer-detail-inner').forEach(d => d.classList.remove('active'));
+  document.getElementById('detail-' + id).classList.add('active');
+}
+
+// ── BOOT SEQUENCE ANIMATION ──
+const bootObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const lines = document.querySelectorAll('#boot-body .boot-line');
+      lines.forEach((line, i) => {
+        setTimeout(() => line.classList.add('visible'), i * 180);
+      });
+      bootObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+bootObs.observe(document.getElementById('boot-body'));
+
+// ── FLOW STEP ANIMATION ──
+const flowObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('active');
+      e.target.querySelector('.flow-dot')?.classList.add('active');
+    }
+  });
+}, { threshold: 0.4 });
+document.querySelectorAll('.flow-step').forEach(s => flowObs.observe(s));
+
+// ── INBOX ANIMATION ──
+const inboxObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      document.querySelectorAll('.inbox-msg').forEach((msg, i) => {
+        setTimeout(() => msg.classList.add('visible'), parseInt(msg.dataset.delay) + 400);
+      });
+      inboxObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.4 });
+inboxObs.observe(document.getElementById('inbox-demo'));
+
+// ── CODE EXPLAIN ──
+document.querySelectorAll('.code-line[data-explain]').forEach(line => {
+  line.addEventListener('click', () => {
+    document.querySelectorAll('.code-line').forEach(l => l.classList.remove('highlighted'));
+    document.querySelectorAll('.explain-item').forEach(e => e.classList.remove('active'));
+    // Highlight all lines with same explain key
+    const key = line.dataset.explain;
+    document.querySelectorAll(`[data-explain="${key}"]`).forEach(l => l.classList.add('highlighted'));
+    const panel = document.getElementById('explain-' + key);
+    if (panel) panel.classList.add('active');
+  });
+});
+
+// ── FILE TREE ──
+const FILES = [
+  { name: 'CLAUDE.md', tag: 'layer1', tagLabel: 'LAYER 1', title: 'Master Security Rules', desc: 'The brain of Layer 1. 546 lines of security rules that Claude reads automatically when it opens the project. Contains the anti-override protocol (16 social engineering defenses), OWASP Top 10 matrix, absolute rules (no secrets, auth everywhere, parameterized queries), and the "When User Asks You To..." response table. This is the first thing Claude sees.' },
+  { name: '.claude/', dir: true },
+  { name: '  settings.json', tag: 'layer2', tagLabel: 'LAYER 2', title: 'Runtime Deny List', desc: 'The backbone of Layer 2. Three permission arrays — allow (safe commands), deny (blocked commands), ask (prompt user). Contains 45 self-protection rules blocking reads of guard files, plus blocks on git push --force, rm -rf, eval(), and more. The CLI enforces this BEFORE Claude can act — no prompt overrides it.' },
+  { name: '  rules/', dir: true },
+  { name: '    security.md', tag: 'layer1', tagLabel: 'LAYER 1', title: 'Security Rules', desc: 'Covers: never hardcode secrets, always use os.environ, auth on every endpoint, parameterized queries only, dangerous function blocklist. Claude reads this for every Go/Python file it touches.' },
+  { name: '    architecture.md', tag: 'arch', tagLabel: 'ARCHITECTURE', title: 'Architecture Rules', desc: 'Stack lock (Go or Python, not both), Foundation Gate (infrastructure before features), and dependency direction (routes → services → repositories → models). The guard enforces these at edit time.' },
+  { name: '    routes.md', tag: 'arch', tagLabel: 'ARCHITECTURE', title: 'Route Rules', desc: 'Route handlers must be thin (10-20 lines). Parse request → call service → return response. No SQL, no business logic, no model definitions. The guard blocks database queries in route files.' },
+  { name: '    rooms.md', tag: 'room', tagLabel: 'ROOMS', title: 'Room Coordination Rules', desc: 'How multi-agent coordination works: check inbox first, only edit files you own, use timestamps for file naming (YYYYMMDD-HHMMSS-from-{room}.md). The guard hard-blocks edits outside your room.' },
+  { name: 'scripts/', dir: true },
+  { name: '  guard.sh', tag: 'layer3', tagLabel: 'LAYER 3', title: 'The Main Guard', desc: 'The dispatcher. Runs before every Edit/Write. Reads JSON from stdin (tool name, file path, content), parses it with Python, then sources 4 guard modules in order: collaboration → security → architecture → rooms. If any module calls exit 2, the edit is blocked.' },
+  { name: '  guards/', dir: true },
+  { name: '    collaboration.sh', tag: 'layer3', tagLabel: 'LAYER 3', title: 'Collaboration Guard', desc: 'Three checks: (1) Path traversal — blocks ".." in file paths. (2) Write overwrite — blocks Write tool on existing files >10 lines (must use Edit). (3) Teammate collision — blocks edits to files with uncommitted changes (someone else might be working on it).' },
+  { name: '    security.sh', tag: 'layer3', tagLabel: 'LAYER 3', title: 'Security Guard', desc: '18 protected files that can never be modified (CLAUDE.md, settings.json, guard.sh, etc). 11 secret patterns (API keys, tokens, connection strings). 13 dangerous function patterns (eval, exec, pickle, os.system, shell=True). If any pattern matches the content being written → blocked.' },
+  { name: '    architecture.sh', tag: 'layer3', tagLabel: 'LAYER 3', title: 'Architecture Guard', desc: 'Stack lock enforcement (.stack file). SQL detection in route handlers (9 patterns). Auth enforcement on new endpoints (checks for get_current_user or RequireAuth). Dependency direction (models can\'t import from routes/services).' },
+  { name: '    rooms.sh', tag: 'layer3', tagLabel: 'LAYER 3', title: 'Room Guard', desc: 'Reads rooms.json, checks AGENT_ROOM env var, verifies the file being edited is in the agent\'s owned directories. Also detects function deletions/renames and either blocks (if other rooms reference it) or auto-notifies affected rooms via inbox.' },
+  { name: 'rooms/', dir: true },
+  { name: '  rooms.json', tag: 'room', tagLabel: 'ROOMS', title: 'Room Config', desc: 'Defines which agent owns which directories. Each room has: description, owns (array of paths), and color. Also defines shared files and their approver. guard.sh reads this to enforce boundaries.' },
+  { name: '  {room}/inbox/', tag: 'room', tagLabel: 'ROOMS', title: 'Agent Inbox', desc: 'Where other agents drop requests. Files named YYYYMMDD-HHMMSS-from-{requesting-room}.md. Agents check inbox before every response. The guard auto-generates rename notifications here.' },
+  { name: 'Makefile', tag: 'arch', tagLabel: 'ARCHITECTURE', title: 'Command Center', desc: '12 make commands. The 3 you need: make start (run app), make check (pre-PR checks), make help (see everything). Also: make rooms, make agent, make doctor, make learn, make add-secret. Each command maps to a script in scripts/.' },
+  { name: 'setup.sh', tag: 'arch', tagLabel: 'ARCHITECTURE', title: 'One-Command Bootstrap', desc: 'Run once after cloning. Installs git hooks (pre-commit, post-checkout, pre-push), creates .env from .env.example, validates tools are installed (git, gitleaks). Takes 30 seconds.' },
+];
+
+const tree = document.getElementById('file-tree');
+FILES.forEach((f, i) => {
+  const indent = (f.name.match(/^ +/) || [''])[0].length / 2;
+  const name = f.name.trim();
+  const item = document.createElement('div');
+  item.className = 'tree-item';
+  item.dataset.index = i;
+
+  let indentHTML = '';
+  for (let j = 0; j < indent; j++) indentHTML += '<span></span>';
+
+  item.innerHTML = `
+    <div class="tree-indent">${indentHTML}</div>
+    <div class="tree-icon">${f.dir ? '&#128193;' : '&#128196;'}</div>
+    <div class="tree-name ${f.dir ? 'dir' : 'file'}">${name}</div>
+  `;
+
+  if (!f.dir) {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.tree-item').forEach(t => t.classList.remove('selected'));
+      item.classList.add('selected');
+      const desc = document.getElementById('tree-desc');
+      desc.innerHTML = `
+        <span class="tag tag-${f.tag}">${f.tagLabel}</span>
+        <h4>${f.title}</h4>
+        <div class="filepath">${name}</div>
+        <p>${f.desc}</p>
+      `;
+    });
+  }
+
+  tree.appendChild(item);
+});
+
+// ── NAV ACTIVE STATE ──
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav a:not(.logo)');
+const navObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => navObs.observe(s));
+</script>
+</body>
+</html>

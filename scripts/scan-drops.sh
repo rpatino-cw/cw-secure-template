@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Dropped Secrets Scanner ===
+# === CW Secure Framework — Dropped Secrets Scanner ===
 # Scans the project for sensitive files that were dropped in the wrong place.
 # Run automatically during `make doctor` and `make check`.
 set -uo pipefail

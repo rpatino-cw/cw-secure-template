@@ -34,7 +34,7 @@ make_targets=$(grep -E '^[a-zA-Z_-]+:.*##' "$MAKEFILE" 2>/dev/null | head -15 | 
 
 # ── Generate README ─────────────────────────────────────────────────
 cat > README.md << 'HEADER'
-<h1 align="center">CW Secure Template</h1>
+<h1 align="center">CW Secure Framework</h1>
 
 <p align="center"><strong>Vibe code without the slop.</strong></p>
 

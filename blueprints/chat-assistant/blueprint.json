@@ -1,0 +1,28 @@
+{
+  "name": "chat-assistant",
+  "display_name": "Chat Assistant",
+  "version": "1.0.0",
+  "description": "Claude-powered chat with streaming responses, token budgeting, and audit logging.",
+  "stacks": ["python"],
+  "requires": {
+    "env_vars": [
+      "ANTHROPIC_API_KEY",
+      "ANTHROPIC_MODEL",
+      "MAX_TOKENS_PER_REQUEST"
+    ],
+    "middleware": ["auth", "ratelimit", "requestid", "requestsize"],
+    "dependencies": {
+      "python": ["anthropic>=0.40.0"]
+    }
+  },
+  "files": {
+    "python": {
+      "copy": [
+        { "src": "python/routes/chat.py", "dest": "src/routes/chat.py" },
+        { "src": "python/services/llm.py", "dest": "src/services/llm.py" },
+        { "src": "python/tests/test_chat.py", "dest": "tests/test_chat.py" }
+      ]
+    }
+  },
+  "post_apply": ["make test"]
+}

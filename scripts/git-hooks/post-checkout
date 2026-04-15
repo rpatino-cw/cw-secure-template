@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Post-Checkout Hook ===
+# === CW Secure Framework — Post-Checkout Hook ===
 # Verifies pre-commit hooks are installed after every branch checkout.
 # If someone accidentally runs `pre-commit uninstall`, this reinstalls on next checkout.
 

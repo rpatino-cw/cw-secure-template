@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Secure Config Drop ===
+# === CW Secure Framework — Secure Config Drop ===
 # Safely stores config files (service accounts, kubeconfig, certs, etc.)
 # in a gitignored secrets/ directory instead of the project root.
 #

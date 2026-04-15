@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Doctor ===
+# === CW Secure Framework — Doctor ===
 # Comprehensive health check for the security pipeline.
 # Run: make doctor
 set -uo pipefail
@@ -32,8 +32,16 @@ check() {
 }
 
 echo ""
-echo -e "${BOLD}CW Secure Template — Security Health Check${NC}"
+echo -e "${BOLD}CW Secure Framework — Security Health Check${NC}"
 echo "============================================"
+
+# ── Framework Info ──
+ACTIVE_BLUEPRINT="none"
+ACTIVE_STACK="unknown"
+[ -f .blueprint ] && ACTIVE_BLUEPRINT=$(cat .blueprint)
+[ -f .stack ] && ACTIVE_STACK=$(cat .stack)
+echo ""
+echo -e "  Blueprint: ${BOLD}${ACTIVE_BLUEPRINT}${NC}  |  Stack: ${BOLD}${ACTIVE_STACK}${NC}"
 echo ""
 
 # ── Tools ──

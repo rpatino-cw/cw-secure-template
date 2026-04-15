@@ -1,0 +1,26 @@
+{
+  "name": "api-service",
+  "display_name": "API Service",
+  "version": "1.0.0",
+  "description": "REST API with auth, rate limiting, and CRUD endpoints. This is the default blueprint — it matches the existing starter code.",
+  "stacks": ["python", "go"],
+  "requires": {
+    "env_vars": [],
+    "middleware": ["auth", "ratelimit", "requestid", "requestsize"],
+    "dependencies": {
+      "python": [],
+      "go": []
+    }
+  },
+  "files": {
+    "python": {
+      "copy": [],
+      "note": "The default Python starter already includes this blueprint's code in src/routes/api.py"
+    },
+    "go": {
+      "copy": [],
+      "note": "The default Go starter already includes this blueprint's code in main.go"
+    }
+  },
+  "post_apply": ["make test"]
+}

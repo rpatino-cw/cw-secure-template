@@ -1,6 +1,7 @@
-# === CW Secure Template ===
+# === CW Secure Framework ===
 #
-# You only need 3 commands:
+# You only need 4 commands:
+#   make new     — Start a new app from a blueprint
 #   make start   — Run your app
 #   make check   — Run before pull requests
 #   make help    — See everything else
@@ -13,8 +14,12 @@ GO_EXISTS := $(wildcard go/go.mod)
 PY_EXISTS := $(wildcard python/pyproject.toml)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# THE 3 COMMANDS YOU NEED
+# THE 4 COMMANDS YOU NEED
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: new
+new: ## Start a new app from a blueprint
+	@bash scripts/apply-blueprint.sh $(BLUEPRINT)
 
 .PHONY: start
 start: ## Run your app
@@ -39,9 +44,10 @@ check: lint test security-scan ## Run ALL checks — do this before every pull r
 .PHONY: help
 help: ## Show commands
 	@echo ""
-	@echo "  CW Secure Template"
+	@echo "  CW Secure Framework"
 	@echo "  ──────────────────"
 	@echo ""
+	@echo "    make new         Start from a blueprint"
 	@echo "    make start       Run your app"
 	@echo "    make check       Run before pushing"
 	@echo "    make rooms       Set up multi-agent coordination"
@@ -52,10 +58,11 @@ help: ## Show commands
 .PHONY: help-all
 help-all: ## Show all available commands
 	@echo ""
-	@echo "  CW Secure Template — All Commands"
+	@echo "  CW Secure Framework — All Commands"
 	@echo "  ──────────────────────────────────"
 	@echo ""
 	@echo "  Start here:"
+	@echo "    make new          Start from a blueprint (BLUEPRINT=chat-assistant)"
 	@echo "    make start        Run your app"
 	@echo "    make check        Run before pushing"
 	@echo "    make rooms        Set up multi-agent coordination"
@@ -81,6 +88,7 @@ help-all: ## Show all available commands
 	@echo "    make learn        Take a security quiz (15 questions)"
 	@echo "    make add-secret   Safely store an API key in .env"
 	@echo "    make add-config   Safely store a config file"
+	@echo "    make viz          How it works — interactive visualizer"
 	@echo ""
 	@echo "  Setup:"
 	@echo "    make init         Personalize for your project"
@@ -164,6 +172,10 @@ learn:
 .PHONY: dashboard
 dashboard:
 	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "  Open security-dashboard.html in your browser"
+
+.PHONY: viz
+viz: ## How it works — interactive visualizer
+	@open docs/visualizer.html 2>/dev/null || xdg-open docs/visualizer.html 2>/dev/null || echo "  Open docs/visualizer.html in your browser"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # MULTI-AGENT ROOMS (behind make help)

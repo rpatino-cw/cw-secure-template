@@ -1,5 +1,5 @@
 # ╔══════════════════════════════════════════════════════════════════╗
-# ║  CW SECURE TEMPLATE — .gitignore                               ║
+# ║  CW SECURE FRAMEWORK — .gitignore                               ║
 # ║  This file is AGGRESSIVE by design. It blocks every known       ║
 # ║  secret, credential, and key pattern. If a legitimate file      ║
 # ║  gets blocked, add a specific !exception — never weaken the     ║
@@ -238,6 +238,10 @@ yarn.lock
 
 # Stack lock (set by make init)
 .stack
+
+# Blueprint state (set by make new)
+.blueprint
+.blueprint-rules.md
 
 # Room coordination (ephemeral agent messages and activity)
 rooms/*/inbox/*.md

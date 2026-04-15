@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# === CW Secure Template — Project Initializer ===
+# === CW Secure Framework — Project Initializer ===
 # Personalizes the template for YOUR specific app.
 # Turns generic CLAUDE.md + .claude/ into your project's AI config.
 #

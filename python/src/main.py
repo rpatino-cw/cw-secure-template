@@ -1,4 +1,4 @@
-"""CW Secure Template — FastAPI Application.
+"""CW Secure Framework — FastAPI Application.
 
 Entry point. Wires middleware, routes, templates, and security.
 Keep this file thin — routes go in routes/, logic in services/.
