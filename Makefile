@@ -251,3 +251,9 @@ lint-fix: fix
 .PHONY: readme
 readme: ## Regenerate README from rules and project structure
 	@bash scripts/gen-readme.sh
+
+.PHONY: bump-version
+bump-version: ## Patch site footer with latest git tag
+	@VERSION=$$(git describe --tags --abbrev=0 2>/dev/null || echo "dev"); \
+	sed -i '' "s/v[0-9]*\.[0-9]*\.[0-9]*/$$VERSION/" docs/index.html; \
+	echo "  Site version bumped to $$VERSION"
