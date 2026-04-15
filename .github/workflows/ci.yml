@@ -233,6 +233,23 @@ jobs:
           fi
 
   # ──────────────────────────────────────
+  # README Size Gate — keep docs tight
+  # ──────────────────────────────────────
+  readme-size:
+    name: README Size Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: README must be 150 lines or fewer
+        run: |
+          LINES=$(wc -l < README.md | tr -d ' ')
+          echo "README.md is $LINES lines."
+          if [ "$LINES" -gt 150 ]; then
+            echo "::error::README.md is $LINES lines (max 150). Keep it concise."
+            exit 1
+          fi
+
+  # ──────────────────────────────────────
   # CodeQL — deep static analysis
   # ──────────────────────────────────────
   codeql:
