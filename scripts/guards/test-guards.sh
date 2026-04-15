@@ -104,6 +104,11 @@ run_guard "security.sh" "block" "Blocks hardcoded API key (sk-live)"
 
 reset_vars
 FILE_PATH="go/config.go"
+CONTENT='apiKey := "sk-live-abc123def456ghi789jkl"'
+run_guard "security.sh" "block" "Blocks sk-live- style key (hyphenated)"
+
+reset_vars
+FILE_PATH="go/config.go"
 CONTENT='apiKey := os.Getenv("API_KEY")'
 run_guard "security.sh" "pass" "Allows env var access"
 

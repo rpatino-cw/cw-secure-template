@@ -29,7 +29,7 @@ done
 
 # --- Hardcoded secrets ---
 SECRET_PATTERNS=(
-  'sk-[a-zA-Z0-9]{20,}'
+  'sk-[a-zA-Z0-9\-]{20,}'
   'ghp_[a-zA-Z0-9]{36}'
   'AKIA[A-Z0-9]{16}'
   'password\s*=\s*["\x27][^"\x27]{8,}'
