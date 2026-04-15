@@ -188,6 +188,10 @@ review: ## AI code review on your unpushed changes
 repo-lint: ## Check repo hygiene (LICENSE, OG tags, homepage, etc.)
 	@bash scripts/repo-lint.sh
 
+.PHONY: test-guards
+test-guards: ## Run guard unit tests (30 checks)
+	@bash scripts/guards/test-guards.sh
+
 .PHONY: branch
 branch: ## Create a feature branch (NAME=my-feature)
 	@bash scripts/create-branch.sh $(NAME)
