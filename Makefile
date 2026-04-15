@@ -237,5 +237,5 @@ lint-fix: fix
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 .PHONY: readme
-readme: ## Simplify README via Claude Code
-	@claude -p "Read README.md. Rewrite it: keep the one-liner clone command, the 5 make commands, and requirements. Move everything else into <details> dropdowns. No section should exceed 10 lines when collapsed. Write the result back to README.md." --allowedTools Edit,Read
+readme: ## Regenerate README from rules and project structure
+	@bash scripts/gen-readme.sh

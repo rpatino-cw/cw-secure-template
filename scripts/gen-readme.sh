@@ -1,3 +1,39 @@
+#!/usr/bin/env bash
+# gen-readme.sh — Regenerate README.md from project source files
+# Called by: make readme
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+# ── Collect source context ──────────────────────────────────────────
+RULES_DIR=".claude/rules"
+CLAUDE_MD="CLAUDE.md"
+ROOMS_README="rooms/README.md"
+MAKEFILE="Makefile"
+
+# Build a context blob from rule files (first 5 lines of each = summary)
+rule_summaries=""
+for f in "$RULES_DIR"/*.md; do
+  name=$(basename "$f" .md)
+  # Grab the ## heading line as the one-liner
+  heading=$(grep -m1 '^## ' "$f" 2>/dev/null | sed 's/^## //' || echo "$name")
+  rule_summaries+="- **$name** — $heading"$'\n'
+done
+
+# Detect stack
+stack="Go + Python"
+if [ -f .stack ]; then
+  stack=$(cat .stack)
+fi
+
+# Count rules, guards, enforcement layers
+rule_count=$(find "$RULES_DIR" -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+guard_count=$(grep -c 'guard_' scripts/guard.sh 2>/dev/null || echo "11")
+
+# Get make targets (public ones with ## comments)
+make_targets=$(grep -E '^[a-zA-Z_-]+:.*##' "$MAKEFILE" 2>/dev/null | head -15 | sed 's/:.*## /  — /' || echo "")
+
+# ── Generate README ─────────────────────────────────────────────────
+cat > README.md << 'HEADER'
 <h1 align="center">CW Secure Template</h1>
 
 <p align="center"><strong>Vibe code without the slop.</strong></p>
@@ -10,6 +46,9 @@
 
 ---
 
+HEADER
+
+cat >> README.md << 'QUICKSTART'
 Clone it. Claude follows security rules, enforcement layers, and an architecture enforcer automatically. No config.
 
 ```bash
@@ -28,6 +67,10 @@ make learn         15-question security quiz
 
 ---
 
+QUICKSTART
+
+# ── What it enforces (pull from CLAUDE.md OWASP table) ─────────────
+cat >> README.md << 'ENFORCES'
 <details>
 <summary>What it enforces</summary>
 
@@ -42,6 +85,10 @@ make learn         15-question security quiz
 
 </details>
 
+ENFORCES
+
+# ── 3 enforcement layers ───────────────────────────────────────────
+cat >> README.md << 'LAYERS'
 <details>
 <summary>3 enforcement layers</summary>
 
@@ -53,6 +100,10 @@ All three must be defeated to bypass. Layers 2 and 3 aren't Claude's decision.
 
 </details>
 
+LAYERS
+
+# ── Architecture enforcer (auto-generated from rules) ──────────────
+cat >> README.md << 'ARCH'
 <details>
 <summary>Architecture enforcer</summary>
 
@@ -69,31 +120,22 @@ Automatic. `guard.sh` + 14 rule files enforce directory structure, dependency di
 
 </details>
 
-<details>
-<summary>Rule files</summary>
+ARCH
 
-Auto-generated from `.claude/rules/` (17 files):
+# ── Rule files index (auto-generated) ──────────────────────────────
+{
+  echo '<details>'
+  echo '<summary>Rule files</summary>'
+  echo ''
+  echo "Auto-generated from \`.claude/rules/\` ($rule_count files):"
+  echo ''
+  echo "$rule_summaries"
+  echo '</details>'
+  echo ''
+} >> README.md
 
-- **api-conventions** — API Conventions
-- **architecture** — Architecture Enforcement — Automatic
-- **branching** — Branch Discipline
-- **classes** — Classes and Structs — Placement Rules
-- **code-style** — Code Style
-- **collaboration** — Collaboration — Anti-Overwrite, Small Edits, Conflict Awareness
-- **database** — Database Layer — What Belongs Here
-- **entry** — Entry Point — What Belongs Here
-- **frontend** — Frontend — What Belongs Here
-- **functions** — Utility Functions — What Belongs Here
-- **globals** — Config, Constants, Globals — What Belongs Here
-- **models** — Data Models — What Belongs Here
-- **rooms** — Room-Based Multi-Agent Coordination
-- **routes** — Route Files — What Belongs Here
-- **security** — Security Rules for All Source Code
-- **services** — Service Files — What Belongs Here
-- **testing** — Testing Rules
-
-</details>
-
+# ── Multi-agent rooms ──────────────────────────────────────────────
+cat >> README.md << 'ROOMS'
 <details>
 <summary>Multi-agent rooms — team vibe coding</summary>
 
@@ -122,6 +164,10 @@ make room-status              # see pending requests across the team
 
 </details>
 
+ROOMS
+
+# ── Docs + footer ──────────────────────────────────────────────────
+cat >> README.md << 'FOOTER'
 <details>
 <summary>Docs</summary>
 
@@ -133,3 +179,11 @@ make room-status              # see pending requests across the team
 ---
 
 <p align="center"><sub>Built for CoreWeave teams. Questions → <code>#application-security</code></sub></p>
+FOOTER
+
+# ── Report ──────────────────────────────────────────────────────────
+lines=$(wc -l < README.md | tr -d ' ')
+echo "README.md regenerated — $lines lines, $rule_count rules indexed"
+if [ "$lines" -gt 150 ]; then
+  echo "WARNING: $lines lines exceeds 150-line target"
+fi
