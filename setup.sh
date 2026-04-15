@@ -225,8 +225,7 @@ echo ""
 echo -e "  ${DIM}Other useful commands: make help${NC}"
 echo ""
 
-# Auto-open dashboard if possible
+# Offer to open dashboard — don't force it
 if command -v open &>/dev/null && [ -f security-dashboard.html ]; then
-  echo -e "  Opening the Security Dashboard..."
-  open security-dashboard.html 2>/dev/null || true
+  echo -e "  ${DIM}View the Security Dashboard: make dashboard${NC}"
 fi
