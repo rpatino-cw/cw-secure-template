@@ -1,0 +1,26 @@
+{
+  "name": "admin-tool",
+  "display_name": "Admin Tool",
+  "version": "1.0.0",
+  "description": "CRUD admin panel with permissions, audit trail, and bulk operations.",
+  "stacks": ["python", "go"],
+  "requires": {
+    "env_vars": ["DATABASE_URL"],
+    "middleware": ["auth", "ratelimit", "requestid", "requestsize"],
+    "dependencies": {
+      "python": [],
+      "go": []
+    }
+  },
+  "files": {
+    "python": {
+      "copy": [],
+      "note": "Scaffolds src/routes/admin.py, src/services/admin_service.py, src/models/audit.py, and RBAC middleware"
+    },
+    "go": {
+      "copy": [],
+      "note": "Scaffolds go/routes/admin.go, go/services/admin.go, go/models/audit.go, and RBAC middleware"
+    }
+  },
+  "post_apply": ["make test"]
+}

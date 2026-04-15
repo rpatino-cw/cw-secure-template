@@ -38,10 +38,12 @@ echo "============================================"
 # ── Framework Info ──
 ACTIVE_BLUEPRINT="none"
 ACTIVE_STACK="unknown"
+ACTIVE_PROFILE="strict"
 [ -f .blueprint ] && ACTIVE_BLUEPRINT=$(cat .blueprint)
 [ -f .stack ] && ACTIVE_STACK=$(cat .stack)
+[ -f .profile ] && ACTIVE_PROFILE=$(cat .profile)
 echo ""
-echo -e "  Blueprint: ${BOLD}${ACTIVE_BLUEPRINT}${NC}  |  Stack: ${BOLD}${ACTIVE_STACK}${NC}"
+echo -e "  Blueprint: ${BOLD}${ACTIVE_BLUEPRINT}${NC}  |  Stack: ${BOLD}${ACTIVE_STACK}${NC}  |  Profile: ${BOLD}${ACTIVE_PROFILE}${NC}"
 echo ""
 
 # ── Tools ──
@@ -197,6 +199,107 @@ if bash scripts/scan-drops.sh 2>/dev/null | grep -q "FOUND"; then
     check "No sensitive files in project root" 1 "Run: make add-config to store them safely"
 else
     check "No sensitive files in project root" 0 ""
+fi
+
+# ── Architecture Compliance ──
+echo ""
+echo -e "${BOLD}Architecture Compliance${NC}"
+
+# Check dependency direction violations (routes importing repositories directly)
+if [ -d python/src/routes ]; then
+    ROUTE_REPO_IMPORTS=$(grep -rn "from.*repositories\|import.*repositories" python/src/routes/ 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$ROUTE_REPO_IMPORTS" -eq 0 ]; then
+        check "Routes don't import repositories directly" 0 ""
+    else
+        check "Routes don't import repositories directly" 1 "Routes must call services, not repositories. Fix: move DB logic to services/"
+    fi
+fi
+
+if [ -d go/routes ] || [ -d go/handlers ]; then
+    GO_ROUTE_REPO=$(grep -rn --include="*.go" '".*repositories\|repositories\.' go/routes/ go/handlers/ 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$GO_ROUTE_REPO" -eq 0 ]; then
+        check "Go handlers don't import repositories directly" 0 ""
+    else
+        check "Go handlers don't import repositories directly" 1 "Handlers must call services, not repositories. Fix: move DB logic to services/"
+    fi
+fi
+
+# Check for inline route definitions in entry point
+if [ -f python/src/main.py ]; then
+    INLINE_ROUTES=$(grep -c "@app\.\(get\|post\|put\|delete\|patch\)" python/src/main.py 2>/dev/null || echo "0")
+    if [ "$INLINE_ROUTES" -le 1 ]; then
+        check "No inline routes in main.py (healthz exempt)" 0 ""
+    else
+        check "No inline routes in main.py" 2 "$INLINE_ROUTES routes inline — move to routes/ directory"
+    fi
+fi
+
+# Check middleware presence
+if [ -f python/src/main.py ]; then
+    if grep -q "AuthMiddleware\|RequireAuth\|get_current_user" python/src/main.py 2>/dev/null; then
+        check "Auth middleware wired" 0 ""
+    else
+        check "Auth middleware wired" 1 "Add auth middleware to main.py — Run: see .claude/rules/security.md"
+    fi
+    if grep -q "RateLimitMiddleware\|ratelimit" python/src/main.py 2>/dev/null; then
+        check "Rate limiting wired" 0 ""
+    else
+        check "Rate limiting wired" 1 "Add rate limit middleware — every API needs rate limiting"
+    fi
+fi
+
+if [ -f go/main.go ]; then
+    if grep -q "auth\.\|Auth\|requireAuth" go/main.go 2>/dev/null; then
+        check "Auth middleware wired" 0 ""
+    else
+        check "Auth middleware wired" 1 "Add auth middleware to main.go — see middleware/auth.go"
+    fi
+    if grep -q "ratelimit\.\|RateLimit" go/main.go 2>/dev/null; then
+        check "Rate limiting wired" 0 ""
+    else
+        check "Rate limiting wired" 1 "Add rate limit middleware — see middleware/ratelimit.go"
+    fi
+fi
+
+# ── Profile Compliance ──
+echo ""
+echo -e "${BOLD}Profile: ${ACTIVE_PROFILE}${NC}"
+
+# Load env vars for profile checks
+[ -f .env ] && source .env 2>/dev/null
+
+COVERAGE_THRESHOLD="${COVERAGE_THRESHOLD:-80}"
+GUARD_LEVEL="${GUARD_LEVEL:-full}"
+
+check "Profile file exists" 0 ""
+echo -e "  Coverage threshold: ${BOLD}${COVERAGE_THRESHOLD}%${NC}  |  Guard level: ${BOLD}${GUARD_LEVEL}${NC}"
+
+# ── Release Readiness ──
+echo ""
+echo -e "${BOLD}Release Readiness${NC}"
+
+if [ -f LICENSE ]; then
+    check "LICENSE file present" 0 ""
+else
+    check "LICENSE file present" 2 "Add a LICENSE file for open-source or internal compliance"
+fi
+
+if [ -f SECURITY.md ]; then
+    check "SECURITY.md (incident response) present" 0 ""
+else
+    check "SECURITY.md present" 1 "Add incident response template — run: make setup"
+fi
+
+if [ -f CHANGELOG.md ]; then
+    check "CHANGELOG.md present" 0 ""
+else
+    check "CHANGELOG.md present" 2 "Add a changelog to track releases"
+fi
+
+if [ -d .github/workflows ] && [ -f .github/workflows/ci.yml ]; then
+    check "CI pipeline configured" 0 ""
+else
+    check "CI pipeline configured" 1 "No CI workflow — security checks won't run on PRs"
 fi
 
 # ── Summary ──

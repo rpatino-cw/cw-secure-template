@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "blueprints": {
     "api-service": {
       "name": "API Service",
@@ -21,6 +21,27 @@
       "stacks": ["python"],
       "complexity": "starter",
       "tags": ["worker", "queue", "batch", "jobs"]
+    },
+    "internal-dashboard": {
+      "name": "Internal Dashboard",
+      "description": "Authenticated dashboard with data tables, charts, and role-based views",
+      "stacks": ["python"],
+      "complexity": "starter",
+      "tags": ["dashboard", "admin", "views", "charts"]
+    },
+    "admin-tool": {
+      "name": "Admin Tool",
+      "description": "CRUD admin panel with permissions, audit trail, and bulk operations",
+      "stacks": ["python", "go"],
+      "complexity": "starter",
+      "tags": ["admin", "crud", "permissions", "audit"]
+    },
+    "approval-workflow": {
+      "name": "Approval Workflow",
+      "description": "Multi-step request intake with approvals, notifications, and status tracking",
+      "stacks": ["python"],
+      "complexity": "starter",
+      "tags": ["workflow", "approvals", "intake", "notifications"]
     }
   }
 }

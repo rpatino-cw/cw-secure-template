@@ -1,0 +1,21 @@
+{
+  "name": "internal-dashboard",
+  "display_name": "Internal Dashboard",
+  "version": "1.0.0",
+  "description": "Authenticated dashboard with data tables, charts, and role-based views. Built with FastAPI + Jinja2 templates.",
+  "stacks": ["python"],
+  "requires": {
+    "env_vars": ["DATABASE_URL"],
+    "middleware": ["auth", "ratelimit", "requestid", "requestsize"],
+    "dependencies": {
+      "python": ["jinja2", "python-multipart"]
+    }
+  },
+  "files": {
+    "python": {
+      "copy": [],
+      "note": "Scaffolds src/routes/dashboard.py, src/templates/dashboard/, src/static/, and src/services/dashboard_service.py"
+    }
+  },
+  "post_apply": ["make test"]
+}

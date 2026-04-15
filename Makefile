@@ -93,6 +93,7 @@ help-all: ## Show all available commands
 	@echo "  Setup:"
 	@echo "    make init         Personalize for your project"
 	@echo "    make setup        Re-run first-time setup"
+	@echo "    make profile      Set enforcement level (LEVEL=hackathon|balanced|strict|production)"
 	@echo "    make docker       Build Docker image"
 	@echo ""
 
@@ -228,6 +229,10 @@ setup:
 .PHONY: init
 init:
 	@bash scripts/init-project.sh
+
+.PHONY: profile
+profile: ## Set enforcement level (LEVEL=hackathon|balanced|strict|production)
+	@bash scripts/set-profile.sh $(LEVEL)
 
 .PHONY: run
 run: start

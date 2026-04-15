@@ -1,0 +1,21 @@
+{
+  "name": "approval-workflow",
+  "display_name": "Approval Workflow",
+  "version": "1.0.0",
+  "description": "Multi-step request intake with approvals, notifications, and status tracking.",
+  "stacks": ["python"],
+  "requires": {
+    "env_vars": ["DATABASE_URL"],
+    "middleware": ["auth", "ratelimit", "requestid", "requestsize"],
+    "dependencies": {
+      "python": []
+    }
+  },
+  "files": {
+    "python": {
+      "copy": [],
+      "note": "Scaffolds src/routes/requests.py, src/services/workflow_service.py, src/models/request.py, and state machine"
+    }
+  },
+  "post_apply": ["make test"]
+}
