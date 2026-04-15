@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero-section">
+  <h1>{{ info.name }}</h1>
+  <p class="hero-sub">{{ info.purpose }}</p>
+  <div class="hero-meta">
+    <span class="tag">{{ info.stack }}</span>
+    <span class="tag">{{ info.team }}</span>
+    {% if info.dev_mode %}<span class="tag tag-warn">DEV_MODE</span>{% endif %}
+  </div>
+</section>
+
+<section class="grid-2">
+  <!-- Security Status -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Security Status</h2>
+      <span class="card-badge">{{ info.guard_count }}/5</span>
+    </div>
+    <div class="checklist">
+      <div class="check-item {{ 'check-pass' if info.guards.claude_md else 'check-fail' }}">
+        <span class="check-icon">{{ '✓' if info.guards.claude_md else '✕' }}</span>
+        CLAUDE.md guardrails
+      </div>
+      <div class="check-item {{ 'check-pass' if info.guards.guard_sh else 'check-fail' }}">
+        <span class="check-icon">{{ '✓' if info.guards.guard_sh else '✕' }}</span>
+        PreToolUse guard hook
+      </div>
+      <div class="check-item {{ 'check-pass' if info.guards.pre_commit else 'check-fail' }}">
+        <span class="check-icon">{{ '✓' if info.guards.pre_commit else '✕' }}</span>
+        Pre-commit hooks
+      </div>
+      <div class="check-item {{ 'check-pass' if info.guards.ci else 'check-fail' }}">
+        <span class="check-icon">{{ '✓' if info.guards.ci else '✕' }}</span>
+        CI pipeline
+      </div>
+      <div class="check-item {{ 'check-pass' if info.guards.gitignore else 'check-fail' }}">
+        <span class="check-icon">{{ '✓' if info.guards.gitignore else '✕' }}</span>
+        Secret patterns in .gitignore
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Start -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Quick Start</h2>
+    </div>
+    <div class="terminal-mini">
+      <div class="term-line"><span class="term-p">$</span> make start</div>
+      <div class="term-out">Server running on :8080</div>
+      <div class="term-line"><span class="term-p">$</span> make check</div>
+      <div class="term-out">All checks passed</div>
+      <div class="term-line"><span class="term-p">$</span> make rooms</div>
+      <div class="term-out">Auto-detected rooms</div>
+    </div>
+  </div>
+</section>
+
+<!-- API Endpoints -->
+<section>
+  <div class="card">
+    <div class="card-header">
+      <h2>API Endpoints</h2>
+    </div>
+    <table class="endpoint-table">
+      <thead>
+        <tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="method get">GET</td><td>/healthz</td><td>No</td><td>Kubernetes health probe</td></tr>
+        <tr><td class="method get">GET</td><td>/api/me</td><td>Yes</td><td>Current user info</td></tr>
+        <tr><td class="method get">GET</td><td>/api/items</td><td>Yes</td><td>List items</td></tr>
+        <tr><td class="method post">POST</td><td>/api/items</td><td>Yes</td><td>Create item</td></tr>
+      </tbody>
+    </table>
+    <p class="hint">Add your endpoints in <code>src/routes/api.py</code>. Copy the pattern above.</p>
+  </div>
+</section>
+
+{% if info.rooms %}
+<!-- Rooms -->
+<section>
+  <div class="card">
+    <div class="card-header">
+      <h2>Agent Rooms</h2>
+      <span class="card-badge">{{ info.rooms | length }}</span>
+    </div>
+    <div class="room-chips">
+      {% for room in info.rooms %}
+      <span class="room-chip">{{ room }}</span>
+      {% endfor %}
+    </div>
+    <p class="hint">Start an agent: <code>make agent NAME={{ info.rooms[0] }}</code></p>
+  </div>
+</section>
+{% endif %}
+
+<!-- What's Protected -->
+<section>
+  <div class="card card-dark">
+    <h2>What the template protects you from</h2>
+    <div class="protect-grid">
+      <div class="protect-item">
+        <span class="protect-icon">✕</span>
+        <div><strong>Hardcoded secrets</strong><br><span class="dim">Redirected to make add-secret</span></div>
+      </div>
+      <div class="protect-item">
+        <span class="protect-icon">✕</span>
+        <div><strong>SQL injection</strong><br><span class="dim">Parameterized queries enforced</span></div>
+      </div>
+      <div class="protect-item">
+        <span class="protect-icon">✕</span>
+        <div><strong>Missing auth</strong><br><span class="dim">Every endpoint requires auth</span></div>
+      </div>
+      <div class="protect-item">
+        <span class="protect-icon">✕</span>
+        <div><strong>eval() / exec()</strong><br><span class="dim">Dangerous functions banned</span></div>
+      </div>
+      <div class="protect-item">
+        <span class="protect-icon">✕</span>
+        <div><strong>git push --force</strong><br><span class="dim">Denied at runtime</span></div>
+      </div>
+      <div class="protect-item">
+        <span class="protect-icon">✕</span>
+        <div><strong>Agent overwrites</strong><br><span class="dim">Room boundaries enforced</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

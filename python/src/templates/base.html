@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ info.name }} — CW Secure Template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">{{ info.name }}</div>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Dashboard</a>
+      <a href="/docs" class="nav-link">API Docs</a>
+      <a href="/healthz" class="nav-link">Health</a>
+    </div>
+    <div class="nav-badge">
+      {% if info.dev_mode %}
+      <span class="badge badge-warn">DEV MODE</span>
+      {% else %}
+      <span class="badge badge-ok">SECURED</span>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+{% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <span>{{ info.team }}</span>
+  <span>Built with <a href="https://github.com/rpatino-cw/cw-secure-template">CW Secure Template</a></span>
+</footer>
+</body>
+</html>
