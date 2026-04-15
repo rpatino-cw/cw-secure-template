@@ -70,3 +70,11 @@ async def dashboard(request: Request):
     return request.app.state.templates.TemplateResponse(
         "dashboard.html", {"request": request, "info": info}
     )
+
+
+@router.get("/blueprint-map", response_class=HTMLResponse)
+async def blueprint_map(request: Request):
+    info = _get_project_info()
+    return request.app.state.templates.TemplateResponse(
+        "blueprint-map.html", {"request": request, "info": info}
+    )

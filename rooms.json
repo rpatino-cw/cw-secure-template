@@ -26,6 +26,11 @@
       "description": "GitHub Actions, branch protection, CODEOWNERS, PR template",
       "owns": [".github/"],
       "color": "purple"
+    },
+    "blueprint-map": {
+      "description": "Datacenter overhead floor plan viewer — rack layout, hall filter, live Google Sheets data",
+      "owns": ["python/src/static/blueprint-map/", "python/src/templates/blueprint-map.html"],
+      "color": "teal"
     }
   },
   "shared": {
