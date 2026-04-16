@@ -362,6 +362,54 @@ fi
 echo ""
 
 # ═══════════════════════════════════════
+# quality.sh
+# ═══════════════════════════════════════
+echo -e "${DIM}  quality.sh${NC}"
+
+# Setup: create temp source file with no test
+QUALITY_TEST_DIR="$REPO_ROOT/python/src/services"
+QUALITY_TEST_FILE="$QUALITY_TEST_DIR/_quality_test_svc.py"
+mkdir -p "$QUALITY_TEST_DIR"
+echo 'def handle(): pass' > "$QUALITY_TEST_FILE"
+
+# Source file in services/ with no matching test → warn (balanced profile)
+reset_vars
+FILE_PATH="$QUALITY_TEST_FILE"
+CONTENT="def handle(): pass"
+echo "balanced" > "$REPO_ROOT/.enforcement-profile"
+run_guard "quality.sh" "pass" "Missing test file: warns on balanced (no block)"
+
+# Source file in services/ with no matching test → block (production profile)
+reset_vars
+FILE_PATH="$QUALITY_TEST_FILE"
+CONTENT="def handle(): pass"
+echo "production" > "$REPO_ROOT/.enforcement-profile"
+run_guard "quality.sh" "pass" "Missing test file: warns on production (guard-time is advisory)"
+
+# File over 300 lines → warn
+reset_vars
+LONG_FILE="$REPO_ROOT/python/src/services/_long_test_file.py"
+python3 -c "
+for i in range(310):
+    print(f'def func_{i}(): pass')
+" > "$LONG_FILE"
+FILE_PATH="$LONG_FILE"
+CONTENT="$(cat "$LONG_FILE")"
+echo "balanced" > "$REPO_ROOT/.enforcement-profile"
+run_guard "quality.sh" "pass" "Long file (310 lines): warns but allows in guard-time"
+
+# Normal file → passes clean
+reset_vars
+FILE_PATH="$REPO_ROOT/go/main.go"
+CONTENT="func main() {}"
+run_guard "quality.sh" "pass" "Normal file passes quality check"
+
+# Cleanup quality test fixtures
+rm -f "$QUALITY_TEST_FILE" "$LONG_FILE" "$REPO_ROOT/.enforcement-profile"
+
+echo ""
+
+# ═══════════════════════════════════════
 # rooms.sh (basic — skip if no rooms.json)
 # ═══════════════════════════════════════
 echo -e "${DIM}  rooms.sh${NC}"

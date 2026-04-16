@@ -53,6 +53,7 @@ source "$GUARD_DIR/security.sh"
 source "$GUARD_DIR/architecture.sh"
 source "$GUARD_DIR/rooms.sh"
 source "$GUARD_DIR/freeze.sh"
+source "$GUARD_DIR/quality.sh"
 
 # All checks passed
 exit 0

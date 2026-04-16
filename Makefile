@@ -36,10 +36,14 @@ ifdef PY_EXISTS
 endif
 
 .PHONY: check
-check: lint test security-scan ## Run ALL checks — do this before every pull request
+check: lint test security-scan quality-check ## Run ALL checks — do this before every pull request
 	@echo ""
 	@echo "  All checks passed. You're good to open a pull request."
 	@echo ""
+
+.PHONY: quality-check
+quality-check: ## Run code quality checks (test coverage, line limits, TODOs)
+	@bash scripts/guards/quality.sh --full-scan
 
 .PHONY: join
 join: ## Join the team — pick your role
