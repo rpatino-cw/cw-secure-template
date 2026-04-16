@@ -39,11 +39,13 @@ echo "============================================"
 ACTIVE_BLUEPRINT="none"
 ACTIVE_STACK="unknown"
 ACTIVE_PROFILE="strict"
+FRAMEWORK_VERSION="untracked"
 [ -f .blueprint ] && ACTIVE_BLUEPRINT=$(cat .blueprint)
 [ -f .stack ] && ACTIVE_STACK=$(cat .stack)
 [ -f .profile ] && ACTIVE_PROFILE=$(cat .profile)
+[ -f .framework-version ] && FRAMEWORK_VERSION=$(cat .framework-version | tr -d '[:space:]')
 echo ""
-echo -e "  Blueprint: ${BOLD}${ACTIVE_BLUEPRINT}${NC}  |  Stack: ${BOLD}${ACTIVE_STACK}${NC}  |  Profile: ${BOLD}${ACTIVE_PROFILE}${NC}"
+echo -e "  Blueprint: ${BOLD}${ACTIVE_BLUEPRINT}${NC}  |  Stack: ${BOLD}${ACTIVE_STACK}${NC}  |  Profile: ${BOLD}${ACTIVE_PROFILE}${NC}  |  Framework: ${BOLD}${FRAMEWORK_VERSION}${NC}"
 echo ""
 
 # ── Tools ──
@@ -119,6 +121,36 @@ check "CI workflow exists" $? "Missing — no automated security checks"
 
 [ -f .github/pull_request_template.md ]
 check "PR template exists" $? "Missing — no security checklist on PRs"
+
+# ── Framework ──
+echo ""
+echo -e "${BOLD}Framework${NC}"
+
+if [ "$FRAMEWORK_VERSION" = "untracked" ]; then
+  check "Framework version tracked" 2 "Run: make upgrade"
+else
+  if git remote get-url upstream &>/dev/null; then
+    LATEST_TAG=$(git ls-remote --tags upstream 'v*' 2>/dev/null | sed 's/.*refs\/tags\///' | grep -v '\^{}' | sort -V | tail -1)
+    if [ -n "$LATEST_TAG" ] && [ "$LATEST_TAG" != "$FRAMEWORK_VERSION" ]; then
+      check "Framework up to date" 2 "Update available: $FRAMEWORK_VERSION → $LATEST_TAG — Run: make upgrade"
+    else
+      check "Framework up to date ($FRAMEWORK_VERSION)" 0 ""
+    fi
+  else
+    check "Framework version: $FRAMEWORK_VERSION" 0 ""
+    check "Upstream remote configured" 2 "Run: make upgrade (will add upstream remote)"
+  fi
+fi
+
+for f in scripts/guard.sh scripts/guard-bash.sh scripts/guards/security.sh \
+         scripts/guards/config-audit.sh .claude/settings.json \
+         .pre-commit-config.yaml scripts/secure-mode.sh; do
+  if [ -f "$f" ]; then
+    check "Framework file: $f" 0 ""
+  else
+    check "Framework file: $f" 1 "Missing — run: make upgrade"
+  fi
+done
 
 # ── Environment ──
 echo ""

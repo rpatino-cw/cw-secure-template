@@ -93,6 +93,8 @@ help-all: ## Show all available commands
 	@echo "  Setup:"
 	@echo "    make init         Personalize for your project"
 	@echo "    make setup        Re-run first-time setup"
+	@echo "    make upgrade      Pull latest framework changes from upstream"
+	@echo "    make adopt        Install security guards into an existing project"
 	@echo "    make profile      Set enforcement level (LEVEL=hackathon|balanced|strict|production)"
 	@echo "    make docker       Build Docker image"
 	@echo ""
@@ -233,6 +235,25 @@ pr: ## Run checks + push + open PR to main
 .PHONY: setup
 setup:
 	@bash setup.sh
+
+.PHONY: secure-mode
+secure-mode: ## Lock Claude Code permissions for this repo (one-time)
+	@bash scripts/secure-mode.sh
+
+.PHONY: upgrade
+upgrade: ## Pull latest framework updates from upstream template
+	@bash scripts/upgrade.sh $(if $(YES),--yes,)
+
+.PHONY: adopt
+adopt: ## Install security guards into an existing project (TARGET=/path/to/app)
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make adopt TARGET=/path/to/existing/project"
+	@echo "  Installs security guards without architecture opinions."
+	@echo ""
+	@exit 1
+endif
+	@bash scripts/adopt.sh "$(TARGET)" $(if $(FORCE),--force,)
 
 .PHONY: init
 init:
