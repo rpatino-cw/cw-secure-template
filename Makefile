@@ -193,7 +193,11 @@ learn:
 	@bash scripts/security-quiz.sh
 
 .PHONY: dashboard
-dashboard:
+dashboard: ## Open team dashboard (project health, who's working where)
+	@bash scripts/serve-dashboard.sh
+
+.PHONY: security-dashboard
+security-dashboard:
 	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "  Open security-dashboard.html in your browser"
 
 .PHONY: viz

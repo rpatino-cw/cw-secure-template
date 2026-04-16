@@ -1,0 +1,21 @@
+{
+  "name": "vibe-arch",
+  "version": "0.1.0",
+  "description": "Team vibe coding framework — architecture guardrails, trust tiers, room-based collaboration",
+  "bin": {
+    "vibe-arch": "./bin/vibe-arch.js"
+  },
+  "keywords": ["vibe-coding", "claude-code", "guardrails", "team", "architecture"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rpatino-cw/cw-secure-template"
+  },
+  "files": [
+    "bin/",
+    "templates/"
+  ],
+  "engines": {
+    "node": ">=18"
+  }
+}

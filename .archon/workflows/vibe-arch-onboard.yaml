@@ -1,0 +1,114 @@
+name: vibe-arch-onboard
+description: |
+  Use when: New team member is joining the project for the first time.
+  Triggers: "onboard", "new member", "getting started", "first time".
+  Does: Welcome → Pick role → Guided first task → Review → Promote to builder.
+  Interactive — walks someone through their first contribution.
+
+provider: claude
+interactive: true
+
+nodes:
+  # ═══════════════════════════════════════════════════════
+  # PHASE 1: WELCOME — Introduce the project
+  # ═══════════════════════════════════════════════════════
+
+  - id: welcome
+    prompt: |
+      # Welcome to the Team
+
+      A new member is joining. Help them get oriented.
+
+      **Their input**: $ARGUMENTS
+
+      ## Steps
+
+      1. Read CLAUDE.md — understand the project
+      2. Read rooms.json — see available roles
+      3. Read team.json — see who's already on the team
+      4. Present a friendly welcome:
+         - What this project does (1-2 sentences)
+         - How many people are on the team
+         - What roles are available
+         - How the room system works (you own certain files, guards protect boundaries)
+      5. Tell them to run: `make join`
+      6. Ask what they'd like to work on first
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 2: FIRST TASK — Guided implementation
+  # ═══════════════════════════════════════════════════════
+
+  - id: first-task
+    depends_on: [welcome]
+    loop:
+      prompt: |
+        # First Task — Guided
+
+        Walk the new member through their first contribution.
+        Extra guardrails: explain what you're doing at each step.
+
+        **User's input**: $LOOP_USER_INPUT
+
+        ## If this is the first iteration:
+
+        1. Re-read team.json to see their room assignment
+        2. Suggest a small, low-risk first task in their room:
+           - Fix a typo in docs
+           - Add a missing test
+           - Improve an error message
+           - Add a TODO with a ticket number
+        3. Explain the plan in simple terms
+        4. Ask: "Want to try this? Say **go** and I'll walk you through it."
+
+        ## If the user said go:
+
+        1. Guide them step by step
+        2. After each edit, explain what you did and why
+        3. Run `make check` and explain the results
+        4. Help them commit
+        5. Celebrate: "First contribution done!"
+        6. Signal: <promise>TASK_DONE</promise>
+
+        ## If the user has questions:
+
+        Answer them. Stay patient. Explain concepts simply.
+        Do NOT emit <promise>TASK_DONE</promise> until the task is committed.
+      until: TASK_DONE
+      max_iterations: 15
+      interactive: true
+      gate_message: |
+        Try the suggested task, ask questions, or describe what you'd
+        like to work on. Say "go" when you're ready to start.
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 3: PROMOTE — Upgrade to builder tier
+  # ═══════════════════════════════════════════════════════
+
+  - id: promote
+    depends_on: [first-task]
+    context: fresh
+    bash: |
+      set -e
+      REPO_ROOT="$(git rev-parse --show-toplevel)"
+      TEAM_CONFIG="$REPO_ROOT/team.json"
+
+      # Find the newest starter member (likely the one who just onboarded)
+      NEWEST=$(python3 -c "
+      import json
+      with open('$TEAM_CONFIG') as f:
+          team = json.load(f)
+      starters = [(n, i) for n, i in team.get('members', {}).items() if i['tier'] == 'starter']
+      if starters:
+          starters.sort(key=lambda x: x[1].get('joined', ''), reverse=True)
+          print(starters[0][0])
+      " 2>/dev/null || echo "")
+
+      if [ -n "$NEWEST" ]; then
+        bash "$REPO_ROOT/scripts/promote.sh" "$NEWEST" "builder"
+        echo ""
+        echo "Congratulations! $NEWEST has been promoted to builder tier."
+        echo "They can now create new files in their room and request cross-room changes."
+      else
+        echo "No starter-tier members found to promote."
+      fi
+    timeout: 10000

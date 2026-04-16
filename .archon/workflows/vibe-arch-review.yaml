@@ -1,0 +1,123 @@
+name: vibe-arch-review
+description: |
+  Use when: Code review needed — 3 parallel review agents check security,
+  architecture, and quality, then synthesize findings and auto-fix.
+  Triggers: "review", "code review", "check my work", "review PR".
+
+provider: claude
+
+nodes:
+  # ═══════════════════════════════════════════════════════
+  # PHASE 1: GATHER — Collect changes to review
+  # ═══════════════════════════════════════════════════════
+
+  - id: gather
+    bash: |
+      echo "=== CHANGES TO REVIEW ==="
+      git log --oneline --no-merges $(git merge-base HEAD ${BASE_BRANCH:-main})..HEAD 2>/dev/null || git log --oneline -10
+      echo ""
+      echo "=== FILES CHANGED ==="
+      git diff ${BASE_BRANCH:-main}..HEAD --stat 2>/dev/null || git diff --stat HEAD~5
+      echo ""
+      echo "=== DIFF ==="
+      git diff ${BASE_BRANCH:-main}..HEAD 2>/dev/null || git diff HEAD~5
+    timeout: 60000
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 2: PARALLEL REVIEW — 3 agents, 3 perspectives
+  # ═══════════════════════════════════════════════════════
+
+  - id: security-review
+    depends_on: [gather]
+    context: fresh
+    prompt: |
+      # Security Review Agent
+
+      Review these changes for security issues only.
+
+      $gather.output
+
+      Read CLAUDE.md for the project's security rules. Check for:
+      - Hardcoded secrets or credentials
+      - Missing auth on new endpoints
+      - SQL injection (string concatenation in queries)
+      - Dangerous functions (eval, exec, pickle, shell=True)
+      - Missing input validation
+      - Error messages that leak internals
+
+      Output a numbered list of findings with severity (CRITICAL/HIGH/MEDIUM/LOW).
+      If no issues: "No security issues found."
+
+  - id: architecture-review
+    depends_on: [gather]
+    context: fresh
+    prompt: |
+      # Architecture Review Agent
+
+      Review these changes for architecture violations only.
+
+      $gather.output
+
+      Read CLAUDE.md and .claude/rules/architecture.md. Check for:
+      - Dependency direction violations (routes importing from repositories)
+      - Logic in wrong layer (business logic in routes, SQL in services)
+      - Files exceeding 300 lines
+      - New files in wrong directories
+      - Missing foundation items for new stacks
+      - Room boundary violations
+
+      Output a numbered list of findings with severity.
+      If no issues: "No architecture issues found."
+
+  - id: quality-review
+    depends_on: [gather]
+    context: fresh
+    prompt: |
+      # Quality Review Agent
+
+      Review these changes for code quality only.
+
+      $gather.output
+
+      Read CLAUDE.md and .claude/rules/. Check for:
+      - Missing tests for new functionality
+      - Functions over 40 lines
+      - Dead code or commented-out code
+      - TODOs without ticket numbers
+      - Missing error handling
+      - Inconsistent naming conventions
+
+      Output a numbered list of findings with severity.
+      If no issues: "No quality issues found."
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 3: SYNTHESIZE — Merge and prioritize findings
+  # ═══════════════════════════════════════════════════════
+
+  - id: synthesize
+    depends_on: [security-review, architecture-review, quality-review]
+    trigger_rule: one_success
+    context: fresh
+    prompt: |
+      # Review Synthesis
+
+      Merge findings from 3 review agents. Deduplicate and prioritize.
+
+      ## Security Findings
+      $security-review.output
+
+      ## Architecture Findings
+      $architecture-review.output
+
+      ## Quality Findings
+      $quality-review.output
+
+      ## Instructions
+
+      1. Deduplicate (same issue found by multiple agents)
+      2. Sort by severity: CRITICAL → HIGH → MEDIUM → LOW
+      3. For CRITICAL/HIGH: fix them now
+      4. For MEDIUM/LOW: fix if straightforward, otherwise note for later
+      5. Run `make check` after all fixes
+      6. Commit fixes: `git commit -m "fix: address review findings"`
+      7. Report final status

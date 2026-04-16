@@ -1,0 +1,179 @@
+name: vibe-arch-feature
+description: |
+  Use when: Team member wants to build a feature end-to-end with guardrails.
+  Triggers: "build a feature", "add functionality", "new endpoint", "implement".
+  Does: Explore → Plan (with approval) → Implement (task-by-task) → Validate → PR.
+  Respects room boundaries and trust tiers from team.json.
+
+provider: claude
+interactive: true
+
+nodes:
+  # ═══════════════════════════════════════════════════════
+  # PHASE 1: EXPLORE — Understand what to build
+  # ═══════════════════════════════════════════════════════
+
+  - id: explore
+    loop:
+      prompt: |
+        # vibe-arch Feature — Exploration
+
+        You are helping a team member build a feature. Your job: understand
+        what they want before writing any code.
+
+        **Request**: $ARGUMENTS
+        **User's input**: $LOOP_USER_INPUT
+
+        ## If this is the first iteration:
+
+        1. Read CLAUDE.md — understand project rules and conventions
+        2. Read rooms.json — understand room boundaries
+        3. Read team.json — check who is requesting and their tier
+        4. Search the codebase for related existing code
+        5. Present what you found and ask 3-5 focused questions
+
+        ## If the user has responded:
+
+        1. Process their answers
+        2. Do targeted research based on what they said
+        3. If picture is clear, present a summary:
+           - What we're building
+           - Which files will change
+           - Which rooms are affected
+           - Success criteria
+           Then say: "Say **ready** to create the plan."
+        4. If questions remain, ask 2-3 more
+
+        NEVER emit <promise>PLAN_READY</promise> unless the user explicitly
+        says "ready", "go", "let's do it", or similar.
+      until: PLAN_READY
+      max_iterations: 10
+      interactive: true
+      gate_message: |
+        Answer the questions, or say "ready" when you're satisfied.
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 2: PLAN — Write the implementation plan
+  # ═══════════════════════════════════════════════════════
+
+  - id: plan
+    depends_on: [explore]
+    context: fresh
+    prompt: |
+      # vibe-arch Feature — Create Plan
+
+      Create an implementation plan from the exploration.
+
+      **Original request**: $ARGUMENTS
+      **Exploration summary**: $explore.output
+
+      ## Steps
+
+      1. Read CLAUDE.md, rooms.json, team.json
+      2. Read every file you plan to change
+      3. Write plan to `.plans/{feature-slug}.md`:
+         - Summary (what and why)
+         - Files to change (with room ownership)
+         - Task list (ordered, each independently verifiable)
+         - Validation commands
+         - Risks
+      4. Present the plan for review
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 2b: PLAN REVIEW — Iterate until approved
+  # ═══════════════════════════════════════════════════════
+
+  - id: review-plan
+    depends_on: [plan]
+    loop:
+      prompt: |
+        # vibe-arch Feature — Plan Review
+
+        **User's feedback**: $LOOP_USER_INPUT
+
+        ## If no feedback yet:
+        Read the plan from `.plans/` and present a summary for review.
+
+        ## If user approved ("approved", "looks good", "go"):
+        Output: "Plan approved. Starting implementation."
+        Signal: <promise>PLAN_APPROVED</promise>
+
+        ## If user gave feedback:
+        Edit the plan file with their changes. Show what changed.
+
+        NEVER emit <promise>PLAN_APPROVED</promise> unless user explicitly approves.
+      until: PLAN_APPROVED
+      max_iterations: 8
+      interactive: true
+      gate_message: |
+        Review the plan. Give feedback or say "approved" to start building.
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 3: IMPLEMENT — Task by task
+  # ═══════════════════════════════════════════════════════
+
+  - id: implement
+    depends_on: [review-plan]
+    idle_timeout: 600000
+    loop:
+      prompt: |
+        # vibe-arch Feature — Implementation
+
+        You are an autonomous coding agent. Read the plan from disk,
+        implement ONE task, validate, commit, update tracking.
+
+        ## Steps
+
+        1. Find the plan: `ls -t .plans/*.md | head -1`
+        2. Read it and check progress tracking (`.plans/progress.txt`)
+        3. Read CLAUDE.md for conventions
+        4. Pick the next incomplete task
+        5. Implement it following the plan exactly
+        6. Run `make check` to validate
+        7. If validation fails, fix and retry (max 3 attempts)
+        8. Commit with descriptive message
+        9. Update progress tracking
+
+        If ALL tasks complete:
+        1. Run `make check` one final time
+        2. `git push -u origin HEAD`
+        3. Signal: <promise>COMPLETE</promise>
+      until: COMPLETE
+      max_iterations: 15
+      fresh_context: true
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 4: VALIDATE — Review all changes
+  # ═══════════════════════════════════════════════════════
+
+  - id: validate
+    depends_on: [implement]
+    context: fresh
+    prompt: |
+      # vibe-arch Feature — Validation
+
+      Implementation is done. Review everything.
+
+      1. Read the plan from `.plans/`
+      2. `git diff $BASE_BRANCH..HEAD --stat` to see all changes
+      3. Verify each task was implemented correctly
+      4. Run `make check`
+      5. Fix any issues found
+      6. Report: which tasks are done, validation results, recommendation
+
+  # ═══════════════════════════════════════════════════════
+  # PHASE 5: CREATE PR
+  # ═══════════════════════════════════════════════════════
+
+  - id: create-pr
+    depends_on: [validate]
+    context: fresh
+    prompt: |
+      # vibe-arch Feature — Create PR
+
+      1. Push if not pushed: `git push -u origin HEAD`
+      2. Check if PR exists: `gh pr list --head $(git branch --show-current)`
+      3. Read the plan for context
+      4. Create PR with summary of what was built, which rooms were affected,
+         and validation results
+      5. Save PR URL to `$ARTIFACTS_DIR/.pr-url`

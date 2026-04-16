@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Dashboard</title>
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #fff;
+    --border: #e8e5e0;
+    --text: #1a1a1a;
+    --text-dim: #6b6560;
+    --starter: #c2920a;
+    --builder: #0a7e8c;
+    --lead: #7c3aed;
+    --accent: #d97706;
+    --radius: 10px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--text-dim); font-size: 0.875rem; margin-bottom: 2rem; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+  .full { grid-column: 1 / -1; }
+  .member {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .member:last-child { border-bottom: none; }
+  .member-name { font-weight: 500; flex: 1; }
+  .tier {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .tier-starter { background: #fef3c7; color: var(--starter); }
+  .tier-builder { background: #ccfbf1; color: var(--builder); }
+  .tier-lead { background: #ede9fe; color: var(--lead); }
+  .room-tag {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+  }
+  .room-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .room-item:last-child { border-bottom: none; }
+  .room-name { font-weight: 500; }
+  .room-paths { font-size: 0.8rem; color: var(--text-dim); font-family: monospace; }
+  .inbox-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.1rem 0.4rem;
+    border-radius: 8px;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+  .activity-item {
+    font-size: 0.85rem;
+    padding: 0.3rem 0;
+    color: var(--text-dim);
+    font-family: monospace;
+    border-bottom: 1px solid var(--border);
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .stat-row { display: flex; gap: 2rem; margin-bottom: 0.5rem; }
+  .stat { text-align: center; }
+  .stat-value { font-size: 1.75rem; font-weight: 700; }
+  .stat-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .profile-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    background: #e0e7ff;
+    color: #4338ca;
+    text-transform: uppercase;
+  }
+  .empty { color: var(--text-dim); font-style: italic; font-size: 0.875rem; }
+  .color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .shared-tag {
+    font-size: 0.7rem;
+    background: #fef3c7;
+    color: var(--starter);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+    body { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<h1 id="project-name">Team Dashboard</h1>
+<p class="subtitle" id="subtitle">Loading...</p>
+
+<div class="grid">
+  <div class="card">
+    <h2>Overview</h2>
+    <div class="stat-row" id="stats"></div>
+  </div>
+  <div class="card">
+    <h2>Enforcement</h2>
+    <p>Profile: <span id="profile"></span></p>
+    <p style="margin-top:0.5rem; font-size:0.8rem; color:var(--text-dim)">
+      Change with: <code>make profile LEVEL=strict</code>
+    </p>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>Team</h2>
+    <div id="team-list"></div>
+  </div>
+  <div class="card">
+    <h2>Rooms</h2>
+    <div id="rooms-list"></div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="card full">
+    <h2>Recent Activity</h2>
+    <div id="activity-list"></div>
+  </div>
+</div>
+
+<script>
+const ROOM_COLORS = {
+  blue: '#3b82f6', green: '#22c55e', red: '#ef4444',
+  yellow: '#eab308', purple: '#a855f7', teal: '#14b8a6',
+  orange: '#f97316', pink: '#ec4899'
+};
+
+async function load() {
+  let data;
+  try {
+    const res = await fetch('dashboard-data.json');
+    data = await res.json();
+  } catch {
+    document.getElementById('subtitle').textContent = 'Could not load dashboard-data.json. Run: make dashboard';
+    return;
+  }
+
+  document.getElementById('project-name').textContent = data.project || 'Team Dashboard';
+  document.getElementById('subtitle').textContent = `Last updated: ${new Date(data.generated).toLocaleString()}`;
+
+  // Stats
+  const members = Object.keys(data.team?.members || {});
+  const rooms = Object.keys(data.rooms?.rooms || {});
+  const totalInbox = Object.values(data.inbox_counts || {}).reduce((a, b) => a + b, 0);
+  document.getElementById('stats').innerHTML = `
+    <div class="stat"><div class="stat-value">${members.length}</div><div class="stat-label">Members</div></div>
+    <div class="stat"><div class="stat-value">${rooms.length}</div><div class="stat-label">Rooms</div></div>
+    <div class="stat"><div class="stat-value">${totalInbox}</div><div class="stat-label">Pending Requests</div></div>
+  `;
+
+  // Profile
+  document.getElementById('profile').innerHTML = `<span class="profile-badge">${data.profile || 'balanced'}</span>`;
+
+  // Team
+  const teamEl = document.getElementById('team-list');
+  if (members.length === 0) {
+    teamEl.innerHTML = '<p class="empty">No team members yet. Run: make join</p>';
+  } else {
+    teamEl.innerHTML = members.map(name => {
+      const m = data.team.members[name];
+      const tierClass = `tier-${m.tier}`;
+      return `<div class="member">
+        <span class="member-name">${name}</span>
+        <span class="tier ${tierClass}">${m.tier}</span>
+        <span class="room-tag">${m.room}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Rooms
+  const roomsEl = document.getElementById('rooms-list');
+  const roomEntries = Object.entries(data.rooms?.rooms || {});
+  if (roomEntries.length === 0) {
+    roomsEl.innerHTML = '<p class="empty">No rooms configured. Run: make rooms</p>';
+  } else {
+    roomsEl.innerHTML = roomEntries.map(([name, info]) => {
+      const color = ROOM_COLORS[info.color] || '#888';
+      const inbox = data.inbox_counts?.[name];
+      const inboxBadge = inbox ? `<span class="inbox-badge">${inbox}</span>` : '';
+      return `<div class="room-item">
+        <div>
+          <span class="color-dot" style="background:${color}"></span>
+          <span class="room-name">${name}</span> ${inboxBadge}
+          <div class="room-paths">${(info.owns || []).join(', ')}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Shared files
+    const shared = data.rooms?.shared;
+    if (shared) {
+      roomsEl.innerHTML += `<div class="room-item" style="margin-top:0.5rem; border-top:1px solid var(--border); padding-top:0.75rem">
+        <div>
+          <span class="shared-tag">SHARED</span>
+          <span class="room-name" style="margin-left:0.25rem">Requires approval</span>
+          <div class="room-paths">${(shared.paths || []).join(', ')}</div>
+        </div>
+      </div>`;
+    }
+  }
+
+  // Activity
+  const actEl = document.getElementById('activity-list');
+  if (!data.activity || data.activity.length === 0) {
+    actEl.innerHTML = '<p class="empty">No activity yet. Edits will appear here as agents work.</p>';
+  } else {
+    actEl.innerHTML = data.activity.slice(-20).reverse().map(line =>
+      `<div class="activity-item">${line}</div>`
+    ).join('');
+  }
+}
+
+load();
+setInterval(load, 5000);
+</script>
+</body>
+</html>
