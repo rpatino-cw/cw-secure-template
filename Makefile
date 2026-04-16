@@ -196,6 +196,13 @@ learn:
 dashboard: ## Open team dashboard (project health, who's working where)
 	@bash scripts/serve-dashboard.sh
 
+.PHONY: team-server
+team-server: ## Run live presence server (dashboard + real-time teammate view)
+	@echo "  Starting presence server on :$${PORT:-4000}"
+	@echo "  Open  http://localhost:$${PORT:-4000}/team-dashboard.html"
+	@echo "  (Ctrl+C to stop · see server/README.md for hook setup)"
+	@python3 server/server.py
+
 .PHONY: security-dashboard
 security-dashboard:
 	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "  Open security-dashboard.html in your browser"

@@ -382,7 +382,8 @@ make learn             15-question OWASP quiz
 make add-secret        Safely store an API key in .env (hidden input)
 make add-config        Safely store a config file
 make viz               Interactive visualizer
-make dashboard         Open security dashboard
+make dashboard         Open team dashboard (snapshot, 5s polling)
+make team-server       Live presence server — teammates appear in real time
 ```
 
 **Setup:**

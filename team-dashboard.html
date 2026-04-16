@@ -142,6 +142,15 @@
 <h1 id="project-name">Team Dashboard</h1>
 <p class="subtitle" id="subtitle">Loading...</p>
 
+<!-- Live presence strip. Appears only when the server at / is running (make team-server). -->
+<div id="live-strip" style="display:none; align-items:center; gap:1rem; padding:0.75rem 1rem; margin-bottom:1.25rem; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:var(--radius); font-size:0.85rem;">
+  <strong style="color:#047857; text-transform:uppercase; letter-spacing:0.08em; font-size:0.7rem; flex-shrink:0;">Online now</strong>
+  <div id="live-list" style="display:flex; gap:1.25rem; flex:1; flex-wrap:wrap; color:var(--text-dim);">
+    <em style="color:#6b6560">waiting for teammates…</em>
+  </div>
+  <span id="live-count" style="color:#047857; font-weight:600; flex-shrink:0;">0 connected</span>
+</div>
+
 <div class="grid">
   <div class="card">
     <h2>Overview</h2>
@@ -268,6 +277,114 @@ async function load() {
 
 load();
 setInterval(load, 5000);
+
+// ========== LIVE PRESENCE (optional; engages when server at / is running) ==========
+// Appends onto the existing static-snapshot flow above without altering it. If the
+// presence server is absent, everything below silently no-ops and the dashboard
+// keeps working exactly as before.
+(function initLivePresence() {
+  const stripEl = document.getElementById('live-strip');
+  const listEl = document.getElementById('live-list');
+  const countEl = document.getElementById('live-count');
+  if (!stripEl || !listEl || !countEl) return;
+
+  let me = localStorage.getItem('cwt-me') || '';
+  let presence = {};
+
+  async function probe() {
+    try {
+      const r = await fetch('/api/presence', { signal: AbortSignal.timeout(1500) });
+      return r.ok;
+    } catch { return false; }
+  }
+
+  async function promptForIdentity(members) {
+    if (me && members.includes(me)) return me;
+    if (members.length === 0) return '';
+    const pick = window.prompt(
+      'Presence server detected. Who are you?\n\nOptions: ' + members.join(', '),
+      members[0]
+    );
+    if (pick && members.includes(pick)) {
+      me = pick;
+      localStorage.setItem('cwt-me', me);
+    }
+    return me;
+  }
+
+  async function heartbeat() {
+    if (!me) return;
+    try {
+      await fetch('/api/presence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user: me, file: 'team-dashboard.html', room: 'overview', state: 'viewing' })
+      });
+    } catch {}
+  }
+
+  function render() {
+    const users = Object.values(presence).sort((a, b) => a.user.localeCompare(b.user));
+    countEl.textContent = users.length + ' connected';
+    if (users.length === 0) {
+      listEl.innerHTML = '<em style="color:#6b6560">waiting for teammates…</em>';
+      return;
+    }
+    listEl.innerHTML = users.map(p => {
+      const file = p.file && p.file !== 'team-dashboard.html' ? p.file : 'on dashboard';
+      const youTag = p.user === me ? ' <span style="color:#047857; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase;">you</span>' : '';
+      const roomTag = p.room && p.room !== 'overview'
+        ? ` <span style="font-size:0.7rem; color:#6b6560;">· ${p.room}</span>`
+        : '';
+      return `<span><strong style="color:#1a1a1a;">${p.user}</strong>${youTag}
+        <span style="color:#6b6560; font-size:0.78rem;"> · ${file}</span>${roomTag}</span>`;
+    }).join('');
+  }
+
+  function subscribe() {
+    let es;
+    try {
+      es = new EventSource('/api/stream');
+    } catch { return; }
+    es.onmessage = (e) => {
+      try {
+        const m = JSON.parse(e.data);
+        if (m.type === 'snapshot') {
+          presence = {};
+          (m.presence || []).forEach(p => presence[p.user] = p);
+        } else if (m.type === 'presence-update') {
+          presence[m.user] = m.payload;
+        } else if (m.type === 'presence-leave') {
+          delete presence[m.user];
+        }
+        render();
+      } catch {}
+    };
+    es.onerror = () => { try { es.close(); } catch {} ; setTimeout(subscribe, 3000); };
+  }
+
+  (async () => {
+    if (!await probe()) return;  // no server → silent no-op, static dashboard works as before
+    stripEl.style.display = 'flex';
+    try {
+      const teamRes = await fetch('/api/team');
+      const teamJson = await teamRes.json();
+      const members = Object.keys((teamJson && teamJson.members) || {});
+      await promptForIdentity(members);
+    } catch {}
+    heartbeat();
+    setInterval(heartbeat, 8000);
+    subscribe();
+    window.addEventListener('beforeunload', () => {
+      if (!me || !navigator.sendBeacon) return;
+      try {
+        navigator.sendBeacon('/api/presence',
+          new Blob([JSON.stringify({ user: me, file: '', room: '', state: 'offline' })],
+                   { type: 'application/json' }));
+      } catch {}
+    });
+  })();
+})();
 </script>
 </body>
 </html>
