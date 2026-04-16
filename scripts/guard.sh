@@ -41,6 +41,9 @@ data = json.loads(sys.argv[1])
 print(data.get('tool_input', {}).get('old_string', ''))
 " "$INPUT" 2>/dev/null || echo "")
 
+# ── Config audit gate (must pass before any other guard) ──
+source "$GUARD_DIR/config-audit.sh"
+
 # ── Run all guards (source so they share variables) ──
 source "$GUARD_DIR/collaboration.sh"
 source "$GUARD_DIR/security.sh"

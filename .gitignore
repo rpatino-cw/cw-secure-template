@@ -39,6 +39,9 @@ id_dsa
 *.pub
 !deploy/  # Don't block deploy/ directory
 
+# Claude Code local overrides (created by make secure-mode, per-clone)
+.claude/settings.local.json
+
 # Credential files
 credentials.json
 service-account*.json

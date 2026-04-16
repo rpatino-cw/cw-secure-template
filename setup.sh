@@ -255,6 +255,18 @@ if [ ! -f knowledge/log.md ]; then
   echo "# Build Log" > knowledge/log.md
 fi
 
+# ─── Claude Code secure mode ───
+echo ""
+echo "  Configuring Claude Code permissions..."
+bash scripts/secure-mode.sh
+
+# ─── Framework version tracking ───
+if [ ! -f .framework-version ]; then
+  VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+  echo "$VERSION" > .framework-version
+  echo -e "  ${GREEN}Framework version: ${VERSION}${NC}"
+fi
+
 # ─── Health check ───
 echo ""
 echo -e "${BOLD}  Checking your setup...${NC}"

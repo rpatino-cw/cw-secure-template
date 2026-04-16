@@ -17,6 +17,20 @@ print(data.get('tool_input', {}).get('command', ''))
 # If empty, allow (shouldn't happen)
 [[ -z "$COMMAND" ]] && exit 0
 
+# --- Config Audit Gate: block all commands if secure-mode not configured ---
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+if [ ! -f "$REPO_ROOT/.claude/settings.local.json" ]; then
+  # Allow make setup / make secure-mode through so user can fix the problem
+  if ! echo "$COMMAND" | grep -qE '^make (setup|secure-mode|upgrade)' 2>/dev/null; then
+    echo "BLOCKED: Run 'make secure-mode' before using this repo." >&2
+    echo "" >&2
+    echo "  Your global Claude Code config may override this repo's security guards." >&2
+    echo "  Run:  make secure-mode" >&2
+    echo "" >&2
+    exit 2
+  fi
+fi
+
 # --- Guard 1: Block redirects that write to protected files ---
 PROTECTED_PATTERNS=(
   'CLAUDE\.md'
