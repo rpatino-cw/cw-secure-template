@@ -46,6 +46,7 @@ source "$GUARD_DIR/collaboration.sh"
 source "$GUARD_DIR/security.sh"
 source "$GUARD_DIR/architecture.sh"
 source "$GUARD_DIR/rooms.sh"
+source "$GUARD_DIR/freeze.sh"
 
 # All checks passed
 exit 0

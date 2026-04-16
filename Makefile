@@ -210,6 +210,14 @@ repo-lint: ## Check repo hygiene (LICENSE, OG tags, homepage, etc.)
 test-guards: ## Run guard unit tests (30 checks)
 	@bash scripts/guards/test-guards.sh
 
+.PHONY: freeze
+freeze: ## Freeze a file — 3-layer protection (FILE=path TAG=name TEST="cmd")
+	@bash scripts/freeze.sh $(FILE) $(TAG) $(TEST)
+
+.PHONY: unfreeze
+unfreeze: ## Unfreeze a previously frozen file (FILE=path)
+	@bash scripts/freeze.sh --unfreeze $(FILE)
+
 .PHONY: branch
 branch: ## Create a feature branch (NAME=my-feature)
 	@bash scripts/create-branch.sh $(NAME)
