@@ -41,6 +41,14 @@ check: lint test security-scan ## Run ALL checks — do this before every pull r
 	@echo "  All checks passed. You're good to open a pull request."
 	@echo ""
 
+.PHONY: join
+join: ## Join the team — pick your role
+	@bash scripts/join.sh $(NAME)
+
+.PHONY: team
+team: ## Show team roster
+	@bash scripts/team-status.sh
+
 .PHONY: help
 help: ## Show commands
 	@echo ""
@@ -50,6 +58,8 @@ help: ## Show commands
 	@echo "    make new         Start from a blueprint"
 	@echo "    make start       Run your app"
 	@echo "    make check       Run before pushing"
+	@echo "    make join        Join the team — pick your role"
+	@echo "    make team        Show who's on the team"
 	@echo "    make rooms       Set up multi-agent coordination"
 	@echo ""
 	@echo "  Run 'make help-all' for the full command list."
@@ -66,6 +76,12 @@ help-all: ## Show all available commands
 	@echo "    make start        Run your app"
 	@echo "    make check        Run before pushing"
 	@echo "    make rooms        Set up multi-agent coordination"
+	@echo ""
+	@echo "  Team:"
+	@echo "    make join         Join the team — pick your role"
+	@echo "    make team         Show who's on the team"
+	@echo "    make promote      Promote a member (NAME=alice TIER=builder)"
+	@echo "    make demote       Demote a member (NAME=alice TIER=starter)"
 	@echo ""
 	@echo "  Multi-agent:"
 	@echo "    make agent        Start Claude as a room agent (NAME=go)"
@@ -203,6 +219,14 @@ room-lint: ## Validate room config (runs automatically on push)
 .PHONY: review
 review: ## AI code review on your unpushed changes
 	@bash scripts/agent-review.sh
+
+.PHONY: promote
+promote: ## Promote a team member (NAME=alice TIER=builder)
+	@bash scripts/promote.sh $(NAME) $(TIER)
+
+.PHONY: demote
+demote: ## Demote a team member (NAME=alice TIER=starter)
+	@bash scripts/promote.sh $(NAME) $(TIER)
 
 .PHONY: repo-lint
 repo-lint: ## Check repo hygiene (LICENSE, OG tags, homepage, etc.)

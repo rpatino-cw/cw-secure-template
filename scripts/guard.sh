@@ -44,6 +44,9 @@ print(data.get('tool_input', {}).get('old_string', ''))
 # ── Config audit gate (must pass before any other guard) ──
 source "$GUARD_DIR/config-audit.sh"
 
+# ── Trust tier enforcement (before room checks) ──
+source "$GUARD_DIR/trust.sh"
+
 # ── Run all guards (source so they share variables) ──
 source "$GUARD_DIR/collaboration.sh"
 source "$GUARD_DIR/security.sh"

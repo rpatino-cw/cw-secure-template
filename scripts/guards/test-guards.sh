@@ -35,6 +35,7 @@ run_guard() {
   (
     export TOOL_NAME FILE_PATH CONTENT OLD_STRING REPO_ROOT
     export AGENT_ROOM="${AGENT_ROOM:-}"
+    export VIBE_USER="${VIBE_USER:-}"
     source "$GUARD_DIR/$guard_file"
   ) >/dev/null 2>/dev/null
   local exit_code=$?
@@ -57,6 +58,7 @@ reset_vars() {
   CONTENT=""
   OLD_STRING=""
   AGENT_ROOM=""
+  VIBE_USER=""
 }
 
 echo ""
@@ -235,6 +237,127 @@ CONTENT='@router.get("/healthz")
 def health():
     return {"status": "ok"}'
 run_guard "architecture.sh" "pass" "Allows healthz without auth"
+
+echo ""
+
+# ═══════════════════════════════════════
+# trust.sh
+# ═══════════════════════════════════════
+echo -e "${DIM}  trust.sh${NC}"
+
+# Setup test team.json fixture
+TEST_TEAM_JSON="$REPO_ROOT/team.json"
+[[ -f "$TEST_TEAM_JSON" ]] && cp "$TEST_TEAM_JSON" "$TEST_TEAM_JSON.bak"
+cat > "$TEST_TEAM_JSON" << 'TEAMEOF'
+{
+  "version": 1,
+  "members": {
+    "test-starter": {
+      "room": "go-dev",
+      "tier": "starter",
+      "joined": "2026-04-16"
+    },
+    "test-builder": {
+      "room": "go-dev",
+      "tier": "builder",
+      "joined": "2026-03-01"
+    },
+    "test-lead": {
+      "room": "security",
+      "tier": "lead",
+      "joined": "2026-02-15"
+    }
+  }
+}
+TEAMEOF
+
+# Starter: can edit files in own room
+reset_vars
+AGENT_ROOM="go-dev"
+VIBE_USER="test-starter"
+FILE_PATH="$REPO_ROOT/go/main.go"
+CONTENT="func main() {}"
+run_guard "trust.sh" "pass" "Starter can edit files in own room"
+
+# Starter: blocked from shared files
+reset_vars
+VIBE_USER="test-starter"
+FILE_PATH="$REPO_ROOT/README.md"
+CONTENT="new content"
+run_guard "trust.sh" "block" "Starter blocked from shared files"
+
+# Starter: blocked from team.json
+reset_vars
+VIBE_USER="test-starter"
+FILE_PATH="$REPO_ROOT/team.json"
+CONTENT="{}"
+run_guard "trust.sh" "block" "Starter blocked from team.json"
+
+# Starter: blocked from rooms.json
+reset_vars
+VIBE_USER="test-starter"
+FILE_PATH="$REPO_ROOT/rooms.json"
+CONTENT="{}"
+run_guard "trust.sh" "block" "Starter blocked from rooms.json"
+
+# Starter: blocked from guard files
+reset_vars
+VIBE_USER="test-starter"
+FILE_PATH="$REPO_ROOT/scripts/guards/security.sh"
+CONTENT="echo hi"
+run_guard "trust.sh" "block" "Starter blocked from guard files"
+
+# Builder: can edit files in own room
+reset_vars
+AGENT_ROOM="go-dev"
+VIBE_USER="test-builder"
+FILE_PATH="$REPO_ROOT/go/main.go"
+CONTENT="func main() {}"
+run_guard "trust.sh" "pass" "Builder can edit files in own room"
+
+# Builder: blocked from shared files
+reset_vars
+VIBE_USER="test-builder"
+FILE_PATH="$REPO_ROOT/README.md"
+CONTENT="new content"
+run_guard "trust.sh" "block" "Builder blocked from shared files"
+
+# Lead: can edit shared files
+reset_vars
+AGENT_ROOM="security"
+VIBE_USER="test-lead"
+FILE_PATH="$REPO_ROOT/README.md"
+CONTENT="new content"
+run_guard "trust.sh" "pass" "Lead can edit shared files"
+
+# Lead: can edit team.json
+reset_vars
+AGENT_ROOM="security"
+VIBE_USER="test-lead"
+FILE_PATH="$REPO_ROOT/team.json"
+CONTENT="{}"
+run_guard "trust.sh" "pass" "Lead can edit team.json"
+
+# Lead: can edit rooms.json
+reset_vars
+AGENT_ROOM="security"
+VIBE_USER="test-lead"
+FILE_PATH="$REPO_ROOT/rooms.json"
+CONTENT="{}"
+run_guard "trust.sh" "pass" "Lead can edit rooms.json"
+
+# No identity: warn but allow (graceful degradation)
+reset_vars
+FILE_PATH="$REPO_ROOT/go/main.go"
+CONTENT="func main() {}"
+run_guard "trust.sh" "pass" "No identity: allows action (graceful degradation)"
+
+# Restore original team.json
+if [[ -f "$TEST_TEAM_JSON.bak" ]]; then
+  mv "$TEST_TEAM_JSON.bak" "$TEST_TEAM_JSON"
+else
+  echo '{"version": 1, "members": {}}' > "$TEST_TEAM_JSON"
+fi
 
 echo ""
 
