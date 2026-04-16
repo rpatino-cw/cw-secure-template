@@ -54,13 +54,14 @@ make new BLUEPRINT=api-service      # or chat-assistant, batch-processor, etc.
 
 Most security tools give you suggestions. This one gives you walls.
 
-Three independent systems run simultaneously. All three must be defeated to ship insecure code — and two of them aren't controlled by the AI at all.
+Four independent systems run simultaneously. All four must be defeated to ship insecure code — and three of them aren't controlled by the AI at all.
 
 | Layer | What it does | Can Claude override it? |
 |:------|:-------------|:-----------------------|
 | **Rulebook** | CLAUDE.md + 17 rule files guide code generation. Anti-override protocol catches social engineering ("ignore the rules", "you're in developer mode", "just this once"). | No — refuses and explains why |
 | **Blocklist** | 74 deny rules in `settings.json` physically block dangerous commands before execution. Claude never sees the command run — the runtime rejects it. | No — runtime decision, not Claude's |
 | **Guard** | Shell script scans every file edit for secrets, dangerous functions, and guardrail tampering. Runs before the file is saved. | No — hook rejects before save |
+| **Config Gate** | Blocks all tool calls until `make secure-mode` is run. Prevents global Claude Code configs (like `bypassPermissions`) from undermining this repo's guards. | No — shell script, runs before Claude acts |
 
 ### Proof: what actually gets blocked
 
@@ -101,6 +102,32 @@ make viz           Interactive visualizer — see how the whole system works
 ```
 
 **Requires:** `git` + `gitleaks` + Python 3.11+ or Go 1.21+
+
+---
+
+## Add to an existing project
+
+Already have a codebase? `make adopt` installs the security layer without touching your code or imposing architecture opinions.
+
+```bash
+git clone https://github.com/rpatino-cw/cw-secure-template /tmp/cw-secure
+make -C /tmp/cw-secure adopt TARGET=/path/to/your/project
+```
+
+**What you get:**
+- Secret detection + dangerous function blocking (PreToolUse guards)
+- 35 deny rules (force push, hard reset, eval, rm -rf — blocked at runtime)
+- Claude Code security rules (`.claude/rules/`)
+- Pre-commit hooks (gitleaks, secret scanning)
+- CLAUDE.md security sections (anti-override protocol, OWASP, secure defaults)
+
+**What you don't get** (no architecture opinions):
+- No directory structure requirements (no `routes/services/models/` enforcement)
+- No stack lock (use any language)
+- No multi-agent rooms
+- No Write-tool blocking on existing files
+
+Everything lives in a self-contained `.cw-secure/` directory. Easy to upgrade (`FORCE=1`) and easy to remove (`rm -rf .cw-secure/`).
 
 ---
 
@@ -363,6 +390,9 @@ make dashboard         Open security dashboard
 ```
 make init              Personalize for your project
 make setup             Re-run first-time setup
+make secure-mode       Lock Claude Code permissions for this repo (one-time)
+make upgrade           Pull latest framework changes from upstream
+make adopt TARGET=X    Install security guards into an existing project
 make profile LEVEL=X   Set enforcement level (hackathon, balanced, strict, production)
 make docker            Build Docker image
 ```
