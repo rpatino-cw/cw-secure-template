@@ -345,9 +345,13 @@ def main():
     threading.Thread(target=background_cleanup, daemon=True).start()
 
     srv = http.server.ThreadingHTTPServer((bind, port), Handler)
+    dashboard_url = f"http://localhost:{port}/team-dashboard.html"
+    # OSC 8 hyperlink — Cmd/Ctrl+click to open in most modern terminals.
+    linked = f"\033]8;;{dashboard_url}\033\\{dashboard_url}\033]8;;\033\\"
     print("cw-secure-template · presence server")
     print(f"  listening   http://{bind}:{port}")
-    print(f"  dashboard   http://localhost:{port}/team-dashboard.html")
+    print(f"  dashboard   {linked}")
+    print(f"              (Cmd/Ctrl+click the link above to open)")
     print(f"  snapshot    /dashboard-data.json (same format as make dashboard)")
     print(f"  presence    /api/presence  /api/stream  /api/events")
     print(f"  TTL={PRESENCE_TTL}s · heartbeat every {PRESENCE_TTL // 3}s recommended")

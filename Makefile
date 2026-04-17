@@ -203,9 +203,10 @@ dashboard: ## Open team dashboard (project health, who's working where)
 
 .PHONY: team-server
 team-server: ## Run live presence server (dashboard + real-time teammate view)
-	@echo "  Starting presence server on :$${PORT:-4000}"
-	@echo "  Open  http://localhost:$${PORT:-4000}/team-dashboard.html"
-	@echo "  (Ctrl+C to stop · see server/README.md for hook setup)"
+	@url="http://localhost:$${PORT:-4000}/team-dashboard.html"; \
+	 printf "  Starting presence server on :%s\n" "$${PORT:-4000}"; \
+	 printf "  Open  \033]8;;%s\033\\%s\033]8;;\033\\  (Cmd/Ctrl+click to open)\n" "$$url" "$$url"; \
+	 printf "  (Ctrl+C to stop · see server/README.md for hook setup)\n"
 	@python3 server/server.py
 
 .PHONY: security-dashboard
