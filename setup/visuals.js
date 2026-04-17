@@ -101,7 +101,6 @@ export function scaleOutcome(answers) {
   const sidebar = ciLines.map((l, i) => `<text x="320" y="${75 + i * 18}" font-size="11" fill="var(--text-secondary, ${C.muted})" font-family="ui-monospace, SFMono-Regular, monospace">${esc(l)}</text>`).join('');
 
   return wrap(540, 240, `
-    <text x="20" y="30" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">INFRASTRUCTURE</text>
     <text x="20" y="${podY + 22}" font-size="11" fill="${C.muted}">pods</text>
     ${pods}${podOverflow}
     <text x="20" y="${cacheY + 22}" font-size="11" fill="${C.muted}">cache</text>
@@ -109,7 +108,7 @@ export function scaleOutcome(answers) {
     <text x="20" y="${regionY + 4}" font-size="11" fill="${C.muted}">regions</text>
     ${regionPins}
     <line x1="300" y1="50" x2="300" y2="220" stroke="${C.line}" stroke-width="1"/>
-    <text x="320" y="50" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">CI WILL ENFORCE</text>
+    <text x="320" y="54" font-size="10" font-weight="700" letter-spacing="0.08em" fill="${C.muted}">CI WILL ENFORCE</text>
     ${sidebar}
   `);
 }
@@ -157,7 +156,6 @@ export function dbPipeline(answers, db) {
 
   return wrap(540, 230, `
     <defs><marker id="arrow-m" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="${C.muted}"/></marker></defs>
-    <text x="20" y="30" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">DATA PIPELINE</text>
     ${boxes}${migBox}
     ${explain.map((e, i) => `<text x="20" y="${200 + i * 12}" font-size="10.5" fill="${C.muted}">• ${esc(e)}</text>`).join('')}
   `);
@@ -201,7 +199,6 @@ export function apiSurfaceDiagram(answers) {
   }).join('');
 
   return wrap(540, 170, `
-    <text x="10" y="30" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">API SURFACE — CLIENT TALKS TO YOUR SERVICE</text>
     ${panels}
   `);
 }
@@ -247,10 +244,7 @@ export function queueDiagram(answers) {
       </g>
     `;
   }).join('');
-  return wrap(540, 140, `
-    <text x="10" y="25" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">QUEUE / EVENT SYSTEM</text>
-    ${panels}
-  `);
+  return wrap(540, 140, `${panels}`);
 }
 
 // ============================================================
@@ -284,10 +278,7 @@ export function securityChain(answers) {
       ${i < nodes.length - 1 ? `<path d="M 270 ${y + nodeH} L 270 ${y + nodeH + gap}" stroke="${n.active && nodes[i+1].active ? 'var(--accent, ' + C.accent + ')' : C.dim}" stroke-width="1.5"/>` : ''}
     `;
   }).join('');
-  return wrap(540, startY + nodes.length * (nodeH + gap) + 20, `
-    <text x="20" y="28" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">SECURITY CHAIN — REQUEST FLOW</text>
-    ${boxes}
-  `);
+  return wrap(540, startY + nodes.length * (nodeH + gap) + 20, `${boxes}`);
 }
 
 // ============================================================
@@ -348,7 +339,6 @@ export function flowchart(answers, resolved) {
       @keyframes flow-in { to { opacity: 1; transform: translateX(0); } }
       @media (prefers-reduced-motion: reduce) { .flow-node { opacity: 1; transform: none; animation: none; } }
     </style>
-    <text x="20" y="30" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">REQUEST LIFECYCLE — WHICH FILE HANDLES WHAT</text>
     ${boxes}
   `);
 }
@@ -416,7 +406,6 @@ export function dependencyGraph(answers, resolved) {
       @keyframes node-pop { to { opacity: 1; transform: scale(1); } }
       @media (prefers-reduced-motion: reduce) { .dep-edge, .dep-node { opacity: 1; transform: none; animation: none; } }
     </style>
-    <text x="20" y="30" font-size="12" font-weight="700" letter-spacing="0.05em" fill="var(--text-secondary, ${C.muted})">MODULE DEPENDENCY GRAPH</text>
     ${edgeLines}
     ${nodeCircles}
   `);
