@@ -1,0 +1,253 @@
+# CW Secure Template — Integration Portability Map
+#
+# Single source of truth for what gets synced into an existing app
+# and HOW. Consumed by scan.py + plan.py + apply.py.
+#
+# Actions:
+#   copy     - verbatim file copy; fails if target exists unless force=true
+#   merge    - structured merge (json/yaml/env) — additive, never destructive
+#   append   - marker-based section in a text file; idempotent (replace section on re-run)
+#   generate - emit file with {{placeholder}} substitution from scan results
+#   skip     - not portable; flagged in plan with reason
+#
+# Applicability:
+#   stacks: [go, python, node]  — file applies only to listed stacks
+#   always: true                — file applies to every stack
+#   framework: [fastapi, flask] — further narrow within a stack
+
+version: 1
+
+# ─── Marker tokens (used for idempotent replace-on-rerun) ───────────
+markers:
+  claude_md_start:  "<!-- CW-SECURE-ADOPT: DO NOT EDIT BELOW THIS LINE -->"
+  claude_md_end:    "<!-- CW-SECURE-ADOPT: END -->"
+  gitignore_start:  "# CW-SECURE-ADOPT: Security patterns"
+  gitignore_end:    "# CW-SECURE-ADOPT: END"
+  makefile_start:   "# === CW-SECURE-START ==="
+  makefile_end:     "# === CW-SECURE-END ==="
+  envexample_start: "# CW-SECURE-ADOPT: Required env vars"
+  envexample_end:   "# CW-SECURE-ADOPT: END"
+
+# ─── Placeholders populated from scan results ───────────────────────
+# Every {{VAR}} in a generate/append source file is substituted.
+placeholders:
+  APP_NAME:        "scan.app_name"        # derived from go.mod | pyproject | package.json | dirname
+  STACK:           "scan.stack"           # go | python | node
+  FRAMEWORK:       "scan.framework"       # fastapi | flask | gin | chi | express | next | unknown
+  GO_MODULE:       "scan.go_module"       # full module path, '' if not Go
+  PY_PACKAGE:      "scan.py_package"      # package name, '' if not Python
+  ENTRY_POINT:     "scan.entry_point"     # relative path to main file
+  MIDDLEWARE_PATH: "scan.middleware_path" # where wiring snippet should be pasted
+  TEST_CMD:        "scan.test_cmd"        # go test ./... | pytest | npm test
+  LINT_CMD:        "scan.lint_cmd"        # golangci-lint run | ruff check | eslint
+  AUTHOR:          "scan.git_author"      # from git config user.name
+
+# ─── File-by-file integration plan ──────────────────────────────────
+files:
+
+  # === Guard layer (always portable) ===
+  - source: scripts/guard.sh
+    dest:   .cw-secure/guard.sh
+    action: copy
+    always: true
+
+  - source: scripts/guard-bash.sh
+    dest:   .cw-secure/guard-bash.sh
+    action: copy
+    always: true
+    rewrite:
+      - from: "scripts/git-hooks"
+        to:   ".cw-secure"
+      - from: "scripts/guard"
+        to:   ".cw-secure/guard"
+      - from: "make upgrade"
+        to:   "make cw-secure-mode"
+
+  - source: scripts/guards/security.sh
+    dest:   .cw-secure/guards/security.sh
+    action: copy
+    always: true
+    rewrite:
+      - from: '"scripts/git-hooks/"'
+        to:   '".cw-secure/"'
+      - from: '"scripts/guard.sh"'
+        to:   '".cw-secure/guard.sh"'
+      - from: '"scripts/guard-bash.sh"'
+        to:   '".cw-secure/guard-bash.sh"'
+      - from: '"scripts/guards/"'
+        to:   '".cw-secure/guards/"'
+    strip_lines:
+      - '".claude/skills/"'
+      - '".claude/agents/"'
+
+  - source: scripts/guards/config-audit.sh
+    dest:   .cw-secure/guards/config-audit.sh
+    action: copy
+    always: true
+
+  - source: scripts/secure-mode.sh
+    dest:   .cw-secure/secure-mode.sh
+    action: copy
+    always: true
+
+  - source: scripts/add-secret.sh
+    dest:   .cw-secure/add-secret.sh
+    action: copy
+    always: true
+
+  # === Rules layer (portable subset — not the full 17) ===
+  - source: .claude/rules/security.md
+    dest:   .claude/rules/security.md
+    action: copy
+    always: true
+
+  - source: .claude/rules/testing.md
+    dest:   .claude/rules/testing.md
+    action: copy
+    always: true
+
+  - source: .claude/rules/code-style.md
+    dest:   .claude/rules/code-style.md
+    action: copy
+    always: true
+
+  - source: .claude/rules/api-conventions.md
+    dest:   .claude/rules/api-conventions.md
+    action: copy
+    always: true
+
+  # === Settings merge ===
+  - source: .claude/settings.json
+    dest:   .claude/settings.json
+    action: merge
+    merge_helper: scripts/adopt-merge-settings.py
+    always: true
+
+  # === Marker-based appends ===
+  - source: scripts/adopt-claude-sections.md
+    dest:   CLAUDE.md
+    action: append
+    markers: [claude_md_start, claude_md_end]
+    if_missing: create_with_header
+    header: "# {{APP_NAME}}\n\n"
+    always: true
+
+  - source: null                  # inline pattern list, see scan.py
+    dest:   .gitignore
+    action: append
+    markers: [gitignore_start, gitignore_end]
+    patterns:
+      - ".env"
+      - ".env.*"
+      - "!.env.example"
+      - ".claude/settings.local.json"
+      - ".secrets/"
+      - "*.pem"
+      - "*.key"
+      - "*.p12"
+      - "credentials.json"
+      - "service-account*.json"
+      - "*.tfstate"
+      - "*.tfstate.*"
+    always: true
+
+  # === Pre-commit config ===
+  - source: .pre-commit-config.yaml
+    dest:   .pre-commit-config.yaml
+    action: merge
+    merge_strategy: yaml_repos_append
+    always: true
+
+  # === Stack-specific: Python middleware ===
+  - source: python/src/middleware/
+    dest:   "{{MIDDLEWARE_PATH}}/cw/"
+    action: generate
+    stacks: [python]
+    wiring_snippet: |
+      # Add to your FastAPI app ({{ENTRY_POINT}}):
+      from {{PY_IMPORT_PATH}}.cw import (
+          AuthMiddleware, RateLimitMiddleware, RequestIDMiddleware, SecurityHeadersMiddleware,
+      )
+      app.add_middleware(SecurityHeadersMiddleware)
+      app.add_middleware(RequestIDMiddleware)
+      app.add_middleware(RateLimitMiddleware)
+      app.add_middleware(AuthMiddleware)
+
+  # === Stack-specific: Go middleware ===
+  - source: go/middleware/
+    dest:   "{{MIDDLEWARE_PATH}}/cw/"
+    action: generate
+    stacks: [go]
+    wiring_snippet: |
+      // Add to your Go server ({{ENTRY_POINT}}):
+      import "{{GO_MODULE}}/{{MIDDLEWARE_PATH}}/cw"
+      handler = cw.SecurityHeaders(handler)
+      handler = cw.RequestID(handler)
+      handler = cw.RateLimit(handler)
+      handler = cw.RequireAuth(handler)
+
+  # === Stack-specific: Node middleware (stretch, opt-in only) ===
+  - source: null
+    dest:   "{{MIDDLEWARE_PATH}}/cw/"
+    action: generate
+    stacks: [node]
+    opt_in: true                  # requires --include-node flag
+    wiring_snippet: |
+      // Add to your Express/Next app ({{ENTRY_POINT}}):
+      const { requireAuth, rateLimit, requestId, securityHeaders } = require('./{{MIDDLEWARE_PATH}}/cw')
+      app.use(securityHeaders)
+      app.use(requestId)
+      app.use(rateLimit)
+      app.use(requireAuth)
+
+  # === CI workflow (conditional — skip if existing CI has equivalent steps) ===
+  - source: .github/workflows/ci.yml
+    dest:   .github/workflows/cw-security.yml
+    action: copy
+    always: true
+    skip_if_detected:
+      - existing_workflow_has: ["gosec", "bandit", "codeql", "gitleaks"]
+        reason: "target repo already has security CI steps"
+
+  # === ENV template ===
+  - source: .env.example
+    dest:   .env.example
+    action: append
+    markers: [envexample_start, envexample_end]
+    always: true
+
+# ─── SKIP list (app-specific; never portable) ───────────────────────
+skip:
+  - path: go/main.go
+    reason: "user's entry point — never overwrite"
+  - path: python/src/main.py
+    reason: "user's entry point — never overwrite"
+  - path: blueprints/
+    reason: "reference scaffolds; template-generator only"
+  - path: setup.html
+    reason: "wizard UI; only for template itself"
+  - path: cli/bin/vibe-arch.js
+    reason: "ZIP generator; only for template itself"
+  - path: rooms/
+    reason: "multi-agent coordination; opt-in via separate integrate --with-rooms"
+  - path: rooms.json
+    reason: "multi-agent coordination; opt-in"
+  - path: server/
+    reason: "template dashboard server; not part of user app"
+  - path: team-dashboard.html
+    reason: "template dashboard UI"
+  - path: security-dashboard.html
+    reason: "template dashboard UI"
+
+# ─── Safety rails ───────────────────────────────────────────────────
+safety:
+  require_git_repo: true          # target must be a git repo (unless --force)
+  require_clean_tree: true        # target must have clean working tree
+  create_backup_tag: true         # tag current HEAD as cw-integrate-backup-{ts}
+  create_working_branch: true     # work on cw-integrate-{ts} branch
+  rollback_on_error: true         # any failure → reset to backup tag
+
+# ─── Manifest (for re-run + uninstall) ──────────────────────────────
+manifest:
+  path: .cw-integrate-manifest.json
+  schema_version: 1

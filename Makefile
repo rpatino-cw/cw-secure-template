@@ -299,6 +299,45 @@ ifndef TARGET
 endif
 	@bash scripts/adopt.sh "$(TARGET)" $(if $(FORCE),--force,)
 
+.PHONY: integrate-scan
+integrate-scan: ## Scan an existing app and report detected stack, framework, CI, git state
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make integrate-scan TARGET=/path/to/existing/project"
+	@echo "  Read-only — writes nothing. Use before adopt/integrate-plan."
+	@echo ""
+	@exit 1
+endif
+	@python3 scripts/integrate/scan.py "$(TARGET)" $(if $(SCOPE),--scope=$(SCOPE),) $(if $(INCLUDE_NODE),--include-node,)
+
+.PHONY: integrate-plan
+integrate-plan: ## Build an integration plan — what will change, what will be skipped
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make integrate-plan TARGET=/path/to/existing/project"
+	@echo "  Read-only — writes nothing. Shows actions, skips, wiring snippets."
+	@echo ""
+	@exit 1
+endif
+	@python3 scripts/integrate/plan.py "$(TARGET)" $(if $(SCOPE),--scope=$(SCOPE),) $(if $(INCLUDE_NODE),--include-node,)
+
+.PHONY: integrate
+integrate: ## Apply full integration — backup tag, working branch, rollback on error, manifest
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make integrate TARGET=/path/to/existing/project"
+	@echo "        (optional) SCOPE=backend/  INCLUDE_NODE=1  FORCE=1"
+	@echo ""
+	@echo "  Runs scan → plan → apply. Creates backup tag + working branch."
+	@echo "  Rolls back on any failure. Writes .cw-integrate-manifest.json."
+	@echo ""
+	@exit 1
+endif
+	@python3 scripts/integrate/apply.py "$(TARGET)" \
+		$(if $(SCOPE),--scope=$(SCOPE),) \
+		$(if $(INCLUDE_NODE),--include-node,) \
+		$(if $(FORCE),--force,)
+
 .PHONY: init
 init:
 	@bash scripts/init-project.sh
