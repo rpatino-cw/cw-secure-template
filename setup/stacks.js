@@ -1,6 +1,28 @@
 // stacks.js — framework, archetype, and database metadata for the setup wizard.
 // Pure data. Read by wizard.js + generator.js.
 
+// Framework families narrow what's surfaced first. A family scopes recommended
+// languages/archetypes but never hides options — every choice is still available.
+export const FAMILIES = [
+  { id: 'backend-api',   label: 'Backend API / service', icon: '⚙️',  recommended: true, blurb: 'HTTP APIs, background workers, internal services.' },
+  { id: 'fullstack-web', label: 'Full-stack web app',    icon: '🌐',  blurb: 'Server-rendered UI + API in one deployable.' },
+  { id: 'frontend-only', label: 'Frontend / SPA',        icon: '🎨',  blurb: 'Static site or SPA against an existing API.' },
+  { id: 'cli-tool',      label: 'CLI / operator tool',   icon: '⚡',  blurb: 'Local command-line utility, no server.' },
+  { id: 'data-pipeline', label: 'Data / batch pipeline', icon: '📊',  blurb: 'Scheduled ETL or event stream processing.' },
+  { id: 'bare-minimum',  label: 'Bare minimum',          icon: '🧱',  blurb: 'Just CW security + CI — pick your own stack.' },
+];
+
+// Map of which languages are "native" to each family. Used to prioritize the
+// display order; non-native langs still appear at the bottom.
+export const FAMILY_LANGS = {
+  'backend-api':   ['python', 'go', 'node'],
+  'fullstack-web': ['node', 'python'],
+  'frontend-only': ['node'],
+  'cli-tool':      ['python', 'go'],
+  'data-pipeline': ['python', 'go'],
+  'bare-minimum':  ['python', 'go', 'node'],
+};
+
 export const LANGUAGES = [
   {
     id: 'python',
@@ -8,6 +30,7 @@ export const LANGUAGES = [
     blurb: 'Async HTTP, strict typing via Pydantic, great for APIs + background work.',
     icon: '🐍',
     recommended: true,
+    cwRecommended: true,
     chainguardBase: 'cgr.dev/coreweave/python:3.13',
     pkgFile: 'pyproject.toml',
     rootDir: 'python/',
@@ -20,6 +43,16 @@ export const LANGUAGES = [
     chainguardBase: 'cgr.dev/coreweave/go:1.25',
     pkgFile: 'go.mod',
     rootDir: 'go/',
+  },
+  {
+    id: 'node',
+    name: 'Node.js / TypeScript',
+    blurb: 'Next.js for full-stack, Express or Hono for APIs. First-class CW Chainguard base image.',
+    icon: '🟢',
+    cwRecommended: true,
+    chainguardBase: 'cgr.dev/coreweave/node:22',
+    pkgFile: 'package.json',
+    rootDir: 'node/',
   },
 ];
 
@@ -164,13 +197,119 @@ export const ARCHETYPES = {
       ],
     },
   ],
+  node: [
+    {
+      id: 'node-next-app-router',
+      name: 'Next.js · App Router',
+      blurb: 'Next 14+ App Router, React Server Components, streaming SSR. CW recommended for internal web apps.',
+      cwRecommended: true,
+      scaleCeiling: '20k QPS per instance (RSC cached)',
+      setupTime: '10 min',
+      teamSize: '1–5 devs',
+      whenToPick: 'Internal dashboards, admin UIs, anything with a UI + API in one deployable.',
+      defaultBlueprint: 'api-service',
+      tree: [
+        ['node/', 'dir'],
+        ['  src/', 'dir'],
+        ['    app/', 'dir', 'App Router pages + route handlers'],
+        ['      layout.tsx', 'entry', 'Root layout, auth gate, CSP headers'],
+        ['      page.tsx', 'entry', 'Home page (server component)'],
+        ['      api/', 'dir', 'Route handlers — thin, call services'],
+        ['    server/', 'dir'],
+        ['      services/', 'dir', 'Business logic — no HTTP, no fetch'],
+        ['      repositories/', 'dir', 'Parameterized queries only'],
+        ['      middleware/', 'dir', 'auth, rate limit, request id'],
+        ['    lib/', 'dir', 'Pure helpers, types'],
+        ['  tests/', 'dir', 'Vitest — 80% coverage gate'],
+        ['  package.json', 'file'],
+        ['  tsconfig.json', 'file'],
+        ['  next.config.ts', 'file'],
+        ['  Dockerfile', 'file', 'Chainguard node:22, non-root'],
+      ],
+    },
+    {
+      id: 'node-next-pages-router',
+      name: 'Next.js · Pages Router',
+      blurb: 'Legacy Pages Router. Pick only for existing teams migrating in — new apps should use App Router.',
+      scaleCeiling: '15k QPS per instance',
+      setupTime: '10 min',
+      teamSize: '1–5 devs',
+      whenToPick: 'Team already runs Pages Router elsewhere. Not recommended for new work.',
+      defaultBlueprint: 'api-service',
+      tree: [
+        ['node/', 'dir'],
+        ['  src/', 'dir'],
+        ['    pages/', 'dir', 'One file per route + api/'],
+        ['      _app.tsx', 'entry'],
+        ['      api/', 'dir'],
+        ['    server/', 'dir'],
+        ['    lib/', 'dir'],
+        ['  tests/', 'dir'],
+        ['  package.json', 'file'],
+      ],
+    },
+    {
+      id: 'node-express-api',
+      name: 'Express + TypeScript API',
+      blurb: 'Plain REST API. Express + zod validation. No UI.',
+      scaleCeiling: '30k QPS per instance',
+      setupTime: '5 min',
+      teamSize: '1–4 devs',
+      whenToPick: 'Pure backend service, webhook receiver, internal API. No frontend.',
+      defaultBlueprint: 'api-service',
+      tree: [
+        ['node/', 'dir'],
+        ['  src/', 'dir'],
+        ['    index.ts', 'entry', 'Express app factory + middleware + route mount'],
+        ['    routes/', 'dir'],
+        ['    services/', 'dir'],
+        ['    repositories/', 'dir'],
+        ['    middleware/', 'dir'],
+        ['  tests/', 'dir'],
+        ['  package.json', 'file'],
+        ['  tsconfig.json', 'file'],
+      ],
+    },
+    {
+      id: 'node-hono-edge',
+      name: 'Hono · edge runtime',
+      blurb: 'Minimal router, fast cold start. Great for functions, webhooks, and low-latency proxies.',
+      scaleCeiling: '50k QPS per instance, sub-ms overhead',
+      setupTime: '5 min',
+      teamSize: '1–3 devs',
+      whenToPick: 'Webhook receivers, LLM proxies, anything where cold start matters.',
+      defaultBlueprint: 'api-service',
+      tree: [
+        ['node/', 'dir'],
+        ['  src/', 'dir'],
+        ['    index.ts', 'entry', 'Hono app with route groups + middleware'],
+        ['    routes/', 'dir'],
+        ['    services/', 'dir'],
+        ['    middleware/', 'dir'],
+        ['  tests/', 'dir'],
+        ['  package.json', 'file'],
+        ['  tsconfig.json', 'file'],
+      ],
+    },
+  ],
 };
+
+// Mark CW-recommended archetypes explicitly (mirrors cwRecommended on the
+// language). Lets wizard render a star next to the default pick.
+['py-api-workers', 'go-chi-router', 'node-next-app-router'].forEach(id => {
+  for (const langId of Object.keys(ARCHETYPES)) {
+    const match = ARCHETYPES[langId].find(a => a.id === id);
+    if (match) match.cwRecommended = true;
+  }
+});
 
 export const CODE_STYLES = [
   {
     id: 'modules',
     name: 'Module-first (recommended)',
     blurb: 'Functions grouped by domain. Each file is a flat namespace of related functions.',
+    recommended: true,
+    substyles: ['layered', 'feature-folders', 'vertical-slice'],
     sample: `# services/user_service.py
 def create_user(data, db):
     if exists(data.email, db): raise ValueError("dup")
@@ -183,6 +322,7 @@ def update_user(id, data, db):
     id: 'oop',
     name: 'Object-oriented',
     blurb: 'Classes with methods. Good for stateful services, connection managers, adapters.',
+    substyles: ['mvc', 'hexagonal', 'clean-arch', 'ddd-light', 'ddd-strict', 'active-record', 'data-mapper'],
     sample: `class UserService:
     def __init__(self, db): self.db = db
     def create(self, data): ...
@@ -194,6 +334,7 @@ service = UserService(db)`,
     id: 'functional',
     name: 'Functional / pure',
     blurb: 'No classes. All pure functions, explicit dependencies. Easiest to test.',
+    substyles: ['pipeline-rop', 'effect-system', 'fp-lite'],
     sample: `def create_user(data, db): ...
 
 # compose
@@ -201,6 +342,27 @@ pipeline = [validate, check_dup, hash_pw, insert]
 user = reduce(lambda d, f: f(d, db), pipeline, data)`,
   },
 ];
+
+// Deeper picks within a parent code style. Generator emits additional folders
+// for some of these (hexagonal, clean-arch, mvc, ddd-*) to match the pattern.
+export const CODE_STYLE_SUBSTYLES = {
+  // Module-first
+  layered:          { name: 'Layered',         blurb: 'routes → services → repos. Matches the existing rules/ files — lowest friction pick.' },
+  'feature-folders':{ name: 'Feature folders', blurb: 'Group files by feature, not by layer. Easier to delete a feature cleanly.' },
+  'vertical-slice': { name: 'Vertical slice',  blurb: 'One request = one folder. Minimal cross-file coupling; heavier duplication.' },
+  // OOP
+  mvc:              { name: 'MVC',             blurb: 'Classic controller/model/view. Cheapest to hire for, dated but ubiquitous.' },
+  hexagonal:        { name: 'Hexagonal / Ports & Adapters', blurb: 'Domain core + swappable adapters. Best for heavy testing and multi-driver services.' },
+  'clean-arch':     { name: 'Clean Architecture', blurb: 'Four-ring dependency rule (entities → use cases → adapters → frameworks). Good for long-lived services.' },
+  'ddd-light':      { name: 'DDD (light)',     blurb: 'Entities + value objects + services. Ubiquitous-language friendly without heavy machinery.' },
+  'ddd-strict':     { name: 'DDD (strict)',    blurb: 'Aggregates + repositories + domain events. Multi-month investment; pick only if modeling complexity justifies it.' },
+  'active-record':  { name: 'Active Record',   blurb: 'Models know how to save themselves. Fastest to write; couples domain to persistence.' },
+  'data-mapper':    { name: 'Data Mapper',     blurb: 'Models are dumb; mappers persist them. Safer for evolving schemas.' },
+  // Functional
+  'pipeline-rop':   { name: 'Railway-oriented pipelines', blurb: 'Result chains with explicit error tracks. Great for validation + side-effect orchestration.' },
+  'effect-system':  { name: 'Effect system',   blurb: 'Effects as values (fx-ts, Effect, etc.). Reserved for experienced FP teams.' },
+  'fp-lite':        { name: 'FP-lite',         blurb: 'Pure helpers + immutable data; imperative glue is fine. Pragmatic middle ground.' },
+};
 
 export const SCALE_TIERS = [
   { id: 'tier-1', label: '1–100 users', infra: 'Single VM or k8s pod. $20–50/mo.', warning: null },
@@ -373,7 +535,59 @@ export function resolveAnswers(answers) {
 }
 
 export const THEMES = [
-  { id: 'cw-light', label: 'CW Light (default)', recommended: true, bg: '#f5efe4', accent: '#5b8def', text: '#1a1a2e' },
-  { id: 'cw-dark', label: 'CW Dark', bg: '#0a1628', accent: '#22d3ee', text: '#e5edf5' },
-  { id: 'mono', label: 'Minimal mono', bg: '#ffffff', accent: '#111111', text: '#111111' },
+  { id: 'cw-light', label: 'CW Light (default)', recommended: true, bg: '#f5efe4', accent: '#5b8def', text: '#1a1a2e', mode: 'light' },
+  { id: 'cw-dark', label: 'CW Dark', bg: '#0a1628', accent: '#22d3ee', text: '#e5edf5', mode: 'dark' },
+  { id: 'mono', label: 'Minimal mono', bg: '#ffffff', accent: '#111111', text: '#111111', mode: 'light' },
+  { id: 'sunset', label: 'Sunset', bg: '#1a0f1e', accent: '#ff8a5c', text: '#f5e6da', mode: 'dark' },
+  { id: 'matrix', label: 'Matrix', bg: '#000000', accent: '#00ff88', text: '#c6f5d4', mode: 'dark' },
+  { id: 'custom', label: 'Custom — pick your own', customizable: true, bg: '#0f172a', accent: '#5b8def', text: '#e5edf5', mode: 'dark' },
 ];
+
+// Font pairings for the UI + code font pickers in the Custom theme card.
+export const FONT_PAIRS = [
+  { id: 'inter+jbm',  uiFont: 'Inter',     codeFont: 'JetBrains Mono', label: 'Inter + JetBrains Mono' },
+  { id: 'plex+plex',  uiFont: 'IBM Plex Sans', codeFont: 'IBM Plex Mono', label: 'IBM Plex (matched)' },
+  { id: 'geist',      uiFont: 'Geist',     codeFont: 'Geist Mono', label: 'Geist (matched)' },
+  { id: 'system',     uiFont: 'system-ui', codeFont: 'ui-monospace', label: 'System (no web fonts)' },
+];
+
+// Why-this-question explainers. Keyed by stepId → questionId → { headline, bullets[] }.
+// Rendered by renderWhy(stepId, qId) in wizard.js behind a "?" toggle.
+export const WHY_TEXT = {
+  2: {
+    family:    { headline: 'What kind of thing are you building?', bullets: ['Different families get different recommended stacks.', 'You can still pick anything — this only reorders the list.', 'Bare-minimum skips the language tree entirely.'] },
+    language:  { headline: 'Language choice drives the whole scaffold tree.', bullets: ['Chainguard base image, package file, and lint/test tooling all follow from here.', 'CW-recommended picks are battle-tested at CoreWeave.', 'You can mix languages later via additional microservices.'] },
+    archetype: { headline: 'Archetype = folder layout + entry point.', bullets: ['It locks in the starting shape of your service.', 'Picks whether you get a worker, a stream endpoint, or a classic REST API.', 'Every archetype is guard-compatible — no Wild West templates.'] },
+    style:     { headline: 'How do you want your code organized?', bullets: ['Module-first is the low-friction default and matches the rules/ directory.', 'OOP and Functional unlock a second picker for deeper conventions.', 'The generator emits sample files in the pattern you picked.'] },
+    substyle:  { headline: 'Deeper architectural pattern within your style.', bullets: ['Hexagonal, DDD, Clean Arch — these shape testing and long-term maintenance cost.', 'The generator adds matching folders (adapters/, aggregates/, use_cases/, etc.).', 'Pick "layered" or skip this if you want the lowest-friction option.'] },
+  },
+  3: {
+    users:   { headline: 'Concurrent user count sets your infra floor.', bullets: ['1–100: a single pod is fine.', '10k+: horizontal autoscaling + read replicas kick in.', '1M+: multi-region + AppSec review required — the wizard flags it.'] },
+    pattern: { headline: 'Traffic shape determines whether you need a queue.', bullets: ['Steady: simplest sizing.', 'Spiky: we add an autoscale hint and warn if you have no queue buffer.', 'Event-driven: pair with a queue system in step 5.'] },
+    geo:     { headline: 'How far apart are your users?', bullets: ['Single region: default, cheapest.', 'Multi-region: adds CDN config + replication hints.', 'Global: adds edge + latency budget notes to CLAUDE.md.'] },
+    volume:  { headline: 'Data volume shapes your DB tier and backup plan.', bullets: ['< 10 GB: any DB, nightly backup is fine.', '10 GB – 1 TB: read replicas + point-in-time recovery recommended.', '1 TB+: sharding or columnar storage discussion required.'] },
+  },
+  4: {
+    choice:     { headline: 'Pick a database — or go stateless.', bullets: ['Postgres is the default for transactional data.', 'SQLite is dev-only and auto-flagged for Restricted data.', 'Redis and Mongo have specific "only pick if…" guidance in the row.'] },
+    migrations: { headline: 'Migrations = version control for your schema.', bullets: ['Alembic (Python) and golang-migrate (Go) are the CW defaults.', 'Manual SQL is allowed for tiny projects, but every schema change still needs a file.', 'The scaffold wires the tool into make check so migrations can\'t drift.'] },
+  },
+  5: {
+    shape: { headline: 'One deployable or many?', bullets: ['Monolith is the default — simpler ops, faster iteration.', 'Modular monolith keeps boundaries inside one deployable.', 'Microservices is a last resort — only pick if you already have an ops team.'] },
+    api:   { headline: 'How do clients talk to your service?', bullets: ['REST: HTTP + JSON, default, easiest to debug.', 'GraphQL: one endpoint, more complex server.', 'gRPC: internal service-to-service, typed contracts.', 'No public API: worker-only or internal-only.'] },
+    queue: { headline: 'Queues absorb bursts and decouple producers from consumers.', bullets: ['None: synchronous only — fine for low-traffic reads.', 'Redis Streams: lightweight, < 10k msgs/sec.', 'RabbitMQ: feature-rich routing, dead-lettering, priorities.', 'Kafka: high-throughput event log, ops-heavy.'] },
+    outbound: { headline: 'Do you call external APIs?', bullets: ['If yes, we wire an egress middleware with TLS enforcement.', 'Strict mode adds an allowlist — only listed hostnames go through.', 'Pre-commit blocks raw fetch/requests calls outside the middleware.', 'Drops your blast radius if a dependency gets popped.'] },
+  },
+  6: {
+    classification: { headline: 'Data classification = CW\'s blast-radius scale.', bullets: ['Public / Proprietary / Restricted / Highly Restricted.', 'Restricted+ flips strict guards on automatically (encryption, audit logs, AppSec review).', 'Pick conservatively — downgrading later is easier than upgrading after a breach.'] },
+    auth:           { headline: 'How do users prove who they are?', bullets: ['Okta OIDC is the CW default for any UI.', 'Client credentials is service-to-service only.', 'Device auth is for CLIs.', '"No auth" is effectively blocked for any non-Public data.'] },
+    secrets:        { headline: 'Where do secrets live?', bullets: ['Doppler + External Secrets Operator is the CW standard — never in code or git.', 'Plain .env is local-only. Pre-commit blocks committing .env.', 'Vault only if your team already runs it.'] },
+    pii:            { headline: 'Handles personal / health data?', bullets: ['Turns on gitleaks + detect-secrets + a PII regex scanner in pre-commit.', 'Adds encryption middleware stub + redaction helpers.', 'Adds data-subject-request hooks (export, deletion) to the scaffold.'] },
+    compliance:     { headline: 'Which frameworks must this service align with?', bullets: ['SOC 2: adds audit-log tests + access-review evidence hooks.', 'ISO 27001: risk register + incident evidence.', 'ISO 27701: privacy overlay on 27001 — DSR support required.', '"None" still follows CW standards; just no external attestation.'] },
+    deploy:         { headline: 'Which cluster will this run on?', bullets: ['core-internal: default for internal apps. Traefik + BlastShield + Okta OIDC.', 'core-services: stricter review; platform/shared services.', 'Local-only: no k8s manifests generated.'] },
+  },
+  7: {
+    theme:      { headline: 'Theme shapes the generated dashboard look.', bullets: ['CW Light / CW Dark / Mono match the framework.', 'Custom lets you pick accent color + UI font + code font.', '3D tilt preview is CSS-only — no runtime cost.'] },
+    roster:     { headline: 'Your teammates become room owners in rooms.json.', bullets: ['Each person scopes editable directories.', 'Multiple Claude sessions see the rooms — prevents cross-edits.', 'Leave blank for a solo project; rooms.json is skipped entirely.'] },
+    owns:       { headline: 'Which directories does this person own?', bullets: ['Click to pick from the archetype\'s actual folder tree.', 'Unowned folders stay dim; owned folders glow with that person\'s accent color in the preview below.', 'Multiple people can share an area — it flags as shared.'] },
+  },
+};
