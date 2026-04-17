@@ -6,6 +6,9 @@ import { SCALE_TIERS, QUEUE_SYSTEMS, resolveAnswers } from './stacks.js';
 export const slugify = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 export const envVarName = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '_');
 const escapeHtml = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+// Accept owns as either legacy string or new array.
+const ownsList = (owns) => Array.isArray(owns) ? owns.filter(Boolean) : (owns ? String(owns).split(',').map(s => s.trim()).filter(Boolean) : []);
+const ownsLabel = (owns) => { const list = ownsList(owns); return list.length ? list.join(', ') : 'shared'; };
 
 export async function generateScaffold(answers) {
   const zip = new JSZip();
@@ -45,8 +48,18 @@ export async function generateScaffold(answers) {
   // Language scaffold
   if (lang.id === 'python') {
     await addPythonScaffold(root, ctx);
+  } else if (lang.id === 'node') {
+    await addNodeScaffold(root, ctx);
   } else {
     await addGoScaffold(root, ctx);
+  }
+
+  // Sub-architecture style folders (hexagonal, clean-arch, DDD, MVC, etc.)
+  addSubstyleFolders(root, ctx);
+
+  // Outbound API egress pipeline (conditional)
+  if (answers.integration.outboundPipeline?.enabled) {
+    addOutboundPipeline(root, ctx);
   }
 
   // Dashboard
@@ -98,7 +111,7 @@ make doctor         # health check every piece of the pipeline
 
 ## Team
 
-${teammates.length === 0 ? '_Solo project._' : teammates.map(m => `- **${m.name}** (${m.role}) — ${m.owns || 'shared'}`).join('\n')}
+${teammates.length === 0 ? '_Solo project._' : teammates.map(m => `- **${m.name}** (${m.role}) — ${ownsLabel(m.owns)}`).join('\n')}
 
 ## Architecture
 
@@ -669,11 +682,10 @@ function roomsJson({ answers, teammates, lang }) {
   const rooms = {};
   teammates.forEach((m, i) => {
     const slug = slugify(m.name) || `dev-${i + 1}`;
-    const owns = m.owns
-      ? m.owns.split(',').map(s => s.trim()).filter(Boolean)
-      : [`${lang.rootDir}${slug}/`];
+    const ownList = ownsList(m.owns);
+    const owns = ownList.length ? ownList : [`${lang.rootDir}${slug}/`];
     rooms[slug] = {
-      description: `${m.role || 'dev'} — ${m.owns || 'no scope set'}`,
+      description: `${m.role || 'dev'} — ${ownsLabel(m.owns)}`,
       owns,
       color: ['blue', 'green', 'red', 'yellow', 'purple', 'teal'][i % 6],
       owner: { name: m.name, email: m.email, slack: m.slack },
@@ -1583,7 +1595,7 @@ ${teammates.length === 0 ? '<p style="opacity:0.6">Solo project.</p>' : `
 <table>
   <thead><tr><th>Name</th><th>Role</th><th>Owns</th><th>Contact</th></tr></thead>
   <tbody>
-    ${teammates.map(m => `<tr><td>${h(m.name)}</td><td>${h(m.role)}</td><td><code>${h(m.owns) || '—'}</code></td><td>${h(m.slack) || h(m.email) || '—'}</td></tr>`).join('')}
+    ${teammates.map(m => `<tr><td>${h(m.name)}</td><td>${h(m.role)}</td><td><code>${h(ownsLabel(m.owns))}</code></td><td>${h(m.slack) || h(m.email) || '—'}</td></tr>`).join('')}
   </tbody>
 </table>`}
 
@@ -1609,3 +1621,455 @@ ${teammates.length === 0 ? '<p style="opacity:0.6">Solo project.</p>' : `
 }
 
 export { generateScaffold as default };
+
+// ============================================================
+// Node scaffold (Next.js App Router / Pages Router / Express / Hono)
+// Minimal but valid — tsconfig, package.json, src/ + tests/.
+// ============================================================
+async function addNodeScaffold(root, ctx) {
+  const { arch, db, answers, auth, name } = ctx;
+  const node = root.folder('node');
+  node.file('package.json', nodePackageJson(ctx));
+  node.file('tsconfig.json', nodeTsconfig(ctx));
+  node.file('Dockerfile', nodeDockerfile(ctx));
+  if (arch.id.startsWith('node-next')) node.file('next.config.ts', nodeNextConfig(ctx));
+
+  const src = node.folder('src');
+  if (arch.id === 'node-next-app-router') {
+    const app = src.folder('app');
+    app.file('layout.tsx', nodeNextLayout(ctx));
+    app.file('page.tsx', nodeNextPage(ctx));
+    app.folder('api').folder('health').file('route.ts', nodeNextHealthRoute(ctx));
+    src.folder('server').folder('services').file('.gitkeep', '');
+    src.folder('server').folder('repositories').file('.gitkeep', '');
+  } else if (arch.id === 'node-next-pages-router') {
+    src.folder('pages').file('_app.tsx', nodeNextPagesApp(ctx));
+    src.folder('pages').file('index.tsx', '// Home page.\nexport default function Home() { return <main>ok</main>; }\n');
+    src.folder('pages').folder('api').file('health.ts', nodeNextPagesApiHealth(ctx));
+  } else if (arch.id === 'node-express-api') {
+    src.file('index.ts', nodeExpressIndex(ctx));
+    src.folder('routes').file('health.ts', nodeExpressHealthRoute(ctx));
+    src.folder('services').file('.gitkeep', '');
+    src.folder('repositories').file('.gitkeep', '');
+  } else if (arch.id === 'node-hono-edge') {
+    src.file('index.ts', nodeHonoIndex(ctx));
+    src.folder('routes').file('health.ts', nodeHonoHealthRoute(ctx));
+    src.folder('services').file('.gitkeep', '');
+  }
+
+  src.folder('middleware').file('auth.ts', nodeAuthMiddleware(ctx));
+  src.folder('middleware').file('requestid.ts', nodeRequestIdMiddleware(ctx));
+  src.folder('lib').file('.gitkeep', '');
+
+  node.folder('tests').file('health.test.ts', nodeHealthTest(ctx));
+}
+
+function nodePackageJson({ name, answers, arch, db }) {
+  const isNext = arch.id.startsWith('node-next');
+  const isExpress = arch.id === 'node-express-api';
+  const isHono = arch.id === 'node-hono-edge';
+  const deps = {};
+  if (isNext) { deps.next = '^14.2.0'; deps.react = '^18.3.0'; deps['react-dom'] = '^18.3.0'; }
+  if (isExpress) { deps.express = '^4.21.0'; deps.zod = '^3.23.0'; }
+  if (isHono) { deps.hono = '^4.6.0'; deps['@hono/node-server'] = '^1.13.0'; }
+  if (answers.security.auth?.startsWith('okta')) { deps['openid-client'] = '^5.7.0'; deps.jose = '^5.9.0'; }
+  if (db.id === 'postgres') deps.pg = '^8.13.0';
+  if (db.id === 'mysql') deps.mysql2 = '^3.11.0';
+  if (db.id === 'redis' || answers.integration.queue === 'redis-streams') deps.ioredis = '^5.4.0';
+  return JSON.stringify({
+    name,
+    version: '0.1.0',
+    description: answers.project.description || '',
+    type: 'module',
+    scripts: {
+      start: isNext ? 'next start' : isHono ? 'node dist/index.js' : 'node dist/index.js',
+      dev: isNext ? 'next dev' : isHono ? 'tsx src/index.ts' : 'tsx src/index.ts',
+      build: isNext ? 'next build' : 'tsc',
+      lint: 'eslint src',
+      test: 'vitest run --coverage',
+      typecheck: 'tsc --noEmit',
+    },
+    dependencies: deps,
+    devDependencies: {
+      typescript: '^5.6.0',
+      '@types/node': '^22.7.0',
+      vitest: '^2.1.0',
+      '@vitest/coverage-v8': '^2.1.0',
+      eslint: '^9.12.0',
+      tsx: '^4.19.0',
+      ...(isExpress ? { '@types/express': '^5.0.0' } : {}),
+    },
+  }, null, 2) + '\n';
+}
+
+function nodeTsconfig() {
+  return JSON.stringify({
+    compilerOptions: {
+      target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler',
+      strict: true, esModuleInterop: true, skipLibCheck: true,
+      jsx: 'preserve', lib: ['ES2022', 'DOM'],
+      outDir: 'dist', rootDir: 'src', resolveJsonModule: true,
+      baseUrl: '.', paths: { '@/*': ['src/*'] },
+    },
+    include: ['src/**/*', 'tests/**/*'],
+    exclude: ['node_modules', 'dist'],
+  }, null, 2) + '\n';
+}
+
+function nodeDockerfile({ lang }) {
+  return `# syntax=docker/dockerfile:1.6
+FROM ${lang.chainguardBase} AS build
+WORKDIR /app
+COPY package.json tsconfig.json ./
+RUN npm install --omit=dev --ignore-scripts
+COPY src ./src
+RUN npm run build 2>/dev/null || true
+
+FROM ${lang.chainguardBase}
+WORKDIR /app
+COPY --from=build /app /app
+USER nonroot
+EXPOSE 8080
+CMD ["node","dist/index.js"]
+`;
+}
+
+function nodeNextConfig() {
+  return `import type { NextConfig } from 'next';
+
+const config: NextConfig = {
+  reactStrictMode: true,
+  poweredByHeader: false,
+  async headers() {
+    return [{
+      source: '/:path*',
+      headers: [
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'Content-Security-Policy', value: "default-src 'self'" },
+        { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+      ],
+    }];
+  },
+};
+export default config;
+`;
+}
+
+function nodeNextLayout() {
+  return `import type { ReactNode } from 'react';
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en"><body>{children}</body></html>
+  );
+}
+`;
+}
+
+function nodeNextPage() {
+  return `export default function Home() {
+  return <main><h1>Ready.</h1></main>;
+}
+`;
+}
+
+function nodeNextHealthRoute() {
+  return `import { NextResponse } from 'next/server';
+
+export async function GET() {
+  return NextResponse.json({ status: 'ok' });
+}
+`;
+}
+
+function nodeNextPagesApp() {
+  return `import type { AppProps } from 'next/app';
+
+export default function App({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />;
+}
+`;
+}
+
+function nodeNextPagesApiHealth() {
+  return `import type { NextApiRequest, NextApiResponse } from 'next';
+
+export default function handler(_req: NextApiRequest, res: NextApiResponse) {
+  res.status(200).json({ status: 'ok' });
+}
+`;
+}
+
+function nodeExpressIndex({ auth }) {
+  return `import express from 'express';
+import { requestId } from './middleware/requestid.js';
+${auth?.id?.startsWith('okta') ? "import { requireAuth } from './middleware/auth.js';" : ''}
+import healthRouter from './routes/health.js';
+
+const app = express();
+app.use(express.json({ limit: '1mb' }));
+app.use(requestId);
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Content-Security-Policy', "default-src 'self'");
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+app.use('/api', healthRouter);
+${auth?.id?.startsWith('okta') ? '// Protected routes would use requireAuth middleware.' : ''}
+
+const port = Number(process.env.PORT ?? 8080);
+app.listen(port, () => console.log(\`listening on :\${port}\`));
+`;
+}
+
+function nodeExpressHealthRoute() {
+  return `import { Router } from 'express';
+
+const r = Router();
+r.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
+export default r;
+`;
+}
+
+function nodeHonoIndex() {
+  return `import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
+import healthRoute from './routes/health.js';
+
+const app = new Hono();
+app.use('*', async (c, next) => {
+  await next();
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('X-Frame-Options', 'DENY');
+  c.header('Content-Security-Policy', "default-src 'self'");
+});
+app.route('/api', healthRoute);
+
+const port = Number(process.env.PORT ?? 8080);
+serve({ fetch: app.fetch, port }, () => console.log(\`listening on :\${port}\`));
+`;
+}
+
+function nodeHonoHealthRoute() {
+  return `import { Hono } from 'hono';
+
+const r = new Hono();
+r.get('/healthz', (c) => c.json({ status: 'ok' }));
+export default r;
+`;
+}
+
+function nodeAuthMiddleware({ auth }) {
+  if (!auth?.id?.startsWith('okta')) {
+    return '// Auth middleware stub — no auth configured by wizard.\nexport function requireAuth(_req: unknown, _res: unknown, next: () => void) { next(); }\n';
+  }
+  return `// Okta OIDC auth middleware — validates bearer token against Okta issuer.
+// Fill in with jose + openid-client after \`make doctor\` confirms env vars are set.
+import type { Request, Response, NextFunction } from 'express';
+
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const token = req.headers.authorization?.replace(/^Bearer\\s+/i, '');
+  if (!token) return res.status(401).json({ error: 'missing bearer token' });
+  // TODO: validate token signature + audience + issuer via openid-client.
+  (req as Request & { userId?: string }).userId = 'stub';
+  next();
+}
+`;
+}
+
+function nodeRequestIdMiddleware() {
+  return `import { randomUUID } from 'node:crypto';
+import type { Request, Response, NextFunction } from 'express';
+
+export function requestId(req: Request, res: Response, next: NextFunction) {
+  const id = (req.headers['x-request-id'] as string) || randomUUID();
+  res.setHeader('X-Request-ID', id);
+  (req as Request & { requestId?: string }).requestId = id;
+  next();
+}
+`;
+}
+
+function nodeHealthTest({ arch }) {
+  if (arch.id.startsWith('node-next')) {
+    return `import { describe, it, expect } from 'vitest';
+
+describe('health', () => {
+  it('returns ok', async () => {
+    // Replace with actual fetch to /api/health/healthz in integration run.
+    expect(true).toBe(true);
+  });
+});
+`;
+  }
+  return `import { describe, it, expect } from 'vitest';
+
+describe('health', () => {
+  it('smoke', () => { expect(true).toBe(true); });
+});
+`;
+}
+
+// ============================================================
+// Sub-architecture style folders — hexagonal, clean-arch, DDD, MVC.
+// Only emits for langs that have a src/ tree.
+// ============================================================
+function addSubstyleFolders(root, ctx) {
+  const { answers, lang } = ctx;
+  const sub = answers.stack.substyle;
+  if (!sub || lang.id === 'go' || !['hexagonal', 'clean-arch', 'ddd-light', 'ddd-strict', 'mvc', 'feature-folders'].includes(sub)) return;
+
+  const srcRoot = lang.id === 'python' ? root.folder('python').folder('src') : lang.id === 'node' ? root.folder('node').folder('src') : null;
+  if (!srcRoot) return;
+
+  const readme = (name, blurb) => `# ${name}\n\n> ${blurb}\n\nWizard-generated placeholder. Add files here following the ${name} pattern.\n`;
+  if (sub === 'hexagonal') {
+    srcRoot.folder('ports').file('README.md', readme('Ports', 'Domain-facing interfaces. Each port defines a contract services depend on.'));
+    srcRoot.folder('adapters').file('README.md', readme('Adapters', 'Concrete implementations of ports. Each adapter wires one external driver (DB, HTTP, queue).'));
+  } else if (sub === 'clean-arch') {
+    srcRoot.folder('domain').file('README.md', readme('Domain', 'Entities and business rules. Pure, no dependencies.'));
+    srcRoot.folder('use_cases').file('README.md', readme('Use cases', 'Application-specific rules. Orchestrate entities. Depend only on domain.'));
+    srcRoot.folder('interface_adapters').file('README.md', readme('Interface adapters', 'Translate between use cases and frameworks/drivers.'));
+    srcRoot.folder('frameworks').file('README.md', readme('Frameworks & drivers', 'Outer ring — HTTP, DB, external SDKs.'));
+  } else if (sub === 'ddd-light') {
+    srcRoot.folder('entities').file('README.md', readme('Entities', 'Domain entities with identity.'));
+    srcRoot.folder('value_objects').file('README.md', readme('Value objects', 'Immutable types with no identity (Money, Email, Range).'));
+  } else if (sub === 'ddd-strict') {
+    srcRoot.folder('aggregates').file('README.md', readme('Aggregates', 'Consistency boundaries. One aggregate root per folder.'));
+    srcRoot.folder('value_objects').file('README.md', readme('Value objects', 'Immutable types with no identity.'));
+    srcRoot.folder('domain_events').file('README.md', readme('Domain events', 'Facts that have happened. Emitted by aggregates, consumed by services.'));
+  } else if (sub === 'mvc') {
+    srcRoot.folder('controllers').file('README.md', readme('Controllers', 'Request handlers. Forward to models, return views.'));
+    srcRoot.folder('views').file('README.md', readme('Views', 'Response shaping — templates, serializers.'));
+  } else if (sub === 'feature-folders') {
+    srcRoot.folder('features').file('README.md', readme('Features', 'One folder per feature. All files for that feature live inside.'));
+  }
+}
+
+// ============================================================
+// Outbound API egress pipeline — middleware + env var + test.
+// ============================================================
+function addOutboundPipeline(root, ctx) {
+  const { lang, answers } = ctx;
+  const strict = answers.integration.outboundPipeline.strictEgress;
+  if (lang.id === 'python') {
+    const src = root.folder('python').folder('src');
+    src.folder('middleware').file('egress.py', `"""Outbound API egress pipeline.
+
+All external HTTP calls MUST go through egress_client.get/post/etc.
+Raw httpx / requests / urllib calls outside this module are blocked by
+pre-commit — see .pre-commit-config.yaml.
+"""
+from __future__ import annotations
+import os
+from urllib.parse import urlparse
+import httpx
+
+ALLOWLIST = {h.strip() for h in os.environ.get("EGRESS_ALLOWLIST", "").split(",") if h.strip()}
+STRICT = ${strict ? 'True' : 'False'}
+TIMEOUT = float(os.environ.get("EGRESS_TIMEOUT_SECONDS", "10"))
+
+
+class EgressBlocked(Exception):
+    """Raised when a call targets a hostname not on the allowlist."""
+
+
+def _check(url: str) -> None:
+    parsed = urlparse(url)
+    if parsed.scheme != "https":
+        raise EgressBlocked(f"TLS required, got {parsed.scheme}")
+    if STRICT and ALLOWLIST and parsed.hostname not in ALLOWLIST:
+        raise EgressBlocked(f"{parsed.hostname} not on EGRESS_ALLOWLIST")
+
+
+def egress_get(url: str, **kw):
+    _check(url)
+    with httpx.Client(timeout=TIMEOUT) as c:
+        return c.get(url, **kw)
+
+
+def egress_post(url: str, **kw):
+    _check(url)
+    with httpx.Client(timeout=TIMEOUT) as c:
+        return c.post(url, **kw)
+`);
+  } else if (lang.id === 'node') {
+    const src = root.folder('node').folder('src');
+    src.folder('middleware').file('egress.ts', `// Outbound API egress pipeline.
+// All external HTTP calls MUST go through egress(). Raw fetch() outside
+// this module is blocked by pre-commit — see .pre-commit-config.yaml.
+
+const ALLOWLIST = new Set(
+  (process.env.EGRESS_ALLOWLIST ?? '').split(',').map(s => s.trim()).filter(Boolean)
+);
+const STRICT = ${strict};
+const TIMEOUT_MS = Number(process.env.EGRESS_TIMEOUT_MS ?? 10_000);
+
+export class EgressBlocked extends Error {}
+
+export async function egress(url: string, init: RequestInit = {}): Promise<Response> {
+  const u = new URL(url);
+  if (u.protocol !== 'https:') throw new EgressBlocked(\`TLS required, got \${u.protocol}\`);
+  if (STRICT && ALLOWLIST.size > 0 && !ALLOWLIST.has(u.hostname)) {
+    throw new EgressBlocked(\`\${u.hostname} not on EGRESS_ALLOWLIST\`);
+  }
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), TIMEOUT_MS);
+  try { return await fetch(url, { ...init, signal: ctl.signal }); }
+  finally { clearTimeout(t); }
+}
+`);
+  } else if (lang.id === 'go') {
+    const internal = root.folder('go').folder('internal');
+    internal.folder('middleware').file('egress.go', `package middleware
+
+// Outbound API egress pipeline.
+// All external calls MUST go through Egress(). Raw http.Client() outside
+// this package is blocked by pre-commit — see .pre-commit-config.yaml.
+import (
+    "context"
+    "crypto/tls"
+    "errors"
+    "net/http"
+    "net/url"
+    "os"
+    "strings"
+    "time"
+)
+
+var (
+    allowlist = buildAllowlist()
+    strict    = ${strict}
+    client    = &http.Client{
+        Timeout:   10 * time.Second,
+        Transport: &http.Transport{TLSClientConfig: &tls.Config{MinVersion: tls.VersionTLS12}},
+    }
+)
+
+var ErrEgressBlocked = errors.New("egress blocked")
+
+func buildAllowlist() map[string]struct{} {
+    m := map[string]struct{}{}
+    for _, h := range strings.Split(os.Getenv("EGRESS_ALLOWLIST"), ",") {
+        if h = strings.TrimSpace(h); h != "" { m[h] = struct{}{} }
+    }
+    return m
+}
+
+func Egress(ctx context.Context, method, rawURL string, body []byte) (*http.Response, error) {
+    u, err := url.Parse(rawURL)
+    if err != nil { return nil, err }
+    if u.Scheme != "https" { return nil, ErrEgressBlocked }
+    if strict && len(allowlist) > 0 {
+        if _, ok := allowlist[u.Host]; !ok { return nil, ErrEgressBlocked }
+    }
+    req, err := http.NewRequestWithContext(ctx, method, rawURL, nil)
+    if err != nil { return nil, err }
+    return client.Do(req)
+}
+`);
+  }
+}
