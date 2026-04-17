@@ -351,6 +351,27 @@ export const DEPLOY_TARGETS = [
   { id: 'local', label: 'Local only (never deployed)', blurb: 'Developer tools, scripts. No k8s manifests generated.' },
 ];
 
+export function resolveAnswers(answers) {
+  const lang = LANGUAGES.find(l => l.id === answers.stack.language);
+  return {
+    lang,
+    arch: lang ? ARCHETYPES[lang.id].find(a => a.id === answers.stack.archetype) : null,
+    db: DATABASES.find(d => d.id === answers.database.choice) || DATABASES.find(d => d.id === 'none'),
+    cls: DATA_CLASSIFICATIONS.find(c => c.id === answers.security.classification),
+    auth: AUTH_METHODS.find(a => a.id === answers.security.auth),
+    secrets: SECRET_SYSTEMS.find(s => s.id === answers.security.secrets),
+    deploy: DEPLOY_TARGETS.find(d => d.id === answers.security.deploy),
+    style: CODE_STYLES.find(s => s.id === answers.stack.style),
+    tier: SCALE_TIERS.find(t => t.id === answers.scale.users),
+    pattern: TRAFFIC_PATTERNS.find(p => p.id === answers.scale.pattern),
+    shape: INTEGRATION_SHAPES.find(s => s.id === answers.integration.shape),
+    api: API_SHAPES.find(a => a.id === answers.integration.api),
+    queue: QUEUE_SYSTEMS.find(q => q.id === answers.integration.queue),
+    theme: THEMES.find(t => t.id === answers.theme.id),
+    teammates: answers.team.filter(m => m.name),
+  };
+}
+
 export const THEMES = [
   { id: 'cw-light', label: 'CW Light (default)', recommended: true, bg: '#f5efe4', accent: '#5b8def', text: '#1a1a2e' },
   { id: 'cw-dark', label: 'CW Dark', bg: '#0a1628', accent: '#22d3ee', text: '#e5edf5' },

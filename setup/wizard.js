@@ -6,6 +6,7 @@ import {
   DATABASES, INTEGRATION_SHAPES, API_SHAPES, QUEUE_SYSTEMS,
   DATA_CLASSIFICATIONS, AUTH_METHODS, SECRET_SYSTEMS,
   COMPLIANCE_FRAMEWORKS, DEPLOY_TARGETS, THEMES,
+  resolveAnswers,
 } from './stacks.js';
 import { generateScaffold } from './generator.js';
 
@@ -31,7 +32,7 @@ const state = {
     integration: { shape: 'monolith', api: 'rest', externalApis: [], queue: 'none' },
     security: { classification: null, auth: null, secrets: null, pii: false, compliance: [], deploy: null },
     theme: { id: 'cw-light', includeDashboard: true },
-    team: [],
+    team: [{ name: '', role: 'dev', email: '', slack: '', owns: '' }],
   },
 };
 
@@ -53,7 +54,7 @@ function renderStepNav() {
   host.querySelectorAll('[data-goto]').forEach(btn => {
     btn.addEventListener('click', () => {
       const n = parseInt(btn.dataset.goto);
-      if (n < state.currentStep || n === state.currentStep) goToStep(n);
+      if (n <= state.currentStep) goToStep(n);
     });
   });
 }
@@ -240,18 +241,20 @@ function renderScale() {
   updateScaleCallout();
 }
 
+const SCALE_MISMATCHES = [
+  { arch: 'go-worker', tier: 'tier-4', message: 'stdlib worker at 1M+ users needs queue-partitioned workers. Consider API + queue archetype.' },
+];
+
 function updateScaleCallout() {
   const tier = SCALE_TIERS.find(t => t.id === state.answers.scale.users);
   const pattern = TRAFFIC_PATTERNS.find(p => p.id === state.answers.scale.pattern);
+  const arch = state.answers.stack.archetype;
   const callout = document.getElementById('scale-callout');
   let html = `<strong>Infrastructure:</strong> ${tier.infra}`;
   if (pattern.id === 'spiky') html += ` <br><strong>Spiky traffic:</strong> generator will add queue buffer + autoscale hints to CLAUDE.md.`;
   if (tier.warning) html += ` <br><strong>Heads up:</strong> ${tier.warning}`;
-  // Archetype mismatch warnings
-  const arch = state.answers.stack.archetype;
-  if (arch === 'go-worker' && tier.id === 'tier-4') {
-    html += ` <br><strong>Mismatch:</strong> stdlib worker at 1M+ users needs queue-partitioned workers. Consider API + queue archetype.`;
-  }
+  const mismatch = SCALE_MISMATCHES.find(m => m.arch === arch && m.tier === tier.id);
+  if (mismatch) html += ` <br><strong>Mismatch:</strong> ${mismatch.message}`;
   callout.innerHTML = html;
   callout.style.display = 'block';
 }
@@ -353,8 +356,8 @@ function renderSecurity() {
 
 function updateComplianceScore() {
   const s = state.answers.security;
-  const filled = [s.classification, s.auth, s.secrets, s.deploy].filter(Boolean).length + (s.pii !== null ? 1 : 0) + (s.compliance.length > 0 ? 1 : 0);
-  const total = 6;
+  const filled = [s.classification, s.auth, s.secrets, s.deploy].filter(Boolean).length + (s.compliance.length > 0 ? 1 : 0);
+  const total = 5;
   const pct = Math.round(filled / total * 100);
   // Risk assessment
   let score = pct;
@@ -414,7 +417,7 @@ function renderThemes() {
 
 function renderTeam() {
   const host = document.getElementById('team-rows');
-  if (state.answers.team.length === 0) addTeammate();
+  if (state.answers.team.length === 0) state.answers.team.push({ name: '', role: 'dev', email: '', slack: '', owns: '' });
   host.innerHTML = state.answers.team.map((m, i) => `
     <tr data-idx="${i}">
       <td><input data-f="name" value="${m.name || ''}" placeholder="Romeo Patino"></td>
@@ -435,7 +438,6 @@ function renderTeam() {
     });
     tr.querySelector('[data-remove]').addEventListener('click', () => {
       state.answers.team.splice(idx, 1);
-      if (state.answers.team.length === 0) state.answers.team.push({});
       renderTeam();
       renderSummary();
     });
@@ -510,29 +512,29 @@ function renderMultiChips(hostId, options, key, ns) {
 // ============================================================
 // Live summary
 // ============================================================
+function summaryRows(a) {
+  const r = resolveAnswers(a);
+  const memberCount = r.teammates.length;
+  return [
+    ['Name', a.project.name || '—'],
+    ['Stack', r.lang ? `${r.lang.name}${r.arch ? ' · ' + r.arch.name : ''}` : '—'],
+    ['Style', r.style?.name || '—'],
+    ['Users', r.tier?.label || '—'],
+    ['Database', r.db?.name || '—'],
+    ['Shape', r.shape?.label || '—'],
+    ['API', r.api?.label || '—'],
+    ['Queue', r.queue?.label || '—'],
+    ['Classification', r.cls?.label || '—'],
+    ['Auth', r.auth?.label || '—'],
+    ['Secrets', r.secrets?.label || '—'],
+    ['Deploy', r.deploy?.label || '—'],
+    ['Team size', `${memberCount} member${memberCount === 1 ? '' : 's'}`],
+  ];
+}
+
 function renderSummary() {
   const host = document.getElementById('summary-host');
-  const a = state.answers;
-  const lang = LANGUAGES.find(l => l.id === a.stack.language);
-  const arch = a.stack.language ? ARCHETYPES[a.stack.language].find(x => x.id === a.stack.archetype) : null;
-  const db = DATABASES.find(d => d.id === a.database.choice);
-  const cls = DATA_CLASSIFICATIONS.find(c => c.id === a.security.classification);
-  const rows = [
-    ['Name', a.project.name || '—'],
-    ['Stack', lang ? `${lang.name}${arch ? ' · ' + arch.name : ''}` : '—'],
-    ['Style', CODE_STYLES.find(s => s.id === a.stack.style)?.name || '—'],
-    ['Users', SCALE_TIERS.find(s => s.id === a.scale.users)?.label || '—'],
-    ['Database', db?.name || '—'],
-    ['Shape', INTEGRATION_SHAPES.find(s => s.id === a.integration.shape)?.label || '—'],
-    ['API', API_SHAPES.find(s => s.id === a.integration.api)?.label || '—'],
-    ['Queue', QUEUE_SYSTEMS.find(s => s.id === a.integration.queue)?.label || '—'],
-    ['Classification', cls?.label || '—'],
-    ['Auth', AUTH_METHODS.find(x => x.id === a.security.auth)?.label || '—'],
-    ['Secrets', SECRET_SYSTEMS.find(x => x.id === a.security.secrets)?.label || '—'],
-    ['Deploy', DEPLOY_TARGETS.find(x => x.id === a.security.deploy)?.label || '—'],
-    ['Team size', `${a.team.filter(m => m.name).length} member${a.team.filter(m => m.name).length === 1 ? '' : 's'}`],
-  ];
-  host.innerHTML = rows.map(([k, v]) => `
+  host.innerHTML = summaryRows(state.answers).map(([k, v]) => `
     <div class="summary-item">
       <div class="k">${k}</div>
       <div class="v ${v === '—' ? 'empty' : ''}">${escapeHtml(v)}</div>
@@ -543,27 +545,27 @@ function renderSummary() {
 // ============================================================
 // Final review
 // ============================================================
+function evaluatePolicy(a, r) {
+  if (r.cls?.strict && a.security.secrets === 'env') {
+    return { status: 'critical', message: '<strong>Blocked:</strong> Restricted data with plain .env secrets violates CW policy. Switch to Doppler in step 6.' };
+  }
+  if (a.security.auth === 'none' && r.cls && r.cls.id !== 'public') {
+    return { status: 'warn', message: '<strong>Warning:</strong> No auth configured but data is not Public. AppSec will reject this.' };
+  }
+  if (r.cls) {
+    return { status: 'pass', message: '<strong>Ready.</strong> Configuration aligns with CW standards — scaffold will include the right guards.' };
+  }
+  return null;
+}
+
 function renderFinalReview() {
   const host = document.getElementById('final-summary-host');
   const a = state.answers;
-  const lang = LANGUAGES.find(l => l.id === a.stack.language);
-  const arch = lang ? ARCHETYPES[a.stack.language].find(x => x.id === a.stack.archetype) : null;
-  const db = DATABASES.find(d => d.id === a.database.choice);
-  const cls = DATA_CLASSIFICATIONS.find(c => c.id === a.security.classification);
-  const usingEnvForRestricted = cls?.strict && a.security.secrets === 'env';
+  const r = resolveAnswers(a);
+  const verdict = evaluatePolicy(a, r);
+  const teammates = r.teammates;
 
-  const alerts = [];
-  if (usingEnvForRestricted) {
-    alerts.push(`<div class="alert critical"><strong>Blocked:</strong> Restricted data with plain .env secrets violates CW policy. Switch to Doppler in step 6.</div>`);
-  }
-  if (a.security.auth === 'none' && cls && cls.id !== 'public') {
-    alerts.push(`<div class="alert warn"><strong>Warning:</strong> No auth configured but data is not Public. AppSec will reject this.</div>`);
-  }
-  if (alerts.length === 0 && cls) {
-    alerts.push(`<div class="alert pass"><strong>Ready.</strong> Configuration aligns with CW standards — scaffold will include the right guards.</div>`);
-  }
-
-  host.innerHTML = alerts.join('') + `
+  host.innerHTML = (verdict ? `<div class="alert ${verdict.status}">${verdict.message}</div>` : '') + `
     <div class="final-summary">
       <h3>Project</h3>
       <table>
@@ -576,40 +578,40 @@ function renderFinalReview() {
     <div class="final-summary">
       <h3>Stack</h3>
       <table>
-        <tr><td>Language</td><td>${lang?.name || '—'}</td></tr>
-        <tr><td>Archetype</td><td>${arch?.name || '—'}</td></tr>
-        <tr><td>Style</td><td>${CODE_STYLES.find(s => s.id === a.stack.style)?.name}</td></tr>
-        <tr><td>Database</td><td>${db?.name || '—'} ${a.database.migrations ? `· migrations: ${a.database.migrations}` : ''}</td></tr>
-        <tr><td>API shape</td><td>${API_SHAPES.find(s => s.id === a.integration.api)?.label}</td></tr>
-        <tr><td>Queue</td><td>${QUEUE_SYSTEMS.find(s => s.id === a.integration.queue)?.label}</td></tr>
-        <tr><td>External APIs</td><td>${a.integration.externalApis.length ? a.integration.externalApis.join(', ') : '—'}</td></tr>
+        <tr><td>Language</td><td>${escapeHtml(r.lang?.name) || '—'}</td></tr>
+        <tr><td>Archetype</td><td>${escapeHtml(r.arch?.name) || '—'}</td></tr>
+        <tr><td>Style</td><td>${escapeHtml(r.style?.name) || '—'}</td></tr>
+        <tr><td>Database</td><td>${escapeHtml(r.db?.name) || '—'}${a.database.migrations ? ` · migrations: ${escapeHtml(a.database.migrations)}` : ''}</td></tr>
+        <tr><td>API shape</td><td>${escapeHtml(r.api?.label) || '—'}</td></tr>
+        <tr><td>Queue</td><td>${escapeHtml(r.queue?.label) || '—'}</td></tr>
+        <tr><td>External APIs</td><td>${a.integration.externalApis.length ? escapeHtml(a.integration.externalApis.join(', ')) : '—'}</td></tr>
       </table>
     </div>
     <div class="final-summary">
       <h3>Security</h3>
       <table>
-        <tr><td>Classification</td><td>${cls?.label || '—'}</td></tr>
-        <tr><td>Auth</td><td>${AUTH_METHODS.find(x => x.id === a.security.auth)?.label || '—'}</td></tr>
-        <tr><td>Secrets</td><td>${SECRET_SYSTEMS.find(x => x.id === a.security.secrets)?.label || '—'}</td></tr>
+        <tr><td>Classification</td><td>${escapeHtml(r.cls?.label) || '—'}</td></tr>
+        <tr><td>Auth</td><td>${escapeHtml(r.auth?.label) || '—'}</td></tr>
+        <tr><td>Secrets</td><td>${escapeHtml(r.secrets?.label) || '—'}</td></tr>
         <tr><td>PII/PHI</td><td>${a.security.pii ? 'Yes' : 'No'}</td></tr>
-        <tr><td>Compliance</td><td>${a.security.compliance.length ? a.security.compliance.join(', ') : '—'}</td></tr>
-        <tr><td>Deploy target</td><td>${DEPLOY_TARGETS.find(x => x.id === a.security.deploy)?.label || '—'}</td></tr>
+        <tr><td>Compliance</td><td>${a.security.compliance.length ? escapeHtml(a.security.compliance.join(', ')) : '—'}</td></tr>
+        <tr><td>Deploy target</td><td>${escapeHtml(r.deploy?.label) || '—'}</td></tr>
       </table>
     </div>
     <div class="final-summary">
       <h3>Scale</h3>
       <table>
-        <tr><td>Users</td><td>${SCALE_TIERS.find(s => s.id === a.scale.users)?.label}</td></tr>
-        <tr><td>Traffic</td><td>${TRAFFIC_PATTERNS.find(p => p.id === a.scale.pattern)?.label}</td></tr>
-        <tr><td>Geography</td><td>${a.scale.geo}</td></tr>
-        <tr><td>Data volume</td><td>${a.scale.volume}</td></tr>
+        <tr><td>Users</td><td>${escapeHtml(r.tier?.label) || '—'}</td></tr>
+        <tr><td>Traffic</td><td>${escapeHtml(r.pattern?.label) || '—'}</td></tr>
+        <tr><td>Geography</td><td>${escapeHtml(a.scale.geo)}</td></tr>
+        <tr><td>Data volume</td><td>${escapeHtml(a.scale.volume)}</td></tr>
       </table>
     </div>
     <div class="final-summary">
-      <h3>Team (${a.team.filter(m => m.name).length})</h3>
-      ${a.team.filter(m => m.name).length === 0 ? '<p style="color:var(--text-tertiary);font-size:13px;">Solo project. rooms.json will be skipped.</p>' : `
+      <h3>Team (${teammates.length})</h3>
+      ${teammates.length === 0 ? '<p style="color:var(--text-tertiary);font-size:13px;">Solo project. rooms.json will be skipped.</p>' : `
         <table>
-          ${a.team.filter(m => m.name).map(m => `
+          ${teammates.map(m => `
             <tr><td>${escapeHtml(m.name)} (${escapeHtml(m.role)})</td><td>${escapeHtml(m.owns || 'shared')}</td></tr>
           `).join('')}
         </table>
@@ -617,7 +619,7 @@ function renderFinalReview() {
     </div>
   `;
 
-  document.getElementById('generate-btn').disabled = usingEnvForRestricted;
+  document.getElementById('generate-btn').disabled = verdict?.status === 'critical';
 }
 
 // ============================================================
@@ -647,20 +649,18 @@ document.getElementById('copy-summary').addEventListener('click', async () => {
 });
 
 function summaryAsMarkdown(a) {
-  const lang = LANGUAGES.find(l => l.id === a.stack.language);
-  const arch = lang ? ARCHETYPES[a.stack.language].find(x => x.id === a.stack.archetype) : null;
-  const db = DATABASES.find(d => d.id === a.database.choice);
+  const r = resolveAnswers(a);
   return `# ${a.project.name} — Setup Summary
 
-- **Language:** ${lang?.name || '—'}
-- **Archetype:** ${arch?.name || '—'}
-- **Style:** ${CODE_STYLES.find(s => s.id === a.stack.style)?.name}
-- **Database:** ${db?.name || '—'}
-- **Classification:** ${DATA_CLASSIFICATIONS.find(c => c.id === a.security.classification)?.label || '—'}
-- **Auth:** ${AUTH_METHODS.find(x => x.id === a.security.auth)?.label || '—'}
-- **Secrets:** ${SECRET_SYSTEMS.find(x => x.id === a.security.secrets)?.label || '—'}
-- **Deploy:** ${DEPLOY_TARGETS.find(x => x.id === a.security.deploy)?.label || '—'}
-- **Team:** ${a.team.filter(m => m.name).length} members
+- **Language:** ${r.lang?.name || '—'}
+- **Archetype:** ${r.arch?.name || '—'}
+- **Style:** ${r.style?.name || '—'}
+- **Database:** ${r.db?.name || '—'}
+- **Classification:** ${r.cls?.label || '—'}
+- **Auth:** ${r.auth?.label || '—'}
+- **Secrets:** ${r.secrets?.label || '—'}
+- **Deploy:** ${r.deploy?.label || '—'}
+- **Team:** ${r.teammates.length} members
 `;
 }
 
