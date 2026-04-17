@@ -17,6 +17,10 @@ PY_EXISTS := $(wildcard python/pyproject.toml)
 # THE 4 COMMANDS YOU NEED
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+.PHONY: wizard
+wizard: ## Open the visual setup wizard in your browser (recommended starting point)
+	@open setup.html 2>/dev/null || xdg-open setup.html 2>/dev/null || echo "Open setup.html in your browser"
+
 .PHONY: new
 new: ## Start a new app from a blueprint
 	@bash scripts/apply-blueprint.sh $(BLUEPRINT)
@@ -59,7 +63,8 @@ help: ## Show commands
 	@echo "  CW Secure Framework"
 	@echo "  ──────────────────"
 	@echo ""
-	@echo "    make new         Start from a blueprint"
+	@echo "    make wizard      Visual setup — recommended (opens in browser)"
+	@echo "    make new         Start from a blueprint (CLI)"
 	@echo "    make start       Run your app"
 	@echo "    make check       Run before pushing"
 	@echo "    make join        Join the team — pick your role"
@@ -196,6 +201,14 @@ learn:
 dashboard: ## Open team dashboard (project health, who's working where)
 	@bash scripts/serve-dashboard.sh
 
+.PHONY: team-server
+team-server: ## Run live presence server (dashboard + real-time teammate view)
+	@url="http://localhost:$${PORT:-4000}/team-dashboard.html"; \
+	 printf "  Starting presence server on :%s\n" "$${PORT:-4000}"; \
+	 printf "  Open  \033]8;;%s\033\\%s\033]8;;\033\\  (Cmd/Ctrl+click to open)\n" "$$url" "$$url"; \
+	 printf "  (Ctrl+C to stop · see server/README.md for hook setup)\n"
+	@python3 server/server.py
+
 .PHONY: security-dashboard
 security-dashboard:
 	@open security-dashboard.html 2>/dev/null || xdg-open security-dashboard.html 2>/dev/null || echo "  Open security-dashboard.html in your browser"
@@ -286,6 +299,45 @@ ifndef TARGET
 	@exit 1
 endif
 	@bash scripts/adopt.sh "$(TARGET)" $(if $(FORCE),--force,)
+
+.PHONY: integrate-scan
+integrate-scan: ## Scan an existing app and report detected stack, framework, CI, git state
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make integrate-scan TARGET=/path/to/existing/project"
+	@echo "  Read-only — writes nothing. Use before adopt/integrate-plan."
+	@echo ""
+	@exit 1
+endif
+	@python3 scripts/integrate/scan.py "$(TARGET)" $(if $(SCOPE),--scope=$(SCOPE),) $(if $(INCLUDE_NODE),--include-node,)
+
+.PHONY: integrate-plan
+integrate-plan: ## Build an integration plan — what will change, what will be skipped
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make integrate-plan TARGET=/path/to/existing/project"
+	@echo "  Read-only — writes nothing. Shows actions, skips, wiring snippets."
+	@echo ""
+	@exit 1
+endif
+	@python3 scripts/integrate/plan.py "$(TARGET)" $(if $(SCOPE),--scope=$(SCOPE),) $(if $(INCLUDE_NODE),--include-node,)
+
+.PHONY: integrate
+integrate: ## Apply full integration — backup tag, working branch, rollback on error, manifest
+ifndef TARGET
+	@echo ""
+	@echo "  Usage: make integrate TARGET=/path/to/existing/project"
+	@echo "        (optional) SCOPE=backend/  INCLUDE_NODE=1  FORCE=1"
+	@echo ""
+	@echo "  Runs scan → plan → apply. Creates backup tag + working branch."
+	@echo "  Rolls back on any failure. Writes .cw-integrate-manifest.json."
+	@echo ""
+	@exit 1
+endif
+	@python3 scripts/integrate/apply.py "$(TARGET)" \
+		$(if $(SCOPE),--scope=$(SCOPE),) \
+		$(if $(INCLUDE_NODE),--include-node,) \
+		$(if $(FORCE),--force,)
 
 .PHONY: init
 init:

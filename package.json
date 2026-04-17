@@ -1,0 +1,6 @@
+{
+  "name": "next-payments",
+  "version": "0.1.0",
+  "dependencies": { "next": "^14.0.0", "react": "^18.0.0" },
+  "scripts": { "test": "jest", "lint": "next lint" }
+}

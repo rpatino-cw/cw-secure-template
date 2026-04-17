@@ -45,8 +45,56 @@ Pick a blueprint and start. Auth, rate limiting, secret management, CI gates, an
 | **Approval workflow** | `approval-workflow` | Python | Request intake, multi-step approvals, notifications, status tracking |
 
 ```bash
-make new BLUEPRINT=api-service      # or chat-assistant, batch-processor, etc.
+make wizard                          # visual setup — recommended
+make new BLUEPRINT=api-service       # or chat-assistant, batch-processor, etc. (CLI)
 ```
+
+**New:** [`setup.html`](setup.html) is a visual wizard that asks the right questions upfront (stack, database, security posture, team) and generates a tailored scaffold with the correct guards, CI gates, and CLAUDE.md rules already baked in. No more generic template — the project arrives already locked to your choices. Run `make wizard` to open it.
+
+---
+
+## Quick Start — new project, solo or with a teammate
+
+The wizard generates a ready-to-go folder. You turn it into a git repo in 30 seconds.
+
+**Solo:**
+```bash
+# 1. Clone this template (once, anywhere you keep tools):
+git clone https://github.com/rpatino-cw/cw-secure-template ~/dev/cw-secure-template
+
+# 2. Open the wizard — walk the 7 steps, click Generate:
+cd ~/dev/cw-secure-template && make wizard
+# → downloads my-app-scaffold.zip to ~/Downloads
+
+# 3. Unzip into your projects folder + bootstrap:
+cd ~/dev && unzip ~/Downloads/my-app-scaffold.zip && cd my-app
+./setup.sh                     # installs hooks, creates .env, wires guards
+
+# 4. Turn it into a real repo + push:
+git init && git add . && git commit -m "Initial scaffold from cw-secure wizard"
+gh repo create coreweave/my-app --private --source=. --push
+```
+
+**With a teammate:** one person runs the wizard (steps above), adds the teammate on step 7 (Team roster). That generates `rooms.json` so the multi-agent guards know who owns which directory. After pushing:
+
+```bash
+# Grant the teammate repo access:
+gh repo add-collaborator coreweave/my-app teammate-github-handle
+
+# Teammate clones and bootstraps:
+gh repo clone coreweave/my-app && cd my-app && ./setup.sh
+```
+
+**What the Team step actually does:** generates `rooms.json` (directory ownership for multi-agent coordination). It does **not** invite collaborators, create GitHub teams, or send email — do those separately via `gh` or the GitHub UI.
+
+**Repo-first variant** (if you need the GitHub repo to exist first for naming/branch protection):
+```bash
+gh repo create coreweave/my-app --private --clone && cd my-app
+unzip -j ~/Downloads/my-app-scaffold.zip -d .    # flat extract into empty repo
+./setup.sh && git add . && git commit -m "Initial scaffold" && git push
+```
+
+Either path ends the same. Wizard-first is one step shorter.
 
 ---
 
@@ -382,7 +430,8 @@ make learn             15-question OWASP quiz
 make add-secret        Safely store an API key in .env (hidden input)
 make add-config        Safely store a config file
 make viz               Interactive visualizer
-make dashboard         Open security dashboard
+make dashboard         Open team dashboard (snapshot, 5s polling)
+make team-server       Live presence server — teammates appear in real time
 ```
 
 **Setup:**

@@ -252,3 +252,6 @@ rooms/*/outbox/*.md
 rooms/activity.md
 !rooms/*/inbox/.gitkeep
 !rooms/*/outbox/.gitkeep
+
+# Presence server runtime state (events log, never committed)
+server/events.jsonl
