@@ -45,8 +45,11 @@ Pick a blueprint and start. Auth, rate limiting, secret management, CI gates, an
 | **Approval workflow** | `approval-workflow` | Python | Request intake, multi-step approvals, notifications, status tracking |
 
 ```bash
-make new BLUEPRINT=api-service      # or chat-assistant, batch-processor, etc.
+make wizard                          # visual setup — recommended
+make new BLUEPRINT=api-service       # or chat-assistant, batch-processor, etc. (CLI)
 ```
+
+**New:** [`setup.html`](setup.html) is a visual wizard that asks the right questions upfront (stack, database, security posture, team) and generates a tailored scaffold with the correct guards, CI gates, and CLAUDE.md rules already baked in. No more generic template — the project arrives already locked to your choices. Run `make wizard` to open it.
 
 ---
 

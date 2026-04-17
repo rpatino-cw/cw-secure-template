@@ -17,6 +17,10 @@ PY_EXISTS := $(wildcard python/pyproject.toml)
 # THE 4 COMMANDS YOU NEED
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+.PHONY: wizard
+wizard: ## Open the visual setup wizard in your browser (recommended starting point)
+	@open setup.html 2>/dev/null || xdg-open setup.html 2>/dev/null || echo "Open setup.html in your browser"
+
 .PHONY: new
 new: ## Start a new app from a blueprint
 	@bash scripts/apply-blueprint.sh $(BLUEPRINT)
@@ -59,7 +63,8 @@ help: ## Show commands
 	@echo "  CW Secure Framework"
 	@echo "  ──────────────────"
 	@echo ""
-	@echo "    make new         Start from a blueprint"
+	@echo "    make wizard      Visual setup — recommended (opens in browser)"
+	@echo "    make new         Start from a blueprint (CLI)"
 	@echo "    make start       Run your app"
 	@echo "    make check       Run before pushing"
 	@echo "    make join        Join the team — pick your role"
