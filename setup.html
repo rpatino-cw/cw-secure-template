@@ -184,15 +184,23 @@ main {
 
 /* === Security step === */
 .compliance-score {
-  padding: 16px 20px; border-radius: 10px; margin-bottom: 24px;
+  padding: 18px 20px; border-radius: 10px; margin-bottom: 24px;
   background: var(--bg-elevated); border: 1px solid var(--border);
-  display: flex; align-items: center; gap: 16px;
 }
-.compliance-score .ring { width: 56px; height: 56px; border-radius: 50%; background: conic-gradient(var(--pass) 0%, var(--border) 0%); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: var(--text-primary); position: relative; }
-.compliance-score .ring::before { content: ''; position: absolute; inset: 6px; border-radius: 50%; background: var(--bg-elevated); }
-.compliance-score .ring span { position: relative; z-index: 1; }
-.compliance-score .label { font-size: 13px; color: var(--text-secondary); }
-.compliance-score .score-label { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.compliance-score .score-label { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; }
+.compliance-score .score-label .detail { font-size: 12px; color: var(--text-tertiary); font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em; }
+.compliance-segments { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.compliance-seg {
+  padding: 8px 10px; border-radius: 6px; background: var(--bg-sunken);
+  border: 1px solid var(--border-subtle);
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-tertiary); text-align: center;
+  transition: all var(--duration) var(--ease-out);
+}
+.compliance-seg.pass { background: var(--pass-bg); border-color: var(--pass); color: oklch(38% 0.14 155); }
+.compliance-seg.warn { background: var(--warn-bg); border-color: var(--warn); color: oklch(40% 0.16 75); }
+.compliance-seg.critical { background: var(--critical-bg); border-color: var(--critical); color: oklch(40% 0.18 25); }
+@media (max-width: 720px) { .compliance-segments { grid-template-columns: repeat(2, 1fr); } }
 
 /* === Team step === */
 .team-table { width: 100%; border-collapse: collapse; }
@@ -237,6 +245,7 @@ main {
   display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
   font-size: 14px; padding: 8px 0;
 }
+.field label.toggle { display: inline-flex; text-transform: none; letter-spacing: 0; margin-bottom: 0; font-size: 14px; color: var(--text-primary); }
 .toggle input { display: none; }
 .toggle .switch {
   width: 40px; height: 22px; background: var(--border); border-radius: 11px;
@@ -316,7 +325,7 @@ main {
     </div>
     <div class="step-footer">
       <button class="btn-secondary" data-back>← Back</button>
-      <button class="btn-primary" data-next disabled>Continue →</button>
+      <button class="btn-primary" data-next disabled title="Pick a language to continue">Continue →</button>
     </div>
   </section>
 
@@ -347,7 +356,7 @@ main {
     </div>
     <div class="step-footer">
       <button class="btn-secondary" data-back>← Back</button>
-      <button class="btn-primary" data-next disabled>Continue →</button>
+      <button class="btn-primary" data-next disabled title="Pick a database to continue">Continue →</button>
     </div>
   </section>
 
@@ -370,11 +379,11 @@ main {
     <h2>Security posture.</h2>
     <p class="lede">Answers here map to CoreWeave's 22 policies. Your compliance score updates live in the sidebar. Restricted data flips guards to strict mode automatically.</p>
     <div class="compliance-score" id="compliance-panel">
-      <div class="ring" id="compliance-ring"><span id="compliance-pct">0%</span></div>
-      <div>
-        <div class="score-label" id="compliance-label">Answer the questions →</div>
-        <div class="label" id="compliance-detail">0 of 6 sections complete</div>
+      <div class="score-label">
+        <span id="compliance-label">Answer the questions →</span>
+        <span class="detail" id="compliance-detail">0 of 5 answered</span>
       </div>
+      <div class="compliance-segments" id="compliance-segments"></div>
     </div>
     <div class="field"><label>Data classification</label><div class="card-grid" id="sec-classification"></div></div>
     <div class="field"><label>Auth method</label><div class="card-grid" id="sec-auth"></div></div>

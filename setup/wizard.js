@@ -217,7 +217,9 @@ function renderCodeStyles() {
 
 function updateStep2NextButton() {
   const btn = document.querySelector('.step[data-step="2"] [data-next]');
-  btn.disabled = !(state.answers.stack.language && state.answers.stack.archetype);
+  const ready = state.answers.stack.language && state.answers.stack.archetype;
+  btn.disabled = !ready;
+  btn.title = ready ? '' : state.answers.stack.language ? 'Pick an archetype to continue' : 'Pick a language to continue';
 }
 
 // ============================================================
@@ -289,7 +291,9 @@ function renderDatabases() {
       renderDatabases();
       renderDatabasePipeline();
       renderMigrationsField();
-      document.querySelector('.step[data-step="4"] [data-next]').disabled = false;
+      const nextBtn = document.querySelector('.step[data-step="4"] [data-next]');
+      nextBtn.disabled = false;
+      nextBtn.title = '';
       renderSummary();
     });
   });
@@ -356,36 +360,43 @@ function renderSecurity() {
 
 function updateComplianceScore() {
   const s = state.answers.security;
-  const filled = [s.classification, s.auth, s.secrets, s.deploy].filter(Boolean).length + (s.compliance.length > 0 ? 1 : 0);
-  const total = 5;
-  const pct = Math.round(filled / total * 100);
-  // Risk assessment
-  let score = pct;
-  let label = 'Answer the questions →';
-  let color = 'var(--border)';
-  if (filled === total) {
-    const classification = DATA_CLASSIFICATIONS.find(c => c.id === s.classification);
-    const usingEnv = s.secrets === 'env';
-    if (classification?.strict && usingEnv) {
-      label = 'BLOCKED — Restricted data cannot use plain .env';
-      color = 'var(--critical)';
-      score = 30;
-    } else if (s.auth === 'none' && classification?.id !== 'public') {
-      label = 'WARNING — No auth with non-public data';
-      color = 'var(--warn)';
-      score = 60;
-    } else {
-      label = 'Aligned with CW policies';
-      color = 'var(--pass)';
-      score = 100;
-    }
+  const classification = DATA_CLASSIFICATIONS.find(c => c.id === s.classification);
+  const envWithStrict = classification?.strict && s.secrets === 'env';
+  const authlessNonPublic = s.auth === 'none' && classification && classification.id !== 'public';
+
+  const segments = [
+    { key: 'Classification', filled: !!s.classification, fail: false },
+    { key: 'Auth', filled: !!s.auth, fail: authlessNonPublic },
+    { key: 'Secrets', filled: !!s.secrets, fail: envWithStrict },
+    { key: 'Deploy', filled: !!s.deploy, fail: false },
+    { key: 'Compliance', filled: s.compliance.length > 0, fail: false },
+  ];
+  const filledCount = segments.filter(x => x.filled).length;
+
+  const host = document.getElementById('compliance-segments');
+  host.innerHTML = segments.map(seg => {
+    const cls = seg.fail ? 'critical' : seg.filled ? 'pass' : '';
+    return `<div class="compliance-seg ${cls}">${seg.key}</div>`;
+  }).join('');
+
+  let label, color;
+  if (filledCount < segments.length) {
+    label = 'Answer the questions →';
+    color = 'var(--text-secondary)';
+  } else if (envWithStrict) {
+    label = 'Blocked — Restricted data cannot use plain .env';
+    color = 'var(--critical)';
+  } else if (authlessNonPublic) {
+    label = 'Warning — no auth on non-public data';
+    color = 'var(--warn)';
+  } else {
+    label = 'Aligned with CW policies';
+    color = 'var(--pass)';
   }
-  const ring = document.getElementById('compliance-ring');
-  ring.style.background = `conic-gradient(${color} ${score * 3.6}deg, var(--border) 0deg)`;
-  document.getElementById('compliance-pct').textContent = `${score}%`;
-  document.getElementById('compliance-label').textContent = label;
-  document.getElementById('compliance-label').style.color = color;
-  document.getElementById('compliance-detail').textContent = `${filled} of ${total} sections answered`;
+  const labelEl = document.getElementById('compliance-label');
+  labelEl.textContent = label;
+  labelEl.style.color = color;
+  document.getElementById('compliance-detail').textContent = `${filledCount} of ${segments.length} answered`;
 }
 
 // ============================================================
