@@ -2,12 +2,18 @@
 // Imports stacks.js for metadata, generator.js for zip output.
 
 import {
-  LANGUAGES, ARCHETYPES, CODE_STYLES, SCALE_TIERS, TRAFFIC_PATTERNS,
+  LANGUAGES, ARCHETYPES, CODE_STYLES, CODE_STYLE_SUBSTYLES, SCALE_TIERS, TRAFFIC_PATTERNS,
   DATABASES, INTEGRATION_SHAPES, API_SHAPES, QUEUE_SYSTEMS,
   DATA_CLASSIFICATIONS, AUTH_METHODS, SECRET_SYSTEMS,
-  COMPLIANCE_FRAMEWORKS, DEPLOY_TARGETS, THEMES,
+  COMPLIANCE_FRAMEWORKS, DEPLOY_TARGETS, THEMES, FAMILIES, FAMILY_LANGS,
+  FONT_PAIRS, WHY_TEXT,
   resolveAnswers,
 } from './stacks.js';
+import {
+  scaleOutcome, dbPipeline, apiSurfaceDiagram, queueDiagram,
+  securityChain, folderTreeGlow, flowchart, dependencyGraph,
+  extractDirectoryPaths,
+} from './visuals.js';
 import { generateScaffold } from './generator.js';
 
 const TOTAL_STEPS = 8;
@@ -26,15 +32,24 @@ const state = {
   currentStep: 1,
   answers: {
     project: { name: '', description: '', remote: '', launch: '' },
-    stack: { language: null, archetype: null, style: 'modules' },
+    stack: { family: null, language: null, archetype: null, style: 'modules', substyle: null },
     scale: { users: 'tier-2', pattern: 'steady', geo: 'single', volume: 'small' },
     database: { choice: null, migrations: null },
-    integration: { shape: 'monolith', api: 'rest', externalApis: [], queue: 'none' },
+    integration: {
+      shape: 'monolith', api: 'rest', externalApis: [], queue: 'none',
+      outboundPipeline: { enabled: false, strictEgress: true },
+    },
     security: { classification: null, auth: null, secrets: null, pii: false, compliance: [], deploy: null },
-    theme: { id: 'cw-light', includeDashboard: true },
-    team: [{ name: '', role: 'dev', email: '', slack: '', owns: '' }],
+    theme: {
+      id: 'cw-light', includeDashboard: true,
+      customAccent: '#5b8def', fontPair: 'inter+jbm', tilt3d: true,
+    },
+    team: [{ name: '', role: 'dev', email: '', slack: '', owns: [] }],
   },
 };
+// Expose for the expansion layer below (custom events could also work,
+// but window access keeps the expansion readable).
+window.CW_WIZARD = { state, resolveAnswers };
 
 // ============================================================
 // Left nav renderer
@@ -854,3 +869,680 @@ renderIntegration();
 renderSecurity();
 renderThemes();
 renderSummary();
+
+// ============================================================
+// EXPANSION LAYER — adds families, substyles, why-expanders,
+// live visuals, outbound pipeline, role/owns pickers, folder
+// tree glow, flowchart + dep graph, and custom theme card.
+// Kept additive so if any of it fails the base wizard still works.
+// ============================================================
+try { bootExpansion(); } catch (err) { console.error('[wizard-expansion] boot failed', err); }
+
+function bootExpansion() {
+  injectExpansionCss();
+  mountFamilyStep();
+  mountSubstyleSection();
+  mountWhyExpanders();
+  mountStep3Visual();
+  mountStep4Visual();
+  mountStep5Enhancements();
+  mountStep6Visual();
+  mountStep7Enhancements();
+  mountStep8Enhancements();
+  wireSummaryRepaint();
+}
+
+function injectExpansionCss() {
+  const css = `
+    .why-chip { display:inline-flex; align-items:center; gap:4px; margin-left:8px; padding:2px 8px; border-radius:999px; background:var(--bg-sunken); color:var(--text-tertiary); font-size:11px; font-weight:600; cursor:pointer; border:1px solid var(--border); transition: all var(--duration) var(--ease-out); }
+    .why-chip:hover, .why-chip[aria-expanded="true"] { background:var(--accent-bg); color:var(--accent); border-color:var(--accent); }
+    .why-chip::before { content:'?'; display:inline-flex; align-items:center; justify-content:center; width:12px; height:12px; border-radius:50%; background:currentColor; color:var(--bg-elevated); font-size:9px; font-weight:800; }
+    .why-body { margin:8px 0 14px; padding:12px 14px; border-left:3px solid var(--accent); background:var(--accent-bg); border-radius:0 8px 8px 0; font-size:13px; line-height:1.55; color:var(--text-secondary); display:none; }
+    .why-body.visible { display:block; animation: fadeIn var(--duration) var(--ease-out); }
+    .why-body strong { color:var(--text-primary); display:block; margin-bottom:4px; font-size:13.5px; }
+    .why-body ul { margin:0; padding-left:18px; }
+    .why-body li { margin:3px 0; }
+
+    .family-grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); margin-bottom:28px; }
+    .family-card { background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px; padding:14px 16px; cursor:pointer; transition:all var(--duration) var(--ease-out); text-align:left; }
+    .family-card:hover { border-color:var(--text-tertiary); transform:translateY(-1px); }
+    .family-card.selected { border-color:var(--accent); background:var(--accent-bg); box-shadow:0 0 0 3px oklch(55% 0.14 290 / 0.1); }
+    .family-card .ico { font-size:22px; margin-bottom:6px; }
+    .family-card .lbl { font-weight:700; font-size:14px; margin-bottom:2px; }
+    .family-card .sub { font-size:12px; color:var(--text-secondary); line-height:1.4; }
+    .family-card .star { position:absolute; top:8px; right:10px; font-size:10px; color:var(--accent); font-weight:700; }
+    .family-card { position:relative; }
+
+    .cw-rec-badge { display:inline-block; padding:2px 6px; border-radius:4px; background:linear-gradient(135deg,#5b8def,#22d3ee); color:white; font-size:9px; font-weight:700; letter-spacing:0.05em; margin-left:6px; vertical-align:middle; }
+
+    .substyle-section { margin-top:24px; padding-top:20px; border-top:1px dashed var(--border); }
+    .substyle-grid { display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); margin-top:10px; }
+    .substyle-card { background:var(--bg-elevated); border:1px solid var(--border); border-radius:10px; padding:12px 14px; cursor:pointer; text-align:left; transition:all var(--duration) var(--ease-out); }
+    .substyle-card:hover { border-color:var(--text-tertiary); }
+    .substyle-card.selected { border-color:var(--accent); background:var(--accent-bg); box-shadow:0 0 0 3px oklch(55% 0.14 290 / 0.1); }
+    .substyle-card .lbl { font-weight:700; font-size:13px; }
+    .substyle-card .blurb { font-size:11.5px; color:var(--text-secondary); margin-top:3px; line-height:1.45; }
+
+    .visual-panel { margin-top:20px; padding:16px 20px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:12px; }
+    .visual-panel h4 { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-tertiary); margin-bottom:10px; font-weight:600; font-family:'DM Sans'; }
+    .visual-panel svg { display:block; }
+
+    .outbound-box { margin-top:18px; padding:14px 16px; border-radius:10px; border:1px dashed var(--border); background:var(--bg-sunken); }
+    .outbound-box .row { display:flex; align-items:flex-start; gap:10px; }
+    .outbound-box .expl { display:none; margin-top:10px; padding:10px 12px; background:var(--bg-elevated); border-radius:8px; font-size:12.5px; line-height:1.55; color:var(--text-secondary); border-left:3px solid var(--accent); }
+    .outbound-box.enabled .expl { display:block; }
+    .outbound-box .sub-toggle { display:none; margin-top:8px; }
+    .outbound-box.enabled .sub-toggle { display:flex; align-items:center; gap:8px; }
+
+    .theme-customize { display:none; margin-top:12px; padding:14px 16px; background:var(--bg-sunken); border-radius:10px; }
+    .theme-customize.visible { display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
+    .theme-customize label { font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-tertiary); font-weight:600; display:block; margin-bottom:4px; }
+    .theme-customize input[type="color"] { width:100%; height:36px; border:1px solid var(--border); border-radius:6px; background:transparent; cursor:pointer; padding:2px; }
+    .theme-customize select { width:100%; padding:7px 10px; border:1px solid var(--border); border-radius:6px; background:var(--bg-elevated); font-size:13px; }
+
+    .theme-preview-row.tilt-3d { perspective:900px; }
+    .theme-preview-row.tilt-3d .theme-preview-render { transition: transform 420ms var(--ease-out); transform-style: preserve-3d; }
+    .theme-preview-row.tilt-3d:hover .theme-preview-render { transform: rotateX(6deg) rotateY(-10deg) translateZ(12px); box-shadow: -18px 22px 48px oklch(22% 0.02 260 / 0.18); }
+    @media (prefers-reduced-motion: reduce) { .theme-preview-row.tilt-3d:hover .theme-preview-render { transform:none; } }
+
+    .team-table td select { width:100%; padding:6px 8px; border:1px solid var(--border); border-radius:5px; background:var(--bg-elevated); font-size:13px; }
+    .owns-picker { position:relative; }
+    .owns-chips { display:flex; flex-wrap:wrap; gap:4px; padding:6px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:6px; min-height:34px; cursor:pointer; }
+    .owns-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; background:var(--accent-bg); color:var(--accent); border-radius:4px; font-size:11px; font-weight:600; }
+    .owns-chip .x { cursor:pointer; opacity:0.6; }
+    .owns-chip .x:hover { opacity:1; }
+    .owns-chips .ph { color:var(--text-tertiary); font-size:12px; font-style:italic; }
+    .owns-menu { display:none; position:absolute; z-index:10; top:100%; left:0; right:0; max-height:220px; overflow-y:auto; background:var(--bg-elevated); border:1px solid var(--border); border-radius:6px; margin-top:4px; box-shadow:0 8px 24px oklch(22% 0.02 260 / 0.12); }
+    .owns-menu.open { display:block; }
+    .owns-menu .opt { padding:6px 10px; font-size:12px; font-family:'JetBrains Mono',monospace; cursor:pointer; border-bottom:1px solid var(--border-subtle); }
+    .owns-menu .opt:hover { background:var(--bg-sunken); }
+    .owns-menu .opt.checked { background:var(--accent-bg); color:var(--accent); font-weight:600; }
+    .owns-menu .opt.checked::before { content:'✓ '; }
+
+    .report-card { margin-top:18px; padding:18px 22px; background:var(--bg-elevated); border:1px solid var(--border); border-radius:12px; }
+    .report-card h4 { font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-tertiary); margin-bottom:10px; font-weight:600; }
+    .report-card table { width:100%; border-collapse:collapse; font-size:13px; }
+    .report-card td { padding:8px 6px; border-bottom:1px solid var(--border-subtle); }
+    .report-card td:first-child { color:var(--text-secondary); font-weight:500; width:40%; }
+    .report-card td:last-child { font-family:'JetBrains Mono',monospace; color:var(--text-primary); font-size:12px; }
+    @media print {
+      .sidebar-left, .sidebar-right, .step-footer, .why-chip, .build-overlay { display:none !important; }
+      .shell { display:block; } main { max-width:100%; padding:0; }
+      .step:not([data-step="8"]) { display:none !important; }
+      .report-card, .visual-panel { break-inside:avoid; }
+    }
+  `;
+  const style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+}
+
+// ---------------- Family step ----------------
+function mountFamilyStep() {
+  const step2 = document.querySelector('.step[data-step="2"]');
+  if (!step2) return;
+  // Insert family grid right after the lede.
+  const lede = step2.querySelector('.lede');
+  const familySection = document.createElement('div');
+  familySection.id = 'family-section';
+  familySection.style.marginBottom = '28px';
+  familySection.innerHTML = `
+    <h3 style="font-size:20px;margin-bottom:8px;">What kind of project is this?</h3>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px;">This narrows recommendations — you can still pick anything below.</p>
+    <div class="family-grid" id="family-grid"></div>
+  `;
+  lede.insertAdjacentElement('afterend', familySection);
+  renderFamilies();
+}
+
+function renderFamilies() {
+  const host = document.getElementById('family-grid');
+  if (!host) return;
+  host.innerHTML = FAMILIES.map(f => `
+    <button class="family-card ${state.answers.stack.family === f.id ? 'selected' : ''}" data-family="${f.id}">
+      ${f.recommended ? '<span class="star">★ DEFAULT</span>' : ''}
+      <div class="ico">${f.icon}</div>
+      <div class="lbl">${f.label}</div>
+      <div class="sub">${f.blurb}</div>
+    </button>
+  `).join('');
+  host.querySelectorAll('[data-family]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.answers.stack.family = btn.dataset.family;
+      renderFamilies();
+      // Re-render language list with the family's preferred order.
+      reorderLanguagesByFamily();
+    });
+  });
+}
+
+function reorderLanguagesByFamily() {
+  const fam = state.answers.stack.family;
+  if (!fam) { renderLanguages(); return; }
+  const preferred = FAMILY_LANGS[fam] || [];
+  const host = document.getElementById('lang-grid');
+  const order = [...preferred, ...LANGUAGES.map(l => l.id).filter(id => !preferred.includes(id))];
+  const ordered = order.map(id => LANGUAGES.find(l => l.id === id)).filter(Boolean);
+  host.innerHTML = ordered.map(lang => `
+    <button class="card ${state.answers.stack.language === lang.id ? 'selected' : ''}" data-lang="${lang.id}">
+      ${lang.recommended ? '<span class="badge">Recommended</span>' : ''}
+      ${lang.cwRecommended ? '<span class="cw-rec-badge">CW ★</span>' : ''}
+      <div class="icon">${lang.icon}</div>
+      <h3>${lang.name}</h3>
+      <div class="blurb">${lang.blurb}</div>
+    </button>
+  `).join('');
+  host.querySelectorAll('[data-lang]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.answers.stack.language = btn.dataset.lang;
+      state.answers.stack.archetype = null;
+      reorderLanguagesByFamily();
+      renderArchetypesWithCwBadge();
+      document.getElementById('archetype-section').style.display = 'block';
+      document.getElementById('style-section').style.display = 'none';
+      updateStep2NextButton();
+      renderSummary();
+    });
+  });
+}
+
+function renderArchetypesWithCwBadge() {
+  if (!state.answers.stack.language) return;
+  const archs = ARCHETYPES[state.answers.stack.language];
+  const host = document.getElementById('arch-grid');
+  host.innerHTML = archs.map(a => `
+    <button class="card ${state.answers.stack.archetype === a.id ? 'selected' : ''}" data-arch="${a.id}">
+      ${a.cwRecommended ? '<span class="cw-rec-badge" style="position:absolute;top:12px;right:12px;">CW ★</span>' : ''}
+      <h3>${a.name}</h3>
+      <div class="blurb">${a.blurb}</div>
+    </button>
+  `).join('');
+  host.querySelectorAll('[data-arch]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.answers.stack.archetype = btn.dataset.arch;
+      renderArchetypesWithCwBadge();
+      renderArchetypePreview();
+      renderCodeStyles();
+      document.getElementById('style-section').style.display = 'block';
+      updateStep2NextButton();
+      mountSubstyleSection();
+      renderSummary();
+    });
+  });
+  if (state.answers.stack.archetype) renderArchetypePreview();
+}
+
+// ---------------- Substyle picker ----------------
+function mountSubstyleSection() {
+  const styleSection = document.getElementById('style-section');
+  if (!styleSection) return;
+  // Create it if missing.
+  let sub = document.getElementById('substyle-section');
+  if (!sub) {
+    sub = document.createElement('div');
+    sub.id = 'substyle-section';
+    sub.className = 'substyle-section';
+    sub.style.display = 'none';
+    sub.innerHTML = `
+      <h4 style="font-size:14px;font-weight:700;margin-bottom:4px;">Go deeper: pick a pattern</h4>
+      <p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:8px;">Optional. This fine-tunes the folder layout the generator emits.</p>
+      <div class="substyle-grid" id="substyle-grid"></div>
+    `;
+    styleSection.appendChild(sub);
+  }
+  renderSubstyles();
+  // Wire re-render when the parent style changes.
+  document.querySelectorAll('#style-grid [data-style]').forEach(btn => {
+    btn.addEventListener('click', () => { setTimeout(renderSubstyles, 10); });
+  });
+}
+
+function renderSubstyles() {
+  const style = CODE_STYLES.find(s => s.id === state.answers.stack.style);
+  const section = document.getElementById('substyle-section');
+  const grid = document.getElementById('substyle-grid');
+  if (!style || !style.substyles || !grid) { if (section) section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  grid.innerHTML = style.substyles.map(id => {
+    const sub = CODE_STYLE_SUBSTYLES[id];
+    if (!sub) return '';
+    return `
+      <button class="substyle-card ${state.answers.stack.substyle === id ? 'selected' : ''}" data-sub="${id}">
+        <div class="lbl">${sub.name}</div>
+        <div class="blurb">${sub.blurb}</div>
+      </button>
+    `;
+  }).join('');
+  grid.querySelectorAll('[data-sub]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.answers.stack.substyle = btn.dataset.sub === state.answers.stack.substyle ? null : btn.dataset.sub;
+      renderSubstyles();
+      renderSummary();
+    });
+  });
+}
+
+// ---------------- Why expanders ----------------
+function mountWhyExpanders() {
+  for (const [stepId, questions] of Object.entries(WHY_TEXT)) {
+    for (const [qId, info] of Object.entries(questions)) {
+      const label = findQuestionLabel(stepId, qId);
+      if (!label) continue;
+      if (label.querySelector('.why-chip')) continue;
+      const chip = document.createElement('button');
+      chip.className = 'why-chip';
+      chip.type = 'button';
+      chip.setAttribute('aria-expanded', 'false');
+      chip.textContent = 'why';
+      const body = document.createElement('div');
+      body.className = 'why-body';
+      body.innerHTML = `<strong>${info.headline}</strong><ul>${info.bullets.map(b => `<li>${b}</li>`).join('')}</ul>`;
+      chip.addEventListener('click', () => {
+        const open = body.classList.toggle('visible');
+        chip.setAttribute('aria-expanded', String(open));
+      });
+      label.appendChild(chip);
+      label.insertAdjacentElement('afterend', body);
+    }
+  }
+}
+
+function findQuestionLabel(stepId, qId) {
+  const step = document.querySelector(`.step[data-step="${stepId}"]`);
+  if (!step) return null;
+  // Map question ids to the label text they live under.
+  const map = {
+    '2': { family: 'What kind of project is this?', language: 'Pick your stack.', archetype: 'Archetype', style: 'Code style', substyle: 'Go deeper: pick a pattern' },
+    '3': { users: 'Concurrent users', pattern: 'Traffic pattern', geo: 'Geographic reach', volume: 'Data volume' },
+    '4': { choice: 'Pick a database.', migrations: 'Migrations tool' },
+    '5': { shape: 'Deployable shape', api: 'API exposed by this service', queue: 'Queue / event system', outbound: 'Secure outbound API pipeline' },
+    '6': { classification: 'Data classification', auth: 'Auth method', secrets: 'Secret management', pii: 'Handles PII / PHI', compliance: 'Compliance frameworks (multi-select)', deploy: 'Deployment target' },
+    '7': { theme: 'Theme', roster: 'Team roster', owns: 'Owns' },
+  };
+  const needle = map[stepId]?.[qId];
+  if (!needle) return null;
+  const candidates = step.querySelectorAll('label, h3, h4');
+  for (const el of candidates) {
+    if (el.textContent.trim().toLowerCase().startsWith(needle.toLowerCase()) && !el.closest('.why-body')) return el;
+  }
+  return null;
+}
+
+// ---------------- Step 3 visual ----------------
+function mountStep3Visual() {
+  const step3 = document.querySelector('.step[data-step="3"]');
+  const callout = step3?.querySelector('#scale-callout');
+  if (!callout) return;
+  const panel = document.createElement('div');
+  panel.className = 'visual-panel';
+  panel.id = 'scale-visual-panel';
+  panel.innerHTML = `<h4>Outcome preview</h4><div id="scale-visual">${scaleOutcome(state.answers)}</div>`;
+  callout.insertAdjacentElement('afterend', panel);
+}
+
+function repaintScaleVisual() {
+  const host = document.getElementById('scale-visual');
+  if (host) host.innerHTML = scaleOutcome(state.answers);
+}
+
+// ---------------- Step 4 visual ----------------
+function mountStep4Visual() {
+  const step4 = document.querySelector('.step[data-step="4"]');
+  const pipe = step4?.querySelector('#db-pipeline');
+  if (!pipe) return;
+  const panel = document.createElement('div');
+  panel.className = 'visual-panel';
+  panel.id = 'db-visual-panel';
+  panel.innerHTML = `<h4>Data pipeline (visual)</h4><div id="db-visual"></div>`;
+  pipe.insertAdjacentElement('afterend', panel);
+}
+
+function repaintDbVisual() {
+  const host = document.getElementById('db-visual');
+  if (!host) return;
+  const db = DATABASES.find(d => d.id === state.answers.database.choice);
+  host.innerHTML = db ? dbPipeline(state.answers, db) : '<div style="color:var(--text-tertiary);font-size:13px;font-style:italic;">Pick a database to see the pipeline.</div>';
+}
+
+// ---------------- Step 5 enhancements ----------------
+function mountStep5Enhancements() {
+  const step5 = document.querySelector('.step[data-step="5"]');
+  if (!step5) return;
+  // API visual after the api-grid field.
+  const apiField = step5.querySelector('.field:has(#api-grid)') || step5.querySelectorAll('.field')[1];
+  if (apiField) {
+    const panel = document.createElement('div');
+    panel.className = 'visual-panel';
+    panel.id = 'api-visual-panel';
+    panel.innerHTML = `<h4>API surface comparison</h4><div id="api-visual">${apiSurfaceDiagram(state.answers)}</div>`;
+    apiField.insertAdjacentElement('afterend', panel);
+  }
+  // Queue visual after the queue-grid field.
+  const queueField = step5.querySelector('.field:has(#queue-grid)') || step5.querySelectorAll('.field')[3];
+  if (queueField) {
+    const panel = document.createElement('div');
+    panel.className = 'visual-panel';
+    panel.id = 'queue-visual-panel';
+    panel.innerHTML = `<h4>Queue / event system</h4><div id="queue-visual">${queueDiagram(state.answers)}</div>`;
+    queueField.insertAdjacentElement('afterend', panel);
+  }
+  // Outbound pipeline toggle right before the step footer.
+  const footer = step5.querySelector('.step-footer');
+  if (footer) {
+    const box = document.createElement('div');
+    box.className = 'outbound-box';
+    box.id = 'outbound-box';
+    box.innerHTML = `
+      <label class="toggle" style="margin:0;"><input type="checkbox" id="outbound-enabled"><span class="switch"></span><span><strong>Secure outbound API pipeline</strong> — this service calls external APIs</span></label>
+      <div class="expl">
+        Wires an <code class="mono">egress</code> middleware with TLS enforcement, a timeout budget, and a circuit breaker.
+        Pre-commit blocks raw <code class="mono">fetch</code> / <code class="mono">requests</code> / <code class="mono">http.Client</code> outside that module so a popped dependency can't phone home.
+        Adds <code class="mono">EGRESS_ALLOWLIST</code> to <code class="mono">.env.example</code> and an integration test that fails if an egress call escapes the middleware.
+      </div>
+      <label class="toggle sub-toggle"><input type="checkbox" id="outbound-strict" checked><span class="switch"></span><span>Enforce strict egress — only allowlisted hostnames pass</span></label>
+    `;
+    footer.insertAdjacentElement('beforebegin', box);
+    const enabledInput = box.querySelector('#outbound-enabled');
+    const strictInput = box.querySelector('#outbound-strict');
+    enabledInput.checked = state.answers.integration.outboundPipeline.enabled;
+    strictInput.checked = state.answers.integration.outboundPipeline.strictEgress;
+    if (enabledInput.checked) box.classList.add('enabled');
+    enabledInput.addEventListener('change', () => {
+      state.answers.integration.outboundPipeline.enabled = enabledInput.checked;
+      box.classList.toggle('enabled', enabledInput.checked);
+      renderSummary();
+    });
+    strictInput.addEventListener('change', () => {
+      state.answers.integration.outboundPipeline.strictEgress = strictInput.checked;
+    });
+  }
+}
+
+function repaintApiVisual() { const h = document.getElementById('api-visual'); if (h) h.innerHTML = apiSurfaceDiagram(state.answers); }
+function repaintQueueVisual() { const h = document.getElementById('queue-visual'); if (h) h.innerHTML = queueDiagram(state.answers); }
+
+// ---------------- Step 6 visual ----------------
+function mountStep6Visual() {
+  const step6 = document.querySelector('.step[data-step="6"]');
+  const footer = step6?.querySelector('.step-footer');
+  if (!footer) return;
+  const panel = document.createElement('div');
+  panel.className = 'visual-panel';
+  panel.id = 'security-visual-panel';
+  panel.innerHTML = `<h4>Security chain — request flow</h4><div id="security-visual">${securityChain(state.answers)}</div>`;
+  footer.insertAdjacentElement('beforebegin', panel);
+}
+
+function repaintSecurityVisual() {
+  const h = document.getElementById('security-visual');
+  if (h) h.innerHTML = securityChain(state.answers);
+}
+
+// ---------------- Step 7 enhancements ----------------
+function mountStep7Enhancements() {
+  // Custom theme card's customize block.
+  const customizeBlock = document.createElement('div');
+  customizeBlock.className = 'theme-customize';
+  customizeBlock.id = 'theme-customize';
+  customizeBlock.innerHTML = `
+    <div><label>Accent color</label><input type="color" id="custom-accent" value="${state.answers.theme.customAccent}"></div>
+    <div><label>Font pair</label><select id="custom-fonts">${FONT_PAIRS.map(f => `<option value="${f.id}">${f.label}</option>`).join('')}</select></div>
+    <div><label><input type="checkbox" id="custom-tilt" ${state.answers.theme.tilt3d ? 'checked' : ''}> 3D tilt preview on hover</label></div>
+    <div style="grid-column: 1 / -1; padding-top:6px; font-size:12px; color:var(--text-tertiary);">These ride into <code class="mono">project-dashboard.html</code> as CSS vars — picking here is picking there.</div>
+  `;
+  const themeGrid = document.getElementById('theme-grid');
+  themeGrid.insertAdjacentElement('afterend', customizeBlock);
+  const showCustomize = () => {
+    const isCustom = state.answers.theme.id === 'custom';
+    customizeBlock.classList.toggle('visible', isCustom);
+    document.documentElement.style.setProperty('--accent', isCustom ? state.answers.theme.customAccent : '');
+    // 3D tilt class
+    document.querySelectorAll('.theme-preview-row').forEach(el => {
+      el.classList.toggle('tilt-3d', state.answers.theme.tilt3d);
+    });
+  };
+  showCustomize();
+  themeGrid.addEventListener('click', () => setTimeout(showCustomize, 10));
+  customizeBlock.querySelector('#custom-accent').addEventListener('input', (e) => {
+    state.answers.theme.customAccent = e.target.value;
+    document.documentElement.style.setProperty('--accent', e.target.value);
+    renderSummary();
+  });
+  customizeBlock.querySelector('#custom-fonts').addEventListener('change', (e) => {
+    state.answers.theme.fontPair = e.target.value;
+  });
+  customizeBlock.querySelector('#custom-tilt').addEventListener('change', (e) => {
+    state.answers.theme.tilt3d = e.target.checked;
+    showCustomize();
+  });
+  // Upgrade team rendering to a role select + owns multi-select.
+  upgradeTeamTable();
+  // Add folder-tree-glow preview.
+  addFolderTreePreview();
+}
+
+function upgradeTeamTable() {
+  const origRender = renderTeam;
+  // Replace the onclick renderer by patching the function indirectly.
+  window.renderTeamV2 = function() {
+    const host = document.getElementById('team-rows');
+    if (state.answers.team.length === 0) state.answers.team.push({ name: '', role: 'dev', email: '', slack: '', owns: [] });
+    // Normalize legacy string owns to arrays.
+    state.answers.team.forEach(m => { if (typeof m.owns === 'string') m.owns = m.owns ? m.owns.split(',').map(s => s.trim()).filter(Boolean) : []; });
+    const roleOpts = ['dev', 'reviewer', 'approver', 'secops', 'eng-mgr', 'external'];
+    host.innerHTML = state.answers.team.map((m, i) => `
+      <tr data-idx="${i}">
+        <td><input data-f="name" value="${escapeHtml(m.name || '')}" placeholder="Romeo Patino"></td>
+        <td><select data-f="role">${roleOpts.map(r => `<option value="${r}" ${m.role === r ? 'selected' : ''}>${r}</option>`).join('')}</select></td>
+        <td><input data-f="email" value="${escapeHtml(m.email || '')}" placeholder="rpatino@coreweave.com"></td>
+        <td><input data-f="slack" value="${escapeHtml(m.slack || '')}" placeholder="@rpatino"></td>
+        <td class="owns-picker-cell"></td>
+        <td><button class="remove-row" data-remove="${i}">×</button></td>
+      </tr>
+    `).join('');
+    host.querySelectorAll('tr').forEach((tr, i) => {
+      tr.querySelectorAll('input,select').forEach(inp => {
+        inp.addEventListener('input', () => {
+          state.answers.team[i][inp.dataset.f] = inp.value.trim();
+          renderSummary();
+          repaintFolderTree();
+        });
+        inp.addEventListener('change', () => {
+          state.answers.team[i][inp.dataset.f] = inp.value.trim();
+          renderSummary();
+          repaintFolderTree();
+        });
+      });
+      tr.querySelector('[data-remove]').addEventListener('click', () => {
+        state.answers.team.splice(i, 1);
+        window.renderTeamV2();
+        renderSummary();
+        repaintFolderTree();
+      });
+      mountOwnsPicker(tr.querySelector('.owns-picker-cell'), i);
+    });
+  };
+  window.renderTeamV2();
+  const addBtn = document.getElementById('add-teammate');
+  addBtn.onclick = () => {
+    state.answers.team.push({ name: '', role: 'dev', email: '', slack: '', owns: [] });
+    window.renderTeamV2();
+  };
+}
+
+function mountOwnsPicker(cell, memberIdx) {
+  if (!cell) return;
+  const member = state.answers.team[memberIdx];
+  const archTree = currentArchTree();
+  const dirs = extractDirectoryPaths(archTree).map(d => d.replace(/\/$/, ''));
+  const render = () => {
+    const chips = (member.owns || []).map((o, i) => `<span class="owns-chip">${escapeHtml(o)}<span class="x" data-off="${i}">×</span></span>`).join('');
+    const ph = chips ? '' : '<span class="ph">click to assign folders</span>';
+    const menu = dirs.map(d => `<div class="opt ${member.owns.includes(d) ? 'checked' : ''}" data-dir="${escapeHtml(d)}">${escapeHtml(d)}</div>`).join('');
+    cell.innerHTML = `
+      <div class="owns-picker">
+        <div class="owns-chips">${chips}${ph}</div>
+        <div class="owns-menu">${menu}</div>
+      </div>
+    `;
+    const wrap = cell.querySelector('.owns-picker');
+    const chipsBox = cell.querySelector('.owns-chips');
+    const menuBox = cell.querySelector('.owns-menu');
+    chipsBox.addEventListener('click', (e) => {
+      if (e.target.classList.contains('x')) {
+        const idx = parseInt(e.target.dataset.off);
+        member.owns.splice(idx, 1);
+        render();
+        repaintFolderTree();
+        renderSummary();
+        return;
+      }
+      menuBox.classList.toggle('open');
+    });
+    menuBox.addEventListener('click', (e) => {
+      const opt = e.target.closest('.opt');
+      if (!opt) return;
+      const dir = opt.dataset.dir;
+      const idx = member.owns.indexOf(dir);
+      if (idx >= 0) member.owns.splice(idx, 1); else member.owns.push(dir);
+      render();
+      repaintFolderTree();
+      renderSummary();
+    });
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) menuBox.classList.remove('open');
+    });
+  };
+  render();
+}
+
+function currentArchTree() {
+  const lang = state.answers.stack.language;
+  if (!lang) return null;
+  const arch = ARCHETYPES[lang]?.find(a => a.id === state.answers.stack.archetype);
+  return arch?.tree || null;
+}
+
+function addFolderTreePreview() {
+  const step7 = document.querySelector('.step[data-step="7"]');
+  const footer = step7?.querySelector('.step-footer');
+  if (!footer) return;
+  const panel = document.createElement('div');
+  panel.className = 'visual-panel';
+  panel.id = 'folder-preview-panel';
+  panel.innerHTML = `<h4>Ownership preview — directories glow with the owner's accent</h4><div id="folder-preview"></div>`;
+  footer.insertAdjacentElement('beforebegin', panel);
+  repaintFolderTree();
+}
+
+function repaintFolderTree() {
+  const host = document.getElementById('folder-preview');
+  if (!host) return;
+  const tree = currentArchTree();
+  const accents = ['#5b8def', '#ef4444', '#22d3ee', '#f59e0b', '#8b5cf6', '#10b981'];
+  const ownership = new Map();
+  state.answers.team.forEach((m, i) => {
+    if (!m.name || !m.owns) return;
+    const accent = accents[i % accents.length];
+    (Array.isArray(m.owns) ? m.owns : []).forEach(dir => {
+      ownership.set(dir.replace(/\/$/, ''), { name: m.name, accent });
+    });
+  });
+  host.innerHTML = folderTreeGlow(tree, ownership);
+}
+
+// ---------------- Step 8 enhancements ----------------
+function mountStep8Enhancements() {
+  const step8 = document.querySelector('.step[data-step="8"]');
+  const summaryHost = step8?.querySelector('#final-summary-host');
+  if (!summaryHost) return;
+  // Visual panels above the summary table, only populated on step-8 entry.
+  const visPanel = document.createElement('div');
+  visPanel.id = 'final-visuals';
+  visPanel.innerHTML = `
+    <div class="visual-panel"><h4>Request lifecycle</h4><div id="final-flowchart"></div></div>
+    <div class="visual-panel"><h4>Module dependency graph</h4><div id="final-depgraph"></div></div>
+    <div class="report-card" id="final-report-card"><h4>Every answer → what it ships</h4><div id="final-report-body"></div></div>
+  `;
+  summaryHost.insertAdjacentElement('beforebegin', visPanel);
+  // Print-to-PDF button next to the existing generate button.
+  const genBtn = document.getElementById('generate-btn');
+  if (genBtn && !document.getElementById('print-pdf')) {
+    const print = document.createElement('button');
+    print.id = 'print-pdf';
+    print.className = 'btn-secondary';
+    print.textContent = 'Print / save as PDF';
+    print.onclick = () => window.print();
+    genBtn.insertAdjacentElement('beforebegin', print);
+  }
+}
+
+function repaintStep8Visuals() {
+  const resolved = resolveAnswers(state.answers);
+  const fc = document.getElementById('final-flowchart');
+  const dg = document.getElementById('final-depgraph');
+  const rc = document.getElementById('final-report-body');
+  if (fc) fc.innerHTML = flowchart(state.answers, resolved);
+  if (dg) dg.innerHTML = dependencyGraph(state.answers, resolved);
+  if (rc) rc.innerHTML = reportCardRows(state.answers, resolved);
+}
+
+function reportCardRows(a, r) {
+  const rows = [
+    ['Language', `${r.lang?.name || '—'} → ${r.lang?.rootDir || ''}`],
+    ['Archetype', `${r.arch?.name || '—'} → folder tree + entry point`],
+    ['Code style', a.stack.substyle ? `${r.style?.name} · ${CODE_STYLE_SUBSTYLES[a.stack.substyle]?.name}` : (r.style?.name || '—')],
+    ['Scale tier', `${r.tier?.label || '—'} → pod min/max + CI budget gates`],
+    ['Database', `${r.db?.name || '—'} → ${a.database.migrations ? 'migrations: ' + a.database.migrations : 'no migrations'}`],
+    ['API', `${r.api?.label || '—'} → routes/ file shape + content-type guard`],
+    ['Queue', r.queue?.id === 'none' ? 'None (synchronous)' : `${r.queue?.label} → worker entry + idempotency rule`],
+    ['Outbound pipeline', a.integration.outboundPipeline.enabled ? `middleware/egress.* emitted · strict=${a.integration.outboundPipeline.strictEgress}` : 'not configured'],
+    ['Classification', `${r.cls?.label || '—'} → ${r.cls?.strict ? 'strict guards on' : 'standard guards'}`],
+    ['Auth', `${r.auth?.label || '—'} → middleware auto-wired`],
+    ['Secrets', `${r.secrets?.label || '—'} → ${r.secrets?.id === 'doppler' ? 'doppler.yaml + ESO manifest' : '.env.example only'}`],
+    ['PII / PHI', a.security.pii ? 'scanner + redactor + DSR hooks' : 'off'],
+    ['Compliance', a.security.compliance.length ? a.security.compliance.join(' · ') : 'none'],
+    ['Deploy', `${r.deploy?.label || '—'}`],
+    ['Theme', `${r.theme?.label || '—'}${a.theme.id === 'custom' ? ` · accent ${a.theme.customAccent}` : ''}`],
+    ['Team', r.teammates.length ? `${r.teammates.length} member(s) → rooms.json` : 'solo — rooms.json skipped'],
+  ];
+  return `<table>${rows.map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`).join('')}</table>`;
+}
+
+// ---------------- Cross-cutting repaint hooks ----------------
+function wireSummaryRepaint() {
+  const orig = renderSummary;
+  window.renderSummaryV2 = () => {
+    orig();
+    repaintScaleVisual();
+    repaintDbVisual();
+    repaintApiVisual();
+    repaintQueueVisual();
+    repaintSecurityVisual();
+    repaintFolderTree();
+  };
+  // Monkey-patch only by installing an observer — renderSummary is called by
+  // every state-mutating handler, so we listen for DOM mutations on the summary
+  // host and repaint visuals after each.
+  const host = document.getElementById('summary-host');
+  if (!host) return;
+  const obs = new MutationObserver(() => {
+    repaintScaleVisual();
+    repaintDbVisual();
+    repaintApiVisual();
+    repaintQueueVisual();
+    repaintSecurityVisual();
+    repaintFolderTree();
+  });
+  obs.observe(host, { childList: true, subtree: true });
+}
+
+// Hook into step navigation: repaint step-8 visuals when entering step 8.
+const origGoToStep = goToStep;
+window.addEventListener('cw-wizard-step', () => {});  // placeholder
+// Shadow the original navigation by observing the DOM attribute change on the step 8 panel.
+const step8Observer = new MutationObserver(() => {
+  if (document.querySelector('.step[data-step="8"].active')) repaintStep8Visuals();
+});
+const step8 = document.querySelector('.step[data-step="8"]');
+if (step8) step8Observer.observe(step8, { attributes: true, attributeFilter: ['class'] });

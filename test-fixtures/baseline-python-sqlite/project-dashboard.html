@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>test — Project Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #ffffff; --text: #111111; --accent: #111111; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:48px;line-height:1.5}
+h1{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;letter-spacing:-0.02em;margin-bottom:8px}
+h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin:32px 0 16px}
+.lede{opacity:0.7;margin-bottom:32px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.1);border-radius:12px;padding:20px}
+.card h3{font-size:11px;text-transform:uppercase;letter-spacing:0.08em;opacity:0.6;margin-bottom:8px}
+.card .v{font-size:18px;font-weight:600}
+.card .sub{font-size:13px;opacity:0.6;margin-top:4px}
+.pill{display:inline-block;background:var(--accent);color:white;padding:3px 10px;border-radius:10px;font-size:11px;margin-right:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px;text-align:left;border-bottom:1px solid rgba(0,0,0,0.1)}
+th{font-size:11px;text-transform:uppercase;letter-spacing:0.05em;opacity:0.6}
+.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+.links a{color:var(--accent);text-decoration:none;font-weight:500;font-size:14px;padding:6px 12px;border:1px solid var(--accent);border-radius:6px}
+.links a:hover{background:var(--accent);color:white}
+</style></head><body>
+<h1>test</h1>
+<p class="lede">test · Generated 2026-04-17</p>
+
+<h2>Stack</h2>
+<div class="grid">
+  <div class="card"><h3>Language</h3><div class="v">Python / FastAPI</div><div class="sub">API + Background Workers</div></div>
+  <div class="card"><h3>Database</h3><div class="v">SQLite</div><div class="sub">alembic</div></div>
+  <div class="card"><h3>Auth</h3><div class="v">Okta OIDC (web users)</div></div>
+  <div class="card"><h3>Secrets</h3><div class="v">Doppler + External Secrets Operator</div></div>
+  <div class="card"><h3>Deploy</h3><div class="v">core-internal cluster</div></div>
+  <div class="card"><h3>Classification</h3><div class="v">Highly Restricted</div><div class="sub">⚠️ strict mode</div></div>
+</div>
+
+<h2>Team</h2>
+<p style="opacity:0.6">Solo project.</p>
+
+<h2>Next actions</h2>
+<ul style="margin-left:20px;opacity:0.85">
+  <li>Run <code>./setup.sh</code> to initialize the environment</li>
+  <li>Review <code>SECURITY-REPORT.md</code> — every wizard decision is documented</li>
+  <li>Run <code>make doctor</code> to verify the scaffold</li>
+  <li>Run <code>make check</code> before every commit</li>
+</ul>
+
+<h2>Quick links</h2>
+<div class="links">
+  <a href="./README.md">README</a>
+  <a href="./CLAUDE.md">CLAUDE.md</a>
+  <a href="./SECURITY-REPORT.md">Security Report</a>
+  <a href="./security-dashboard.html">Security Pipeline</a>
+  
+  <a href="https://coreweave.atlassian.net/wiki/spaces/SECURITY/pages/262505218">CW Security Hub</a>
+</div>
+</body></html>
