@@ -1148,6 +1148,31 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
   word-break: break-all;
 }
 
+/* Guide — Wizard-first callout */
+.wizard-callout {
+  background: linear-gradient(135deg, var(--amber-soft) 0%, var(--bg-alt) 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 32px;
+  align-items: center;
+}
+@media (max-width: 720px) { .wizard-callout { grid-template-columns: 1fr; } }
+.wizard-callout .wc-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber-deep); font-weight: 600; margin-bottom: 8px; }
+.wizard-callout h4 { font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 600; margin-bottom: 8px; line-height: 1.2; }
+.wizard-callout p { font-size: 14px; color: var(--text-mid); line-height: 1.55; max-width: 520px; }
+.wizard-callout .wc-cmds { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: var(--bg-code); color: var(--term-text); padding: 16px 20px; border-radius: 8px; line-height: 1.85; white-space: pre; overflow-x: auto; }
+.wizard-callout .wc-cmds .wc-comment { color: var(--term-dim); }
+.wizard-callout .wc-cmds .wc-cmd { color: var(--term-green); }
+.wizard-callout .wc-link { display: inline-block; margin-top: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--amber-deep); text-decoration: none; border-bottom: 1px solid var(--amber-deep); padding-bottom: 1px; }
+.wizard-callout .wc-link:hover { color: var(--accent); border-color: var(--accent); }
+.wizard-with-teammate { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--border); font-size: 13px; color: var(--text-mid); }
+.wizard-with-teammate strong { color: var(--text); font-family: 'Fraunces', serif; font-weight: 600; display: block; margin-bottom: 6px; font-size: 14px; }
+.wizard-with-teammate code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: var(--bg-alt); padding: 2px 6px; border-radius: 4px; }
+
 /* Guide — Prereqs */
 .guide-prereq {
   background: var(--bg-alt);
@@ -2343,6 +2368,41 @@ nav .logo { color: var(--text); font-weight: 700; font-size: 14px; font-family: 
     <h2 class="section-title reveal">Your first secure app<br>in 5 minutes</h2>
     <p class="section-desc reveal" style="font-family:'IBM Plex Mono',monospace;font-size:0.95rem;color:var(--text);letter-spacing:-0.01em;margin-bottom:12px">Clone → pick → secrets → build → check → ship.</p>
     <p class="section-desc reveal">Six commands. Never used Claude Code? Never heard of OWASP? No problem. You'll have a running, secured app before your coffee gets cold.</p>
+
+    <!-- WIZARD-FIRST PATH (recommended) -->
+    <div class="wizard-callout reveal">
+      <div>
+        <div class="wc-tag">Fastest path · New</div>
+        <h4>Run the visual wizard.</h4>
+        <p>Walk 7 questions in your browser — stack, database, security posture, team. The zip that lands in your Downloads has the right guards, CI gates, and CLAUDE.md rules already baked in. No generic template, no "remember to configure X later."</p>
+        <a href="https://github.com/rpatino-cw/cw-secure-template/blob/main/setup.html" class="wc-link">open setup.html →</a>
+        <div class="wizard-with-teammate">
+          <strong>Starting with a teammate?</strong>
+          One of you runs the wizard and adds your teammate in step 7 (Team) — generates <code>rooms.json</code> so the multi-agent guards know who owns which directory. After pushing, grant repo access with <code>gh repo add-collaborator</code>. The wizard does <em>not</em> invite collaborators or send email — do those separately.
+        </div>
+      </div>
+      <div class="wc-cmds"><span class="wc-comment"># 1. Clone once (any tools folder):</span>
+<span class="wc-cmd">git clone https://github.com/\
+  rpatino-cw/cw-secure-template \
+  ~/dev/cw-secure-template</span>
+
+<span class="wc-comment"># 2. Open wizard → download zip:</span>
+<span class="wc-cmd">cd ~/dev/cw-secure-template
+make wizard</span>
+
+<span class="wc-comment"># 3. Extract + bootstrap:</span>
+<span class="wc-cmd">cd ~/dev &amp;&amp; unzip ~/Downloads/\
+  my-app-scaffold.zip
+cd my-app &amp;&amp; ./setup.sh</span>
+
+<span class="wc-comment"># 4. Push to GitHub:</span>
+<span class="wc-cmd">git init &amp;&amp; git add . &amp;&amp; \
+  git commit -m "Initial scaffold"
+gh repo create coreweave/my-app \
+  --private --source=. --push</span></div>
+    </div>
+
+    <p class="section-desc reveal" style="margin-top: 32px; font-size: 0.95rem; color: var(--text-mid);">Prefer the CLI? The 6-step path below still works — same guards, same gates.</p>
 
     <!-- PREREQS -->
     <div class="guide-prereq reveal">
