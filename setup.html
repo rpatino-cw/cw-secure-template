@@ -268,6 +268,117 @@ main {
 .alert.warn { background: var(--warn-bg); color: oklch(40% 0.16 75); border-left: 3px solid var(--warn); }
 .alert.critical { background: var(--critical-bg); color: oklch(40% 0.18 25); border-left: 3px solid var(--critical); }
 .alert.pass { background: var(--pass-bg); color: oklch(40% 0.14 155); border-left: 3px solid var(--pass); }
+
+/* === DB comparison table === */
+.db-table { width: 100%; border-collapse: collapse; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.db-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); font-weight: 600; padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-sunken); }
+.db-table tbody tr { cursor: pointer; transition: background var(--duration) var(--ease-out); border-bottom: 1px solid var(--border-subtle); }
+.db-table tbody tr:last-child { border-bottom: none; }
+.db-table tbody tr:hover { background: var(--bg-sunken); }
+.db-table tbody tr.selected { background: var(--accent-bg); box-shadow: inset 3px 0 0 var(--accent); }
+.db-table td { padding: 14px; font-size: 13px; vertical-align: top; }
+.db-table td.name { font-weight: 700; font-size: 15px; color: var(--text-primary); min-width: 160px; }
+.db-table td.name .tag { display: inline-block; font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 8px; background: var(--pass-bg); color: var(--pass); letter-spacing: 0.06em; margin-left: 6px; vertical-align: middle; }
+.db-table td.name .tag.warn-badge { background: var(--warn-bg); color: var(--warn); }
+.db-table td.name .sub { display: block; font-weight: 400; font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.45; }
+.db-table td.meta { font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); white-space: nowrap; font-size: 12px; }
+.db-table td.policy { color: var(--text-secondary); font-size: 12px; line-height: 1.4; max-width: 220px; }
+.db-table td.policy.blocked { color: var(--critical); font-weight: 500; }
+.setup-tier { font-family: 'DM Sans'; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 999px; display: inline-block; }
+.setup-tier.trivial { background: var(--pass-bg); color: var(--pass); }
+.setup-tier.moderate { background: var(--warn-bg); color: var(--warn); }
+.setup-tier.complex { background: var(--critical-bg); color: var(--critical); }
+
+/* === Classification risk scale === */
+.classification-scale { display: flex; flex-direction: column; gap: 8px; }
+.classification-row { cursor: pointer; padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-elevated); transition: all var(--duration) var(--ease-out); display: grid; grid-template-columns: 16px 1fr auto; gap: 14px; align-items: center; }
+.classification-row:hover { border-color: var(--text-tertiary); }
+.classification-row.selected { box-shadow: 0 0 0 3px oklch(55% 0.14 290 / 0.15); }
+.classification-row .risk-bar { width: 6px; border-radius: 3px; }
+.classification-row[data-risk="1"] { padding: 10px 18px; }
+.classification-row[data-risk="1"] .risk-bar { height: 20px; background: oklch(60% 0.06 155); }
+.classification-row[data-risk="2"] { padding: 13px 18px; }
+.classification-row[data-risk="2"] .risk-bar { height: 26px; background: oklch(55% 0.12 250); }
+.classification-row[data-risk="3"] { padding: 17px 18px; }
+.classification-row[data-risk="3"] .risk-bar { height: 36px; background: var(--warn); }
+.classification-row[data-risk="4"] { padding: 22px 18px; }
+.classification-row[data-risk="4"] .risk-bar { height: 48px; background: var(--critical); }
+.classification-row.selected[data-risk="1"] { border-color: oklch(55% 0.10 155); background: oklch(97% 0.03 155); }
+.classification-row.selected[data-risk="2"] { border-color: oklch(55% 0.12 250); background: var(--info-bg); }
+.classification-row.selected[data-risk="3"] { border-color: var(--warn); background: var(--warn-bg); }
+.classification-row.selected[data-risk="4"] { border-color: var(--critical); background: var(--critical-bg); }
+.classification-row .body h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 2px; letter-spacing: -0.01em; }
+.classification-row[data-risk="3"] .body h4, .classification-row[data-risk="4"] .body h4 { font-size: 17px; }
+.classification-row .body .blurb { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+.classification-row .tag-strict { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+.classification-row[data-risk="3"] .tag-strict, .classification-row[data-risk="4"] .tag-strict { background: var(--critical); color: white; }
+
+/* === Compact choice list (auth, secrets, deploy) — replaces card grids === */
+.choice-list { display: flex; flex-direction: column; gap: 4px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+.choice-row { padding: 12px 14px; border-radius: 7px; cursor: pointer; transition: background var(--duration) var(--ease-out); display: flex; align-items: center; gap: 12px; }
+.choice-row:hover { background: var(--bg-sunken); }
+.choice-row.selected { background: var(--accent-bg); }
+.choice-row .radio-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; transition: all var(--duration) var(--ease-out); }
+.choice-row.selected .radio-dot { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0%, var(--accent) 40%, transparent 45%); }
+.choice-row .body { flex: 1; }
+.choice-row .body .name { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+.choice-row .body .blurb { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.choice-row .meta-tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase; background: var(--pass-bg); color: var(--pass); }
+.choice-row .meta-tag.warn-tag { background: var(--warn-bg); color: var(--warn); }
+
+/* === Theme previews — realistic mini dashboard === */
+.theme-previews { display: flex; flex-direction: column; gap: 12px; }
+.theme-preview-row { display: grid; grid-template-columns: 160px 1fr; gap: 16px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all var(--duration) var(--ease-out); background: var(--bg-elevated); }
+.theme-preview-row:hover { border-color: var(--text-tertiary); }
+.theme-preview-row.selected { box-shadow: 0 0 0 3px oklch(55% 0.14 290 / 0.15); border-color: var(--accent); }
+.theme-preview-meta { padding: 18px; }
+.theme-preview-meta h4 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.theme-preview-meta .tag { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 10px; background: var(--pass-bg); color: var(--pass); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 8px; display: inline-block; }
+.theme-preview-render { padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+.theme-preview-render .mock-h { font-family: 'Syne'; font-size: 16px; font-weight: 700; }
+.theme-preview-render .mock-text { font-size: 11px; opacity: 0.7; }
+.theme-preview-render .mock-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; width: fit-content; }
+.theme-preview-render .mock-bar { height: 4px; border-radius: 2px; width: 60%; }
+
+/* === Right sidebar stack viz === */
+.stack-viz { display: flex; flex-direction: column; gap: 3px; }
+.stack-layer { border-radius: 8px; padding: 12px 14px; background: var(--bg-sunken); border: 1px dashed var(--border); transition: all 400ms var(--ease-out); }
+.stack-layer.filled { background: var(--bg-elevated); border-style: solid; }
+.stack-layer.filled.accent-pass { border-left: 3px solid var(--pass); }
+.stack-layer.filled.accent-warn { border-left: 3px solid var(--warn); }
+.stack-layer.filled.accent-critical { border-left: 3px solid var(--critical); }
+.stack-layer.filled.accent-info { border-left: 3px solid var(--info); }
+.stack-layer .layer-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); font-weight: 600; }
+.stack-layer .layer-value { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-top: 2px; }
+.stack-layer:not(.filled) .layer-value { color: var(--text-tertiary); font-style: italic; font-weight: 400; }
+.stack-layer.strict-banner { background: var(--critical-bg); border: 1px solid var(--critical); }
+.stack-layer.strict-banner .layer-label { color: var(--critical); }
+.stack-layer.strict-banner .layer-value { color: oklch(30% 0.18 25); font-weight: 600; }
+
+/* === Build overlay (generate moment) === */
+.build-overlay { position: fixed; inset: 0; background: oklch(22% 0.02 260 / 0.82); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 100; animation: fadeInOverlay 200ms var(--ease-out); }
+.build-overlay.visible { display: flex; }
+@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+.build-panel { background: oklch(12% 0.02 260); color: oklch(92% 0.01 80); width: min(580px, 92vw); border-radius: 14px; padding: 32px 36px; font-family: 'JetBrains Mono', monospace; box-shadow: 0 20px 60px oklch(12% 0.02 260 / 0.3); }
+.build-panel h3 { font-family: 'Syne'; font-size: 18px; margin-bottom: 20px; color: oklch(85% 0.12 155); font-weight: 700; letter-spacing: -0.01em; }
+.build-log { height: 220px; overflow: hidden; font-size: 12px; line-height: 1.85; }
+.build-log .line { opacity: 0; animation: buildLine 320ms var(--ease-out) forwards; }
+.build-log .line .check { color: oklch(65% 0.16 155); margin-right: 8px; }
+.build-log .line .path { color: oklch(75% 0.02 260); }
+@keyframes buildLine { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: none; } }
+.build-summary { margin-top: 20px; padding-top: 16px; border-top: 1px solid oklch(30% 0.02 260); display: flex; gap: 24px; font-size: 12px; font-family: 'DM Sans', sans-serif; }
+.build-summary .stat .k { color: oklch(55% 0.02 260); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; margin-bottom: 2px; }
+.build-summary .stat .v { color: oklch(85% 0.12 155); font-weight: 700; font-size: 15px; }
+
+/* === Step rhythm — heavier step 6, lighter step 7 === */
+.step[data-step="6"] h2 { font-size: 36px; }
+.step[data-step="6"] .lede { font-size: 18px; max-width: 640px; }
+.step[data-step="6"] > .field { margin-bottom: 28px; }
+.step[data-step="7"] h2 { font-size: 28px; }
+.step[data-step="7"] .lede { font-size: 15px; }
+
+/* === Compact integration (step 5) fields share labels === */
+.step[data-step="5"] .field > label { display: block; margin-bottom: 8px; }
 </style>
 </head>
 <body>
@@ -347,8 +458,20 @@ main {
   <!-- Step 4: Database -->
   <section class="step" data-step="4">
     <h2>Pick a database.</h2>
-    <p class="lede">Postgres is the default for anything with state. Each card shows where CW policy draws the line and what the data pipeline looks like.</p>
-    <div class="card-grid" id="db-grid"></div>
+    <p class="lede">Postgres is the default for anything with state. The table compares what CW policy allows and how each handles scale.</p>
+    <table class="db-table">
+      <thead>
+        <tr>
+          <th>Database</th>
+          <th>ACID</th>
+          <th>Scale</th>
+          <th>Setup</th>
+          <th>Cost</th>
+          <th>CW policy</th>
+        </tr>
+      </thead>
+      <tbody id="db-grid"></tbody>
+    </table>
     <div class="pipeline-viz" id="db-pipeline"></div>
     <div class="field" id="migrations-field" style="display:none; margin-top: 24px;">
       <label>Migrations tool</label>
@@ -385,15 +508,15 @@ main {
       </div>
       <div class="compliance-segments" id="compliance-segments"></div>
     </div>
-    <div class="field"><label>Data classification</label><div class="card-grid" id="sec-classification"></div></div>
-    <div class="field"><label>Auth method</label><div class="card-grid" id="sec-auth"></div></div>
-    <div class="field"><label>Secret management</label><div class="card-grid" id="sec-secrets"></div></div>
+    <div class="field"><label>Data classification</label><div class="classification-scale" id="sec-classification"></div></div>
+    <div class="field"><label>Auth method</label><div class="choice-list" id="sec-auth"></div></div>
+    <div class="field"><label>Secret management</label><div class="choice-list" id="sec-secrets"></div></div>
     <div class="field">
       <label class="toggle"><input type="checkbox" id="sec-pii"><span class="switch"></span><span>Handles PII / PHI</span></label>
       <div class="hint">Turns on PII scanner in CI, adds gitleaks rules, wires encryption middleware stub.</div>
     </div>
     <div class="field"><label>Compliance frameworks (multi-select)</label><div class="radio-row" id="sec-compliance"></div></div>
-    <div class="field"><label>Deployment target</label><div class="card-grid" id="sec-deploy"></div></div>
+    <div class="field"><label>Deployment target</label><div class="choice-list" id="sec-deploy"></div></div>
     <div class="step-footer">
       <button class="btn-secondary" data-back>← Back</button>
       <button class="btn-primary" data-next>Continue →</button>
@@ -404,7 +527,7 @@ main {
   <section class="step" data-step="7">
     <h2>Theme & team.</h2>
     <p class="lede">Pick a theme for the generated dashboard and add your teammates. Roster drives <code class="mono">rooms.json</code> — each person gets a room scoped to their ownership.</p>
-    <div class="field"><label>Theme</label><div class="card-grid" id="theme-grid"></div></div>
+    <div class="field"><label>Theme</label><div class="theme-previews" id="theme-grid"></div></div>
     <div class="field">
       <label class="toggle"><input type="checkbox" id="include-dashboard" checked><span class="switch"></span><span>Include project-dashboard.html in output</span></label>
       <div class="hint">Live view of compliance, team rooms, setup answers — lives at the scaffold root.</div>
@@ -439,12 +562,21 @@ main {
 
 </main>
 
-<!-- Right sidebar: live summary -->
+<!-- Right sidebar: stack viz -->
 <aside class="sidebar-right">
-  <h3>Your choices so far</h3>
-  <div id="summary-host"></div>
+  <h3>Your stack — building</h3>
+  <div class="stack-viz" id="summary-host"></div>
 </aside>
 
+</div>
+
+<!-- Build overlay (generate moment) -->
+<div class="build-overlay" id="build-overlay">
+  <div class="build-panel">
+    <h3 id="build-title">Assembling scaffold…</h3>
+    <div class="build-log" id="build-log"></div>
+    <div class="build-summary" id="build-summary" style="display:none;"></div>
+  </div>
 </div>
 
 <script type="module" src="setup/wizard.js"></script>

@@ -264,28 +264,32 @@ function updateScaleCallout() {
 // ============================================================
 // Step 4 — Databases
 // ============================================================
+const SETUP_TIER = ['', 'trivial', 'trivial', 'moderate', 'complex', 'complex'];
+
 function renderDatabases() {
   const host = document.getElementById('db-grid');
-  host.innerHTML = DATABASES.map(db => `
-    <button class="card db-card ${state.answers.database.choice === db.id ? 'selected' : ''}" data-db="${db.id}">
-      ${db.recommended ? '<span class="badge">Default</span>' : ''}
-      ${db.cwPolicy.includes('NOT approved') || db.cwPolicy.includes('REQUIRES') ? '<span class="badge warn-badge">Review</span>' : ''}
-      <h3>${db.name}</h3>
-      <div class="blurb">${db.whenToPick}</div>
-      <div class="matrix">
-        <div class="k">ACID</div><div class="v">${db.acid}</div>
-        <div class="k">Scale</div><div class="v">${db.scale}</div>
-        <div class="k">Setup</div><div class="v">${'●'.repeat(db.difficulty)}${'○'.repeat(5 - db.difficulty)}</div>
-        <div class="k">Cost</div><div class="v">${db.cost}</div>
-      </div>
-      <div style="margin-top:10px;font-size:11px;color:var(--text-tertiary);"><strong>CW policy:</strong> ${db.cwPolicy}</div>
-      ${db.warning ? `<div class="warn-line">${db.warning}</div>` : ''}
-    </button>
-  `).join('');
-  host.querySelectorAll('[data-db]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.answers.database.choice = btn.dataset.db;
-      const db = DATABASES.find(d => d.id === btn.dataset.db);
+  host.innerHTML = DATABASES.map(db => {
+    const blocked = db.cwPolicy.includes('NOT approved');
+    const review = db.cwPolicy.includes('REQUIRES');
+    return `
+    <tr class="${state.answers.database.choice === db.id ? 'selected' : ''}" data-db="${db.id}">
+      <td class="name">
+        ${db.name}
+        ${db.recommended ? '<span class="tag">Default</span>' : ''}
+        ${review ? '<span class="tag warn-badge">Review</span>' : ''}
+        <span class="sub">${db.whenToPick}</span>
+      </td>
+      <td class="meta">${db.acid}</td>
+      <td class="meta">${db.scale}</td>
+      <td><span class="setup-tier ${SETUP_TIER[db.difficulty] || 'moderate'}">${SETUP_TIER[db.difficulty] || 'moderate'}</span></td>
+      <td class="meta">${db.cost}</td>
+      <td class="policy ${blocked ? 'blocked' : ''}">${db.cwPolicy}${db.warning ? ` <br><em style="opacity:0.8">${db.warning}</em>` : ''}</td>
+    </tr>`;
+  }).join('');
+  host.querySelectorAll('[data-db]').forEach(row => {
+    row.addEventListener('click', () => {
+      state.answers.database.choice = row.dataset.db;
+      const db = DATABASES.find(d => d.id === row.dataset.db);
       const lang = state.answers.stack.language;
       state.answers.database.migrations = db.migrations[lang] || null;
       renderDatabases();
@@ -344,10 +348,10 @@ function renderIntegration() {
 // Step 6 — Security
 // ============================================================
 function renderSecurity() {
-  renderCardChoice('sec-classification', DATA_CLASSIFICATIONS, 'classification', 'security');
-  renderCardChoice('sec-auth', AUTH_METHODS, 'auth', 'security');
-  renderCardChoice('sec-secrets', SECRET_SYSTEMS, 'secrets', 'security');
-  renderCardChoice('sec-deploy', DEPLOY_TARGETS, 'deploy', 'security');
+  renderClassificationScale();
+  renderChoiceList('sec-auth', AUTH_METHODS, 'auth', 'security');
+  renderChoiceList('sec-secrets', SECRET_SYSTEMS, 'secrets', 'security');
+  renderChoiceList('sec-deploy', DEPLOY_TARGETS, 'deploy', 'security');
   renderMultiChips('sec-compliance', COMPLIANCE_FRAMEWORKS, 'compliance', 'security');
   document.getElementById('sec-pii').checked = state.answers.security.pii;
   document.getElementById('sec-pii').onchange = (e) => {
@@ -404,16 +408,28 @@ function updateComplianceScore() {
 // ============================================================
 function renderThemes() {
   const host = document.getElementById('theme-grid');
-  host.innerHTML = THEMES.map(t => `
-    <button class="card ${state.answers.theme.id === t.id ? 'selected' : ''}" data-theme="${t.id}" style="background:${t.bg};color:${t.text};border-color:${state.answers.theme.id === t.id ? t.accent : 'var(--border)'};">
-      ${t.recommended ? '<span class="badge">Default</span>' : ''}
-      <h3 style="color:${t.text};">${t.label}</h3>
-      <div class="blurb" style="color:${t.text};opacity:0.7;">Accent: <span style="color:${t.accent};font-weight:600;">${t.accent}</span></div>
-    </button>
-  `).join('');
-  host.querySelectorAll('[data-theme]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.answers.theme.id = btn.dataset.theme;
+  host.innerHTML = THEMES.map(t => {
+    const isDark = t.id === 'cw-dark';
+    const subText = isDark ? 'oklch(75% 0.02 260)' : 'oklch(45% 0.02 260)';
+    const chipBg = isDark ? 'oklch(18% 0.02 260)' : 'oklch(94% 0.012 80)';
+    return `
+    <div class="theme-preview-row ${state.answers.theme.id === t.id ? 'selected' : ''}" data-theme="${t.id}">
+      <div class="theme-preview-meta">
+        <h4>${t.label}</h4>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:4px">Accent <code style="color:${t.accent}">${t.accent}</code></div>
+        ${t.recommended ? '<span class="tag">Default</span>' : ''}
+      </div>
+      <div class="theme-preview-render" style="background:${t.bg};color:${t.text}">
+        <div class="mock-h" style="color:${t.text}">project-dashboard</div>
+        <div class="mock-text" style="color:${subText}">Internal billing service · Generated 2026-04-17</div>
+        <div class="mock-pill" style="background:${t.accent};color:${isDark ? t.bg : 'white'}">● Aligned</div>
+        <div class="mock-bar" style="background:${chipBg}"></div>
+      </div>
+    </div>`;
+  }).join('');
+  host.querySelectorAll('[data-theme]').forEach(row => {
+    row.addEventListener('click', () => {
+      state.answers.theme.id = row.dataset.theme;
       renderThemes();
       renderSummary();
     });
@@ -480,20 +496,50 @@ function renderRadioChips(hostId, options, key, ns) {
   });
 }
 
-function renderCardChoice(hostId, options, key, ns) {
-  const host = document.getElementById(hostId);
-  host.innerHTML = options.map(o => `
-    <button class="card ${state.answers[ns][key] === o.id ? 'selected' : ''}" data-val="${o.id}">
-      ${o.recommended ? '<span class="badge">Recommended</span>' : ''}
-      ${o.strict ? '<span class="badge warn-badge">Strict</span>' : ''}
-      <h3>${o.label}</h3>
-      <div class="blurb">${o.blurb}</div>
-    </button>
+function renderClassificationScale() {
+  const host = document.getElementById('sec-classification');
+  const selected = state.answers.security.classification;
+  const risks = { public: 1, proprietary: 2, restricted: 3, 'highly-restricted': 4 };
+  host.innerHTML = DATA_CLASSIFICATIONS.map(c => `
+    <div class="classification-row ${selected === c.id ? 'selected' : ''}" data-val="${c.id}" data-risk="${risks[c.id]}">
+      <div class="risk-bar"></div>
+      <div class="body">
+        <h4>${c.label}</h4>
+        <div class="blurb">${c.blurb}</div>
+      </div>
+      ${c.strict ? '<span class="tag-strict">Strict</span>' : ''}
+    </div>
   `).join('');
-  host.querySelectorAll('[data-val]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.answers[ns][key] = btn.dataset.val;
-      renderCardChoice(hostId, options, key, ns);
+  host.querySelectorAll('[data-val]').forEach(row => {
+    row.addEventListener('click', () => {
+      state.answers.security.classification = row.dataset.val;
+      renderClassificationScale();
+      updateComplianceScore();
+      renderSummary();
+    });
+  });
+}
+
+function renderChoiceList(hostId, options, key, ns) {
+  const host = document.getElementById(hostId);
+  host.innerHTML = options.map(o => {
+    const hasRec = o.recommended;
+    const hasStrict = o.strict;
+    return `
+    <div class="choice-row ${state.answers[ns][key] === o.id ? 'selected' : ''}" data-val="${o.id}">
+      <div class="radio-dot"></div>
+      <div class="body">
+        <div class="name">${o.label}</div>
+        <div class="blurb">${o.blurb}</div>
+      </div>
+      ${hasRec ? '<span class="meta-tag">Recommended</span>' : ''}
+      ${hasStrict ? '<span class="meta-tag warn-tag">Strict</span>' : ''}
+    </div>`;
+  }).join('');
+  host.querySelectorAll('[data-val]').forEach(row => {
+    row.addEventListener('click', () => {
+      state.answers[ns][key] = row.dataset.val;
+      renderChoiceList(hostId, options, key, ns);
       if (ns === 'security') updateComplianceScore();
       renderSummary();
     });
@@ -545,12 +591,72 @@ function summaryRows(a) {
 
 function renderSummary() {
   const host = document.getElementById('summary-host');
-  host.innerHTML = summaryRows(state.answers).map(([k, v]) => `
-    <div class="summary-item">
-      <div class="k">${k}</div>
-      <div class="v ${v === '—' ? 'empty' : ''}">${escapeHtml(v)}</div>
+  const a = state.answers;
+  const r = resolveAnswers(a);
+  const teamCount = r.teammates.length;
+
+  const layers = [
+    {
+      label: 'Deployment',
+      value: r.deploy?.label || '—',
+      filled: !!r.deploy,
+      accent: 'info',
+    },
+    {
+      label: 'API surface',
+      value: r.api ? `${r.api.label}${r.queue && r.queue.id !== 'none' ? ' + ' + r.queue.label : ''}` : '—',
+      filled: !!r.api,
+      accent: 'info',
+    },
+    {
+      label: 'Stack',
+      value: r.lang ? `${r.lang.name}${r.arch ? ' · ' + r.arch.name : ''}` : '—',
+      filled: !!r.lang,
+      accent: 'pass',
+    },
+    {
+      label: 'Database',
+      value: r.db?.name || '—',
+      filled: !!r.db && r.db.id !== 'none' ? true : r.db?.id === 'none',
+      accent: 'pass',
+    },
+    {
+      label: 'Auth',
+      value: r.auth?.label || '—',
+      filled: !!r.auth,
+      accent: r.auth?.id === 'none' ? 'warn' : 'pass',
+    },
+    {
+      label: 'Secrets',
+      value: r.secrets?.label || '—',
+      filled: !!r.secrets,
+      accent: r.secrets?.id === 'env' && r.cls?.strict ? 'critical' : 'pass',
+    },
+    {
+      label: 'Classification',
+      value: r.cls?.label || '—',
+      filled: !!r.cls,
+      accent: r.cls?.strict ? 'warn' : 'info',
+    },
+    {
+      label: 'Team',
+      value: teamCount === 0 ? 'Solo' : `${teamCount} member${teamCount === 1 ? '' : 's'}`,
+      filled: teamCount > 0 || !!r.lang,
+      accent: 'info',
+    },
+  ];
+
+  host.innerHTML = layers.map(l => `
+    <div class="stack-layer ${l.filled ? 'filled accent-' + l.accent : ''}">
+      <div class="layer-label">${l.label}</div>
+      <div class="layer-value">${escapeHtml(l.value)}</div>
     </div>
-  `).join('');
+  `).join('') + (r.cls?.strict ? `
+    <div class="stack-layer strict-banner" style="margin-top: 10px;">
+      <div class="layer-label">⚠ Strict mode</div>
+      <div class="layer-value">Guards flipped to strict</div>
+    </div>
+  ` : '');
 }
 
 // ============================================================
@@ -639,17 +745,72 @@ function renderFinalReview() {
 document.getElementById('generate-btn').addEventListener('click', async () => {
   const btn = document.getElementById('generate-btn');
   btn.disabled = true;
-  btn.textContent = 'Building zip…';
   try {
-    await generateScaffold(state.answers);
+    await runGenerateWithOverlay();
     btn.textContent = '✓ Downloaded';
-    setTimeout(() => { btn.textContent = 'Generate scaffold ZIP'; btn.disabled = false; }, 2000);
+    setTimeout(() => { btn.textContent = 'Generate scaffold ZIP'; btn.disabled = false; }, 2200);
   } catch (err) {
     btn.textContent = 'Error — check console';
     btn.style.background = 'var(--critical)';
     console.error(err);
   }
 });
+
+async function runGenerateWithOverlay() {
+  const overlay = document.getElementById('build-overlay');
+  const log = document.getElementById('build-log');
+  const summary = document.getElementById('build-summary');
+  const title = document.getElementById('build-title');
+  overlay.classList.add('visible');
+  log.innerHTML = '';
+  summary.style.display = 'none';
+  summary.innerHTML = '';
+  title.textContent = 'Assembling scaffold…';
+
+  const r = resolveAnswers(state.answers);
+  const strict = r.cls?.strict;
+  const teamCount = r.teammates.length;
+  const steps = [
+    { path: 'README.md · CLAUDE.md · SECURITY-REPORT.md', tag: 'core' },
+    { path: `.claude/settings.local.json · ${strict ? 'strict mode' : 'standard guards'}`, tag: 'guards' },
+    { path: `.env.example · ${r.secrets?.id === 'doppler' ? 'Doppler + ESO' : 'plain .env (local only)'}`, tag: 'secrets' },
+    { path: `${r.lang?.rootDir || 'python/'}src/main · middleware · routes/health`, tag: 'code' },
+    { path: `.pre-commit-config.yaml · .github/workflows/ci.yml`, tag: 'ci' },
+    teamCount > 1 ? { path: `rooms.json · ${teamCount} teammates`, tag: 'rooms' } : null,
+    state.answers.theme.includeDashboard ? { path: `project-dashboard.html`, tag: 'dashboard' } : null,
+  ].filter(Boolean);
+
+  // Stream the log lines
+  for (let i = 0; i < steps.length; i++) {
+    const s = steps[i];
+    const line = document.createElement('div');
+    line.className = 'line';
+    line.style.animationDelay = `${i * 90}ms`;
+    line.innerHTML = `<span class="check">✓</span><span class="path">${escapeHtml(s.path)}</span>`;
+    log.appendChild(line);
+    await new Promise(r => setTimeout(r, 90));
+  }
+
+  // Build the actual zip while the last animation plays
+  await generateScaffold(state.answers);
+
+  // Show summary
+  const fileCount = 28 + (teamCount > 1 ? 1 : 0) + (state.answers.theme.includeDashboard ? 1 : 0) + (r.db?.id !== 'none' ? 4 : 0);
+  const guardCount = strict ? 8 : 6;
+  const nextActions = strict ? 5 : 3;
+  title.textContent = 'Ready.';
+  summary.innerHTML = `
+    <div class="stat"><div class="k">Files</div><div class="v">${fileCount}+</div></div>
+    <div class="stat"><div class="k">Guards on</div><div class="v">${guardCount}</div></div>
+    <div class="stat"><div class="k">Pre-launch actions</div><div class="v">${nextActions}</div></div>
+    <div class="stat"><div class="k">Classification</div><div class="v">${r.cls?.label || '—'}</div></div>
+  `;
+  summary.style.display = 'flex';
+
+  // Let user see the summary briefly before dismissing
+  await new Promise(r => setTimeout(r, 1100));
+  overlay.classList.remove('visible');
+}
 
 document.getElementById('copy-summary').addEventListener('click', async () => {
   const md = summaryAsMarkdown(state.answers);
