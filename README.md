@@ -49,7 +49,7 @@ make wizard                          # visual setup — recommended
 make new BLUEPRINT=api-service       # or chat-assistant, batch-processor, etc. (CLI)
 ```
 
-**New:** [`setup.html`](setup.html) is a visual wizard that asks the right questions upfront (stack, database, security posture, team) and generates a tailored scaffold with the correct guards, CI gates, and CLAUDE.md rules already baked in. No more generic template — the project arrives already locked to your choices. Run `make wizard` to open it.
+**Try the wizard:** [**rpatino-cw.github.io/cw-secure-template/setup.html**](https://rpatino-cw.github.io/cw-secure-template/setup.html) — hosted visual wizard that asks the right questions upfront (stack, database, security posture, team) and generates a tailored scaffold with the correct guards, CI gates, and CLAUDE.md rules already baked in. No clone required. Or run `make wizard` locally after cloning.
 
 ---
 

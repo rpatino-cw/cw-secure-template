@@ -250,6 +250,40 @@ jobs:
           fi
 
   # ──────────────────────────────────────
+  # Wizard-Is-Public — setup.html must live in docs/ so GitHub Pages serves it.
+  # Also blocks test-fixture regressions: fails if root CLAUDE.md or
+  # .pre-commit-config.yaml contain known fixture stubs.
+  # ──────────────────────────────────────
+  wizard-is-public:
+    name: Wizard Is Public + Fixture Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: setup.html must be in docs/, not at root
+        run: |
+          if [ -f setup.html ]; then
+            echo "::error::setup.html exists at repo root. It must live in docs/ so GitHub Pages serves it at /setup.html. Run: git mv setup.html docs/setup.html"
+            exit 1
+          fi
+          if [ ! -f docs/setup.html ]; then
+            echo "::error::docs/setup.html is missing. The setup wizard must be publicly reachable via GitHub Pages."
+            exit 1
+          fi
+          echo "OK: setup wizard published at docs/setup.html"
+      - name: Root CLAUDE.md must not be a test fixture
+        run: |
+          if head -1 CLAUDE.md | grep -qE "^# existing-app\b"; then
+            echo "::error::CLAUDE.md starts with '# existing-app' — test fixture content leaked to repo root. See scripts/integrate/tests/fixtures/01-existing-claude-md.sh"
+            exit 1
+          fi
+      - name: Root .pre-commit-config.yaml must not be a test fixture
+        run: |
+          if grep -q "existinguser/custom-hook" .pre-commit-config.yaml 2>/dev/null; then
+            echo "::error::.pre-commit-config.yaml contains 'existinguser/custom-hook' — test fixture content leaked to repo root. See scripts/integrate/tests/fixtures/02-existing-precommit.sh"
+            exit 1
+          fi
+
+  # ──────────────────────────────────────
   # CodeQL — deep static analysis
   # ──────────────────────────────────────
   codeql:

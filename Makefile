@@ -19,7 +19,7 @@ PY_EXISTS := $(wildcard python/pyproject.toml)
 
 .PHONY: wizard
 wizard: ## Open the visual setup wizard in your browser (recommended starting point)
-	@open setup.html 2>/dev/null || xdg-open setup.html 2>/dev/null || echo "Open setup.html in your browser"
+	@open docs/setup.html 2>/dev/null || xdg-open docs/setup.html 2>/dev/null || echo "Open docs/setup.html in your browser, or use the hosted version: https://rpatino-cw.github.io/cw-secure-template/setup.html"
 
 .PHONY: new
 new: ## Start a new app from a blueprint
