@@ -369,6 +369,19 @@ cwt-upgrade: ## Pull latest CWT framework updates from upstream (alias for `upgr
 cwt-detect: ## Print detected stack (python|go|node|rust|empty) for TARGET (default: .)
 	@bash scripts/detect-framework.sh "$(if $(TARGET),$(TARGET),.)"
 
+.PHONY: cwt-team
+cwt-team: ## Show CWT task DAG (topologically sorted, with status)
+	@python3 -c "import sys; sys.path.insert(0, '.cwt'); \
+		from tasks import summary; s = summary(); \
+		print(); print(f\"  Tasks: {s['total']}  •  done {s['counts'].get('done',0)}  •  in-progress {s['counts'].get('in-progress',0)}  •  todo {s['counts'].get('todo',0)}  •  blocked {s['counts'].get('blocked',0)}\"); print(); \
+		[print(f\"  {t['id']:6s} [{t.get('status','todo'):11s}]  {t.get('title','')[:50]:50s}  @{t.get('owner','-') or '-'}\") for t in s['tasks']]; print()"
+
+.PHONY: cwt-graph
+cwt-graph: ## Regenerate and print the internal import graph summary
+	@python3 -c "import sys; sys.path.insert(0, '.cwt'); \
+		from graph import build_graph; g = build_graph(); \
+		print(); print(f\"  Files: {g['stats']['files']}  •  Internal edges: {g['stats']['internal_edges']}  •  Tooling files: {g['stats']['tooling_files']}\"); print()"
+
 .PHONY: init
 init:
 	@bash scripts/init-project.sh

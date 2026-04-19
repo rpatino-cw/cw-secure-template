@@ -1,0 +1,30 @@
+[
+  {
+    "id": "T-0",
+    "title": "Scaffold project structure",
+    "owner": "go",
+    "status": "done",
+    "depends_on": []
+  },
+  {
+    "id": "T-1",
+    "title": "Implement auth middleware",
+    "owner": "go",
+    "status": "in-progress",
+    "depends_on": ["T-0"]
+  },
+  {
+    "id": "T-2",
+    "title": "Build login UI",
+    "owner": "frontend",
+    "status": "todo",
+    "depends_on": ["T-1"]
+  },
+  {
+    "id": "T-3",
+    "title": "End-to-end auth flow test",
+    "owner": "qa",
+    "status": "todo",
+    "depends_on": ["T-1", "T-2"]
+  }
+]

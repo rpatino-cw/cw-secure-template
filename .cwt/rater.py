@@ -89,12 +89,28 @@ def _applicable(path, rules):
 
 
 def _cited(text, names):
-    # Phase 2.1 TODO: substring match produces false positives — "add user routes"
-    # counts as citing routes.md. Tighten to an anchored form (e.g. "per routes.md"
-    # or "routes.md —") before declaring Phase 2 done, otherwise low-effort
-    # justifications score higher than they should.
+    """Return rule names from `names` that the justification text anchors on.
+
+    Requires one of three forms to count as a citation:
+      - `{name}.md`              (explicit file reference)
+      - `per {name}` or `per {name}.md`
+      - `{name}:` or `{name} —`  (cite-style delimiter)
+
+    This rejects passing mentions ("add user routes" no longer counts as
+    citing routes.md).
+    """
     t = text.lower()
-    return [n for n in names if n.lower() in t]
+    hits = []
+    for n in names:
+        low = n.lower()
+        patterns = [
+            rf"\b{re.escape(low)}\.md\b",
+            rf"\bper\s+{re.escape(low)}\b",
+            rf"\b{re.escape(low)}\s*[:—-]",
+        ]
+        if any(re.search(p, t) for p in patterns):
+            hits.append(n)
+    return hits
 
 
 def score_target(target, rules):

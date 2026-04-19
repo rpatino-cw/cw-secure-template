@@ -85,6 +85,24 @@
   .rule-list { color: var(--dim); font-family: var(--mono); font-size: 10px; }
   .rule-list .cited { color: var(--green); }
   .rule-list .uncited { color: var(--red); }
+  .task-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; font-size: 13px; }
+  .task-id { font-family: var(--mono); color: var(--dim); font-size: 11px; min-width: 50px; }
+  .task-title { flex: 1; }
+  .task-owner { font-family: var(--mono); font-size: 11px; color: var(--amber); }
+  .task-status { font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .task-status.done { background: var(--green-soft); color: var(--green); }
+  .task-status.in-progress { background: var(--amber-soft); color: var(--amber); }
+  .task-status.todo { background: var(--panel-2); color: var(--dim); }
+  .task-status.blocked { background: var(--red-soft); color: var(--red); }
+  .task-deps { font-family: var(--mono); font-size: 10px; color: var(--dim); }
+  .graph-file { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
+  .graph-file-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px; }
+  .graph-file-path { color: var(--fg); }
+  .graph-file-tool { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--panel-2); color: var(--dim); text-transform: uppercase; }
+  .graph-imports { margin: 6px 0 0 0; padding-left: 16px; color: var(--dim); font-family: var(--mono); font-size: 11px; }
+  .graph-imports li { list-style: "→ "; }
+  .panel-stats { display: flex; gap: 18px; margin-bottom: 14px; color: var(--dim); font-size: 12px; }
+  .panel-stats .v { color: var(--fg); font-family: var(--mono); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -106,9 +124,13 @@
   <button class="tab" data-filter="approved">Approved</button>
   <button class="tab" data-filter="rejected">Rejected</button>
   <button class="tab" data-filter="all">All</button>
+  <button class="tab" data-filter="tasks">Tasks</button>
+  <button class="tab" data-filter="graph">Graph</button>
 </div>
 
 <div id="plans"></div>
+<div id="tasks-panel" style="display:none;"></div>
+<div id="graph-panel" style="display:none;"></div>
 
 <div class="manifest-box">
   <h3>Current approved manifest (what the hook enforces)</h3>
@@ -155,17 +177,81 @@ function targetRatingHtml(tr) {
   return `<div class="target-ratings">${scoreBadge}${ruleHtml}</div>`;
 }
 
+let TASKS = null;
+let GRAPH = null;
+
 async function refresh() {
-  const [plansRes, manifestRes] = await Promise.all([
-    fetch("/api/plans").then(r => r.json()),
-    fetch("/api/manifest").then(r => r.json())
+  const [plansRes, manifestRes, tasksRes, graphRes] = await Promise.all([
+    fetch("/api/plans").then(r => r.json()).catch(() => ({plans: []})),
+    fetch("/api/manifest").then(r => r.json()).catch(() => ({})),
+    fetch("/api/tasks").then(r => r.json()).catch(() => null),
+    fetch("/api/graph").then(r => r.json()).catch(() => null),
   ]);
   PLANS = plansRes.plans || [];
+  TASKS = tasksRes;
+  GRAPH = graphRes;
   document.getElementById("ct-pending").textContent = PLANS.filter(p => p._status === "pending").length;
   document.getElementById("ct-approved").textContent = PLANS.filter(p => p._status === "approved").length;
   document.getElementById("ct-rejected").textContent = PLANS.filter(p => p._status === "rejected").length;
   document.getElementById("manifest").textContent = JSON.stringify(manifestRes, null, 2);
   render();
+}
+
+function renderTasks() {
+  const el = document.getElementById("tasks-panel");
+  if (!TASKS || !TASKS.tasks || !TASKS.tasks.length) {
+    el.innerHTML = `<div class="empty">No tasks. Drop a JSON file into <code>.cwt/tasks/</code> to see it here.</div>`;
+    return;
+  }
+  const stats = `<div class="panel-stats">
+    <span>Total: <span class="v">${TASKS.total}</span></span>
+    <span>Done: <span class="v">${TASKS.counts.done || 0}</span></span>
+    <span>In progress: <span class="v">${TASKS.counts["in-progress"] || 0}</span></span>
+    <span>Todo: <span class="v">${TASKS.counts.todo || 0}</span></span>
+    <span>Blocked: <span class="v">${TASKS.counts.blocked || 0}</span></span>
+  </div>`;
+  const rows = TASKS.tasks.map(t => `
+    <div class="task-row">
+      <span class="task-id">${escape(t.id)}</span>
+      <span class="task-title">${escape(t.title || "")}</span>
+      ${t.owner ? `<span class="task-owner">@${escape(t.owner)}</span>` : ""}
+      ${t.depends_on && t.depends_on.length ? `<span class="task-deps">← ${t.depends_on.map(escape).join(", ")}</span>` : ""}
+      <span class="task-status ${escape(t.status || "todo")}">${escape(t.status || "todo")}</span>
+    </div>
+  `).join("");
+  const errs = (TASKS.errors && TASKS.errors.length) ? `<div style="color:var(--red); font-size:12px; margin-top:12px;">Errors: ${TASKS.errors.join("; ")}</div>` : "";
+  el.innerHTML = stats + rows + errs;
+}
+
+function renderGraph() {
+  const el = document.getElementById("graph-panel");
+  if (!GRAPH || !GRAPH.nodes || !GRAPH.nodes.length) {
+    el.innerHTML = `<div class="empty">No graph data. Run <code>make cwt-graph</code> or check .cwt/graph.py.</div>`;
+    return;
+  }
+  const stats = `<div class="panel-stats">
+    <span>Files: <span class="v">${GRAPH.stats.files}</span></span>
+    <span>Internal edges: <span class="v">${GRAPH.stats.internal_edges}</span></span>
+    <span>Tooling files: <span class="v">${GRAPH.stats.tooling_files}</span></span>
+  </div>`;
+  const edgesBySource = {};
+  (GRAPH.edges || []).forEach(e => {
+    (edgesBySource[e.from] = edgesBySource[e.from] || []).push(e.to);
+  });
+  const entries = GRAPH.nodes
+    .filter(n => edgesBySource[n.id])
+    .map(n => `
+      <div class="graph-file">
+        <div class="graph-file-head">
+          <span class="graph-file-path">${escape(n.id)}</span>
+          ${n.tooling ? `<span class="graph-file-tool">tooling</span>` : ""}
+        </div>
+        <ul class="graph-imports">
+          ${edgesBySource[n.id].map(to => `<li>${escape(to)}</li>`).join("")}
+        </ul>
+      </div>
+    `).join("");
+  el.innerHTML = stats + (entries || `<div class="empty">No internal imports detected.</div>`);
 }
 
 function render() {
@@ -215,12 +301,34 @@ async function act(id, action) {
   else alert(`Failed: ${(await res.json()).error || "unknown"}`);
 }
 
+function showPanel(filter) {
+  const plansEl = document.getElementById("plans");
+  const tasksEl = document.getElementById("tasks-panel");
+  const graphEl = document.getElementById("graph-panel");
+  if (filter === "tasks") {
+    plansEl.style.display = "none";
+    tasksEl.style.display = "block";
+    graphEl.style.display = "none";
+    renderTasks();
+  } else if (filter === "graph") {
+    plansEl.style.display = "none";
+    tasksEl.style.display = "none";
+    graphEl.style.display = "block";
+    renderGraph();
+  } else {
+    plansEl.style.display = "block";
+    tasksEl.style.display = "none";
+    graphEl.style.display = "none";
+    render();
+  }
+}
+
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
     t.classList.add("active");
     FILTER = t.dataset.filter;
-    render();
+    showPanel(FILTER);
   });
 });
 
