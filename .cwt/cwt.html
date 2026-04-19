@@ -70,6 +70,21 @@
   .manifest-box h3 { margin: 0 0 8px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 500; }
   .manifest-box pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: var(--fg); }
   .refresh { position: fixed; bottom: 20px; right: 20px; background: var(--amber); color: #000; border: none; padding: 10px 16px; border-radius: 99px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 8px 24px rgba(245, 165, 36, .3); }
+  .head-right { display: flex; gap: 8px; align-items: center; }
+  .score { font-family: var(--mono); font-size: 11px; padding: 3px 10px; border-radius: 99px; font-weight: 700; letter-spacing: .02em; }
+  .score.high { background: var(--green-soft); color: var(--green); }
+  .score.mid { background: var(--amber-soft); color: var(--amber); }
+  .score.low { background: var(--red-soft); color: var(--red); }
+  .score.exempt { background: var(--panel-2); color: var(--dim); border: 1px solid var(--line); font-weight: 500; text-transform: uppercase; font-size: 10px; letter-spacing: .06em; }
+  .target-ratings { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 6px; font-size: 11px; }
+  .target-score { font-family: var(--mono); font-size: 10px; padding: 1px 7px; border-radius: 4px; font-weight: 700; }
+  .target-score.high { background: var(--green-soft); color: var(--green); }
+  .target-score.mid { background: var(--amber-soft); color: var(--amber); }
+  .target-score.low { background: var(--red-soft); color: var(--red); }
+  .target-score.exempt { background: var(--panel-2); color: var(--dim); font-weight: 500; text-transform: uppercase; }
+  .rule-list { color: var(--dim); font-family: var(--mono); font-size: 10px; }
+  .rule-list .cited { color: var(--green); }
+  .rule-list .uncited { color: var(--red); }
 </style>
 </head>
 <body>
@@ -105,6 +120,40 @@
 <script>
 let PLANS = [];
 let FILTER = "pending";
+const CATCH_ALL = new Set(["collaboration", "routing", "rooms", "branching"]);
+
+function scoreClass(score) {
+  if (score === null || score === undefined) return "exempt";
+  if (score >= 80) return "high";
+  if (score >= 50) return "mid";
+  return "low";
+}
+
+function overallScoreHtml(ratings) {
+  if (!ratings) return "";
+  const s = ratings.overall;
+  if (s === null || s === undefined) return `<span class="score exempt" title="All targets are CWT tooling, exempt from app rules">exempt</span>`;
+  return `<span class="score ${scoreClass(s)}" title="Conformance score: ${s}/100">${s}</span>`;
+}
+
+function targetRatingHtml(tr) {
+  if (!tr) return "";
+  const scoreBadge = tr.exempt
+    ? `<span class="target-score exempt" title="CWT tooling — rules don't apply">exempt</span>`
+    : `<span class="target-score ${scoreClass(tr.score)}">${tr.score}</span>`;
+  let ruleHtml = "";
+  if (!tr.exempt) {
+    const applicable = (tr.applicable || []).filter(r => !CATCH_ALL.has(r));
+    const cited = (tr.cited || []).filter(r => !CATCH_ALL.has(r));
+    const missing = applicable.filter(r => !cited.includes(r));
+    const parts = [];
+    if (cited.length) parts.push(`<span class="cited">cites: ${cited.join(", ")}</span>`);
+    if (missing.length) parts.push(`<span class="uncited">missing: ${missing.join(", ")}</span>`);
+    if (!applicable.length) parts.push(`<span>no specific rules apply</span>`);
+    ruleHtml = `<span class="rule-list">${parts.join(" · ")}</span>`;
+  }
+  return `<div class="target-ratings">${scoreBadge}${ruleHtml}</div>`;
+}
 
 async function refresh() {
   const [plansRes, manifestRes] = await Promise.all([
@@ -133,14 +182,18 @@ function render() {
           <div class="plan-summary">${escape(p.summary || p.id || "(no summary)")}</div>
           <div class="plan-id">${escape(p.id || "?")} · ${escape(p._path || "")}</div>
         </div>
-        <span class="pill ${p._status}">${p._status}</span>
+        <div class="head-right">
+          ${overallScoreHtml(p.ratings)}
+          <span class="pill ${p._status}">${p._status}</span>
+        </div>
       </div>
       ${p.prompt ? `<div style="color:var(--dim); font-size:13px; margin-bottom:10px;">"${escape(p.prompt)}"</div>` : ""}
       <ul class="targets">
-        ${(p.targets || []).map(t => `
+        ${(p.targets || []).map((t, i) => `
           <li class="target">
             <div><span class="target-op ${t.op || 'edit'}">${t.op || 'edit'}</span><span class="target-path">${escape(t.file || '?')}</span></div>
             ${t.justification ? `<div class="target-why">${escape(t.justification)}</div>` : ""}
+            ${targetRatingHtml(p.ratings && p.ratings.targets && p.ratings.targets[i])}
           </li>
         `).join("")}
       </ul>
