@@ -10,8 +10,9 @@
     "id": "T-1",
     "title": "Implement auth middleware",
     "owner": "go",
-    "status": "in-progress",
-    "depends_on": ["T-0"]
+    "status": "todo",
+    "depends_on": ["T-0"],
+    "plan_id": "P-20260419-195629"
   },
   {
     "id": "T-2",

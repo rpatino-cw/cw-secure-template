@@ -21,8 +21,47 @@ import json
 from pathlib import Path
 
 TASKS_DIR = Path(__file__).resolve().parent / "tasks"
+QUEUE_DIR = Path(__file__).resolve().parent / "queue"
 
 VALID_STATUS = {"todo", "in-progress", "done", "blocked"}
+
+
+def _plan_status_by_id():
+    """Return {plan_id: status} by scanning .cwt/queue/{approved,rejected,pending}/."""
+    out = {}
+    for status in ("approved", "rejected", "pending"):
+        d = QUEUE_DIR / status
+        if not d.exists():
+            continue
+        for f in d.glob("*.json"):
+            try:
+                data = json.loads(f.read_text())
+                pid = data.get("id") or f.stem
+                out[pid] = status
+            except Exception:
+                continue
+    return out
+
+
+def _apply_plan_links(tasks):
+    """Override task status based on linked plan status. Manual 'done' wins."""
+    plan_status = _plan_status_by_id()
+    for t in tasks:
+        if not isinstance(t, dict):
+            continue
+        pid = t.get("plan_id")
+        if not pid or pid not in plan_status:
+            continue
+        t["_linked_plan"] = {"id": pid, "status": plan_status[pid]}
+        # Don't demote done
+        if t.get("status") == "done":
+            continue
+        ps = plan_status[pid]
+        if ps == "approved":
+            t["status"] = "in-progress"
+        elif ps == "rejected":
+            t["status"] = "blocked"
+    return tasks
 
 
 def load_tasks():
@@ -89,9 +128,13 @@ def topo_order(tasks):
 
 
 def summary():
-    """Return dict suitable for /api/tasks: ordered tasks + counts + errors."""
+    """Return dict suitable for /api/tasks: ordered tasks + counts + errors.
+
+    Status priority: manual 'done' > linked plan status > manual status.
+    """
     tasks = load_tasks()
     errors = validate(tasks)
+    tasks = _apply_plan_links(tasks)
     order, cycle = topo_order(tasks)
     by_id = {t["id"]: t for t in tasks if isinstance(t, dict) and "id" in t}
     ordered = [by_id[i] for i in order if i in by_id]
