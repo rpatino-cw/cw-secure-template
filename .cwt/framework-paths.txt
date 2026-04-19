@@ -27,8 +27,12 @@ AGENTS.md
 # CWT runtime + dashboard
 .cwt/server.py
 .cwt/rater.py
+.cwt/tasks.py
+.cwt/graph.py
 .cwt/cwt.html
 .cwt/framework-paths.txt
+.cwt/tasks/
+.cwt/tests/
 
 # Project-level conventions
 rooms.json
