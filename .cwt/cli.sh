@@ -14,6 +14,15 @@ if [ ! -d "$CWT_TEMPLATE_DIR/.cwt" ]; then
   return 1 2>/dev/null || exit 1
 fi
 
+_cwt_open_browser() {
+  local url="$1"
+  if command -v open >/dev/null 2>&1; then
+    open "$url" 2>/dev/null || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" 2>/dev/null || true
+  fi
+}
+
 cwt() {
   local sub="${1:-help}"
   shift 2>/dev/null || true
@@ -26,12 +35,73 @@ cwt() {
         return 1
       fi
       local name="$1"
-      local dest="${2:-}"
-      if [ -n "$dest" ]; then
-        (cd "$CWT_TEMPLATE_DIR" && make cwt-init NAME="$name" DEST="$dest")
+      local dest_parent="${2:-$HOME/dev}"
+      local project_dir="$dest_parent/$name"
+      if [ -n "${2:-}" ]; then
+        (cd "$CWT_TEMPLATE_DIR" && CWT_INIT_WRAPPED=1 make cwt-init NAME="$name" DEST="$dest_parent") || return 1
       else
-        (cd "$CWT_TEMPLATE_DIR" && make cwt-init NAME="$name")
+        (cd "$CWT_TEMPLATE_DIR" && CWT_INIT_WRAPPED=1 make cwt-init NAME="$name") || return 1
       fi
+      # Auto-cd into new project (only possible because cwt is a shell function)
+      if [ -d "$project_dir" ]; then
+        cd "$project_dir" || return 1
+        echo ""
+        echo "────────────────────────────────────────────────────────────"
+        echo "  You are now in: $project_dir"
+        echo "────────────────────────────────────────────────────────────"
+        echo ""
+        echo "  Next:"
+        echo "    cwt up            boot the dashboard in the background"
+        echo "    claude            start Claude Code here"
+        echo "    cwt help          see all subcommands"
+        echo ""
+      fi
+      ;;
+    up)
+      if [ ! -f .cwt/server.py ]; then
+        echo "cwt up: no .cwt/server.py here — are you in a CWT fork?" >&2
+        return 1
+      fi
+      if [ -f .cwt/port ] && curl -s -o /dev/null "http://127.0.0.1:$(cat .cwt/port)/api/plans" 2>/dev/null; then
+        echo "  dashboard already running at http://127.0.0.1:$(cat .cwt/port)/"
+        _cwt_open_browser "http://127.0.0.1:$(cat .cwt/port)/"
+        return 0
+      fi
+      nohup python3 .cwt/server.py > .cwt/server.log 2>&1 &
+      disown 2>/dev/null || true
+      # Wait up to 3 seconds for .cwt/port to appear
+      local tries=0
+      while [ ! -f .cwt/port ] && [ $tries -lt 30 ]; do
+        sleep 0.1
+        tries=$((tries + 1))
+      done
+      if [ -f .cwt/port ]; then
+        local port
+        port="$(cat .cwt/port)"
+        echo "  dashboard booted → http://127.0.0.1:$port/"
+        echo "  logs: .cwt/server.log"
+        _cwt_open_browser "http://127.0.0.1:$port/"
+      else
+        echo "  server did not start in time — check .cwt/server.log" >&2
+        return 1
+      fi
+      ;;
+    down|stop)
+      if [ ! -f .cwt/port ]; then
+        echo "  no .cwt/port — server not running (or not tracked)"
+        return 0
+      fi
+      local port
+      port="$(cat .cwt/port)"
+      local pid
+      pid="$(lsof -ti ":$port" 2>/dev/null || true)"
+      if [ -n "$pid" ]; then
+        kill "$pid" 2>/dev/null || true
+        echo "  stopped dashboard on port $port (pid $pid)"
+      else
+        echo "  no process found on port $port"
+      fi
+      rm -f .cwt/port
       ;;
     integrate)
       if [ -z "${1:-}" ]; then
@@ -79,10 +149,10 @@ cwt() {
       cat <<EOF
 cwt — CoreWeave Template CLI
 
-Template root: $CWT_TEMPLATE_DIR
-
 Usage:
-  cwt init <name> [dest]    Scaffold a new CWT-gated project
+  cwt init <name> [dest]    Scaffold a new CWT-gated project (cd's you in)
+  cwt up                    Boot dashboard + open in browser
+  cwt down                  Stop the dashboard
   cwt integrate <path>      Wire CWT into an existing project
   cwt upgrade               Pull latest framework (from inside a fork)
   cwt detect [path]         Print detected stack (python/go/node/rust/empty)

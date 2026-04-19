@@ -57,13 +57,16 @@ git add -A
 git commit -q -m "chore: scaffold $NAME from cw-secure-template" || true
 
 echo ""
-echo "==> Done."
+echo "  ✓ scaffolded $NAME at $DEST"
+echo "  ✓ git initialized with first commit"
 echo ""
-echo "Next steps:"
-echo "  cd $DEST"
-echo "  python3 .cwt/server.py       # boot the CWT dashboard"
-echo "  claude                       # start Claude Code; /cwt-plan works here"
-echo ""
-echo "To pull upstream framework updates later:"
-echo "  git remote add cwt $SRC"
-echo "  make cwt-upgrade             # (once Phase 4 ships this target)"
+# The rest of the "next steps" message is printed by the `cwt init` shell
+# function after it cd's into the project. When new-project.sh is called
+# directly (without the cwt wrapper), print a fallback here.
+if [ -z "${CWT_INIT_WRAPPED:-}" ]; then
+  echo "  Next:"
+  echo "    cd $DEST"
+  echo "    cwt up      # (or: python3 .cwt/server.py) — boot dashboard"
+  echo "    claude      # start Claude Code"
+  echo ""
+fi
