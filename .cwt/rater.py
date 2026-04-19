@@ -89,6 +89,10 @@ def _applicable(path, rules):
 
 
 def _cited(text, names):
+    # Phase 2.1 TODO: substring match produces false positives — "add user routes"
+    # counts as citing routes.md. Tighten to an anchored form (e.g. "per routes.md"
+    # or "routes.md —") before declaring Phase 2 done, otherwise low-effort
+    # justifications score higher than they should.
     t = text.lower()
     return [n for n in names if n.lower() in t]
 
