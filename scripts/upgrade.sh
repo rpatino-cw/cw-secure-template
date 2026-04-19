@@ -125,7 +125,7 @@ fi
 
 # ── Determine latest version ──
 
-LATEST=$(git tag -l 'v*' --sort=-v:refversion 2>/dev/null | head -1)
+LATEST=$(git tag -l 'v*' --sort=-v:refname 2>/dev/null | head -1)
 
 if [ -z "$LATEST" ]; then
   error "No version tags found on upstream."
@@ -229,8 +229,8 @@ for f in "${REPLACE_FILES[@]}"; do
 done
 
 # Also discover new .claude/rules/*.md files
-for f in $(git ls-tree --name-only "${LATEST}" .claude/rules/ 2>/dev/null); do
-  RULE_PATH=".claude/rules/$f"
+# git ls-tree returns full paths like ".claude/rules/foo.md" — use directly.
+for RULE_PATH in $(git ls-tree --name-only -r "${LATEST}" .claude/rules/ 2>/dev/null); do
   # Skip if already in REPLACE_FILES
   if printf '%s\n' "${REPLACE_FILES[@]}" | grep -qx "$RULE_PATH" 2>/dev/null; then
     continue
@@ -294,9 +294,9 @@ for f in "${REPLACE_FILES[@]}"; do
 done
 
 # Apply new .claude/rules/ files
-for f in $(git ls-tree --name-only "${LATEST}" .claude/rules/ 2>/dev/null); do
-  RULE_PATH=".claude/rules/$f"
-  mkdir -p ".claude/rules"
+# git ls-tree returns full paths — no manual prefix needed.
+for RULE_PATH in $(git ls-tree --name-only -r "${LATEST}" .claude/rules/ 2>/dev/null); do
+  mkdir -p "$(dirname "$RULE_PATH")"
   git show "${LATEST}:${RULE_PATH}" > "$RULE_PATH"
   ((APPLIED++))
 done
