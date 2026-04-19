@@ -129,14 +129,30 @@ const MANIFEST = {
 
 const TASKS = {
   total: 4,
-  counts: { done: 1, "in-progress": 1, todo: 2, blocked: 0 },
+  counts: { done: 1, "in-progress": 1, todo: 1, blocked: 1 },
   errors: [],
   cycle: null,
   tasks: [
     { id: "T-0", title: "Scaffold project structure", owner: "go", status: "done", depends_on: [] },
-    { id: "T-1", title: "Implement auth middleware", owner: "go", status: "in-progress", depends_on: ["T-0"] },
+    {
+      id: "T-1",
+      title: "Implement auth middleware",
+      owner: "go",
+      status: "in-progress",
+      depends_on: ["T-0"],
+      plan_id: "P-demo-good",
+      _linked_plan: { id: "P-demo-good", status: "approved" },
+    },
     { id: "T-2", title: "Build login UI", owner: "frontend", status: "todo", depends_on: ["T-1"] },
-    { id: "T-3", title: "End-to-end auth flow test", owner: "qa", status: "blocked", depends_on: ["T-1", "T-2"] },
+    {
+      id: "T-3",
+      title: "End-to-end auth flow test",
+      owner: "qa",
+      status: "blocked",
+      depends_on: ["T-1", "T-2"],
+      plan_id: "P-demo-rejected",
+      _linked_plan: { id: "P-demo-rejected", status: "rejected" },
+    },
   ],
 };
 
@@ -224,6 +240,7 @@ async function main() {
   const graphSummary = await page.evaluate(() => ({
     files: document.querySelectorAll(".graph-file").length,
     imports: document.querySelectorAll(".graph-imports li").length,
+    planHighlighted: document.querySelectorAll(".graph-file.plan-pending, .graph-file.plan-approved, .graph-file.plan-rejected").length,
   }));
 
   console.log("\nassertions:");
@@ -243,6 +260,16 @@ async function main() {
   if (tasksSummary.blockedStatus < 1) fail.push("expected >=1 blocked status");
   if (graphSummary.files < 1) fail.push("expected >=1 graph file entry");
   if (graphSummary.imports < 1) fail.push("expected >=1 import edge");
+  if (graphSummary.planHighlighted < 1) fail.push("expected >=1 plan-highlighted graph file");
+
+  // Tasks tab: plan badges
+  await page.click(`.tab[data-filter="tasks"]`);
+  await page.waitForTimeout(150);
+  const planBadges = await page.evaluate(() =>
+    document.querySelectorAll(".task-row .plan-badge").length
+  );
+  if (planBadges < 1) fail.push("expected >=1 plan-badge on tasks tab");
+  console.log("  plan-badges on tasks:", planBadges);
 
   await browser.close();
 

@@ -96,6 +96,13 @@
   .task-status.blocked { background: var(--red-soft); color: var(--red); }
   .task-deps { font-family: var(--mono); font-size: 10px; color: var(--dim); }
   .graph-file { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; }
+  .graph-file.plan-pending { border-left: 3px solid var(--amber); }
+  .graph-file.plan-approved { border-left: 3px solid var(--green); }
+  .graph-file.plan-rejected { border-left: 3px solid var(--red); opacity: .75; }
+  .plan-badge { font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 99px; font-weight: 600; letter-spacing: .02em; }
+  .plan-badge.pending { background: var(--amber-soft); color: var(--amber); }
+  .plan-badge.approved { background: var(--green-soft); color: var(--green); }
+  .plan-badge.rejected { background: var(--red-soft); color: var(--red); }
   .graph-file-head { display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 12px; }
   .graph-file-path { color: var(--fg); }
   .graph-file-tool { font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--panel-2); color: var(--dim); text-transform: uppercase; }
@@ -210,15 +217,22 @@ function renderTasks() {
     <span>Todo: <span class="v">${TASKS.counts.todo || 0}</span></span>
     <span>Blocked: <span class="v">${TASKS.counts.blocked || 0}</span></span>
   </div>`;
-  const rows = TASKS.tasks.map(t => `
-    <div class="task-row">
-      <span class="task-id">${escape(t.id)}</span>
-      <span class="task-title">${escape(t.title || "")}</span>
-      ${t.owner ? `<span class="task-owner">@${escape(t.owner)}</span>` : ""}
-      ${t.depends_on && t.depends_on.length ? `<span class="task-deps">← ${t.depends_on.map(escape).join(", ")}</span>` : ""}
-      <span class="task-status ${escape(t.status || "todo")}">${escape(t.status || "todo")}</span>
-    </div>
-  `).join("");
+  const rows = TASKS.tasks.map(t => {
+    const linked = t._linked_plan;
+    const planBadge = linked
+      ? `<span class="plan-badge ${escape(linked.status)}" title="Linked plan ${escape(linked.id)} — ${escape(linked.status)}">↳ ${escape(linked.id.slice(0, 14))}</span>`
+      : (t.plan_id ? `<span class="plan-badge" title="plan_id not found in queue">↳ ${escape(t.plan_id.slice(0, 14))}?</span>` : "");
+    return `
+      <div class="task-row">
+        <span class="task-id">${escape(t.id)}</span>
+        <span class="task-title">${escape(t.title || "")}</span>
+        ${t.owner ? `<span class="task-owner">@${escape(t.owner)}</span>` : ""}
+        ${t.depends_on && t.depends_on.length ? `<span class="task-deps">← ${t.depends_on.map(escape).join(", ")}</span>` : ""}
+        ${planBadge}
+        <span class="task-status ${escape(t.status || "todo")}">${escape(t.status || "todo")}</span>
+      </div>
+    `;
+  }).join("");
   const errs = (TASKS.errors && TASKS.errors.length) ? `<div style="color:var(--red); font-size:12px; margin-top:12px;">Errors: ${TASKS.errors.join("; ")}</div>` : "";
   el.innerHTML = stats + rows + errs;
 }
@@ -229,29 +243,51 @@ function renderGraph() {
     el.innerHTML = `<div class="empty">No graph data. Run <code>make cwt-graph</code> or check .cwt/graph.py.</div>`;
     return;
   }
+  // Build file -> plan-status map. Later plan status wins (approved > pending > rejected)
+  // because we iterate in that order of precedence for highlighting.
+  const fileStatus = {};
+  const priority = { approved: 3, pending: 2, rejected: 1 };
+  (PLANS || []).forEach(p => {
+    (p.targets || []).forEach(t => {
+      const f = t.file;
+      if (!f) return;
+      const s = p._status;
+      if (!fileStatus[f] || priority[s] > priority[fileStatus[f]]) {
+        fileStatus[f] = s;
+      }
+    });
+  });
+  const highlighted = Object.keys(fileStatus).length;
   const stats = `<div class="panel-stats">
     <span>Files: <span class="v">${GRAPH.stats.files}</span></span>
     <span>Internal edges: <span class="v">${GRAPH.stats.internal_edges}</span></span>
     <span>Tooling files: <span class="v">${GRAPH.stats.tooling_files}</span></span>
+    <span>Plan-touched: <span class="v">${highlighted}</span></span>
   </div>`;
   const edgesBySource = {};
   (GRAPH.edges || []).forEach(e => {
     (edgesBySource[e.from] = edgesBySource[e.from] || []).push(e.to);
   });
-  const entries = GRAPH.nodes
-    .filter(n => edgesBySource[n.id])
-    .map(n => `
-      <div class="graph-file">
+  // Render all nodes that are either sources OR plan-targeted (not just sources).
+  const nodesToShow = GRAPH.nodes.filter(n => edgesBySource[n.id] || fileStatus[n.id]);
+  const entries = nodesToShow.map(n => {
+    const planClass = fileStatus[n.id] ? ` plan-${fileStatus[n.id]}` : "";
+    const planLabel = fileStatus[n.id] ? `<span class="plan-badge ${escape(fileStatus[n.id])}">${escape(fileStatus[n.id])}</span>` : "";
+    const imports = edgesBySource[n.id] || [];
+    return `
+      <div class="graph-file${planClass}">
         <div class="graph-file-head">
           <span class="graph-file-path">${escape(n.id)}</span>
-          ${n.tooling ? `<span class="graph-file-tool">tooling</span>` : ""}
+          <div style="display:flex; gap:6px; align-items:center;">
+            ${planLabel}
+            ${n.tooling ? `<span class="graph-file-tool">tooling</span>` : ""}
+          </div>
         </div>
-        <ul class="graph-imports">
-          ${edgesBySource[n.id].map(to => `<li>${escape(to)}</li>`).join("")}
-        </ul>
+        ${imports.length ? `<ul class="graph-imports">${imports.map(to => `<li>${escape(to)}</li>`).join("")}</ul>` : ""}
       </div>
-    `).join("");
-  el.innerHTML = stats + (entries || `<div class="empty">No internal imports detected.</div>`);
+    `;
+  }).join("");
+  el.innerHTML = stats + (entries || `<div class="empty">No internal imports or plan targets.</div>`);
 }
 
 function render() {
