@@ -26,6 +26,14 @@ try:
     from rater import score_plan  # Phase 2 conformance rater
 except Exception:
     score_plan = None
+try:
+    from tasks import summary as tasks_summary  # Phase 5 task DAG
+except Exception:
+    tasks_summary = None
+try:
+    from graph import build_graph  # Phase 3 import graph
+except Exception:
+    build_graph = None
 
 
 def list_plans():
@@ -130,6 +138,22 @@ class Handler(BaseHTTPRequestHandler):
             except Exception:
                 port = 0
             self._send_json(200, {"status": "ok", "port": port})
+        elif url.path == "/api/tasks":
+            if tasks_summary is None:
+                self._send_json(200, {"tasks": [], "counts": {}, "total": 0, "errors": ["tasks module unavailable"]})
+            else:
+                try:
+                    self._send_json(200, tasks_summary())
+                except Exception as e:
+                    self._send_json(200, {"tasks": [], "counts": {}, "total": 0, "errors": [str(e)]})
+        elif url.path == "/api/graph":
+            if build_graph is None:
+                self._send_json(200, {"nodes": [], "edges": [], "stats": {}})
+            else:
+                try:
+                    self._send_json(200, build_graph())
+                except Exception as e:
+                    self._send_json(200, {"nodes": [], "edges": [], "stats": {}, "error": str(e)})
         else:
             self.send_error(404)
 
