@@ -46,26 +46,28 @@ case "$USER_SHELL" in
 esac
 
 echo ""
-echo -e "${BOLD}CWT CLI — global install${NC}"
-echo "========================="
+echo -e "${BOLD}Setting up the \`cwt\` shortcut${NC}"
+echo "================================"
 echo ""
-echo "  Template: $TEMPLATE_DIR"
-echo "  Shell:    $USER_SHELL"
-echo "  RC file:  $RC_FILE"
-echo "  Bootstrap: $BOOTSTRAP"
+echo -e "  ${DIM}This lets you type ${BOLD}\`cwt init my-app\`${NC}${DIM} from any folder${NC}"
+echo -e "  ${DIM}instead of having to cd into the template every time.${NC}"
+echo ""
+echo "  Template folder:  $TEMPLATE_DIR"
+echo "  Your shell:       $USER_SHELL"
+echo "  Shell settings:   $RC_FILE"
 echo ""
 
 # ── prompt ──
 if [ "$AUTO_YES" != "--yes" ] && [ "$AUTO_YES" != "-y" ]; then
-  echo -e "This will:"
-  echo -e "  1. Write ${BOLD}$BOOTSTRAP${NC} (sets CWT_TEMPLATE_DIR, sources cli.sh)"
-  echo -e "  2. Add ${BOLD}'source $BOOTSTRAP'${NC} to $RC_FILE (if not already there)"
+  echo -e "${BOLD}What this does:${NC}"
+  echo -e "  1. Creates a tiny helper file: $BOOTSTRAP"
+  echo -e "  2. Adds ${BOLD}one line${NC} to $RC_FILE so your shell knows about it"
   echo ""
-  echo -e "  After install, ${BOLD}cwt init <name>${NC} works from any directory."
+  echo -e "  ${DIM}(That's the only change. Delete the helper file + that line to undo.)${NC}"
   echo ""
-  read -rp "  Proceed? [Y/n]: " CONFIRM
+  read -rp "  OK to proceed? [Y/n]: " CONFIRM
   if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
-    echo "  Aborted."
+    echo "  No changes made."
     exit 0
   fi
 fi
@@ -80,7 +82,7 @@ if [ -f "\$CWT_TEMPLATE_DIR/.cwt/cli.sh" ]; then
   source "\$CWT_TEMPLATE_DIR/.cwt/cli.sh"
 fi
 EOF
-echo -e "  ${GREEN}wrote${NC} $BOOTSTRAP"
+echo -e "  ${GREEN}✓${NC} created helper file: $BOOTSTRAP"
 
 # ── ensure rc file sources bootstrap ──
 SOURCE_LINE="[ -f \"\$HOME/.cwt-cli.sh\" ] && source \"\$HOME/.cwt-cli.sh\""
@@ -88,24 +90,26 @@ mkdir -p "$(dirname "$RC_FILE")"
 touch "$RC_FILE"
 
 if grep -F ".cwt-cli.sh" "$RC_FILE" >/dev/null 2>&1; then
-  echo -e "  ${DIM}already sourced from $RC_FILE${NC}"
+  echo -e "  ${DIM}✓ $RC_FILE already loads it — nothing to add${NC}"
 else
   {
     echo ""
-    echo "# CWT CLI — added by install-cwt-cli.sh"
+    echo "# CWT shortcut — added by install-cwt-cli.sh"
     echo "$SOURCE_LINE"
   } >> "$RC_FILE"
-  echo -e "  ${GREEN}appended source line to${NC} $RC_FILE"
+  echo -e "  ${GREEN}✓${NC} added one line to: $RC_FILE"
 fi
 
 # ── done ──
 echo ""
-echo -e "${GREEN}✓ installed${NC}"
+echo -e "${GREEN}${BOLD}All set!${NC}"
 echo ""
-echo "  Next: open a new terminal OR run:"
-echo -e "    ${BOLD}source $RC_FILE${NC}"
+echo "  To start using it right now, pick one:"
+echo -e "    A) open a new terminal window, OR"
+echo -e "    B) run this in the current terminal: ${BOLD}source $RC_FILE${NC}"
+echo -e "       ${DIM}(that reloads your shell settings so \`cwt\` works)${NC}"
 echo ""
-echo "  Then verify:"
-echo -e "    ${BOLD}cwt help${NC}"
-echo "    cwt init my-first-app"
+echo "  Then try:"
+echo -e "    ${BOLD}cwt help${NC}           ${DIM}— see what \`cwt\` can do${NC}"
+echo -e "    ${BOLD}cwt init my-app${NC}    ${DIM}— scaffold a new project${NC}"
 echo ""
