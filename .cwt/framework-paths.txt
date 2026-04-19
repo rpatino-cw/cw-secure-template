@@ -1,47 +1,86 @@
 # framework-paths.txt — Paths managed by cw-secure-template.
 #
-# These are the paths the CWT upgrade mechanism will pull from upstream.
-# Edit only when adding/removing files that should be "framework-owned"
-# (i.e., shipped with every project, not user-specific).
+# Single source of truth for the CWT upgrade flow. Paths are organized
+# by strategy:
+#
+#   [replace] — copy wholesale from upstream. User should not edit these
+#               locally; changes will be overwritten on upgrade.
+#   [merge]   — three-way merge (base/theirs/ours). User can customize;
+#               upgrade preserves local edits where possible.
+#
+# Format: one path per line. Directory paths (ending in /) will have
+# their contents enumerated recursively at upgrade time. Blank lines
+# and # comments are ignored.
 #
 # User-owned paths (python/, go/, frontend/, src/, tests/, docs/) are
 # intentionally absent — never touched by upgrades.
-#
-# Format: one path (or glob) per line. Blank lines and # comments ignored.
+
+[replace]
 
 # Claude Code plumbing
 .claude/rules/
 .claude/hooks/
 .claude/commands/
+.claude/settings.json
 AGENTS.md
-CLAUDE.md
 
 # CWT runtime + dashboard
 .cwt/server.py
+.cwt/rater.py
 .cwt/cwt.html
 .cwt/framework-paths.txt
 
 # Project-level conventions
 rooms.json
-Makefile
 
-# Security + lint scripts (names may expand as framework grows)
+# Security + lint scripts
 scripts/guard.sh
 scripts/guard-bash.sh
-scripts/activity-log.sh
+scripts/guards/security.sh
+scripts/guards/architecture.sh
+scripts/guards/collaboration.sh
+scripts/guards/rooms.sh
+scripts/guards/config-audit.sh
+scripts/guards/freeze.sh
+scripts/guards/test-guards.sh
+scripts/secure-mode.sh
 scripts/doctor.sh
-scripts/new-project.sh
 scripts/security-fix.sh
 scripts/security-quiz.sh
+scripts/agent-review.sh
+scripts/room-lint.sh
+scripts/room-status.sh
+scripts/init-rooms.sh
+scripts/start-agent.sh
+scripts/create-branch.sh
+scripts/open-pr.sh
+scripts/repo-lint.sh
+scripts/gen-readme.sh
+scripts/freeze.sh
+scripts/scan-drops.sh
+scripts/activity-log.sh
 scripts/add-secret.sh
 scripts/add-config.sh
+scripts/new-project.sh
 scripts/init-project.sh
-scripts/git-hooks/
+scripts/detect-framework.sh
+scripts/git-hooks/pre-commit
+scripts/git-hooks/post-checkout
+scripts/git-hooks/pre-push
+scripts/upgrade.sh
 
 # CI / precommit / security policy
-.github/
+.github/workflows/ci.yml
+.github/pull_request_template.md
 .pre-commit-config.yaml
 SECURITY.md
+
+[merge]
+
+# User customizes these per-project; upgrade uses three-way merge.
+CLAUDE.md
+Makefile
+.gitignore
 
 # --- DO NOT ADD ---
 # python/                (user code)
