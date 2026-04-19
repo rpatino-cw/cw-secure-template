@@ -344,6 +344,10 @@ endif
 # Consistent command surface over the existing scratch/integrate/upgrade scripts.
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
+.PHONY: cwt-install
+cwt-install: ## One-time: add global `cwt` command to your shell (YES=1 to auto-confirm)
+	@bash scripts/install-cwt-cli.sh $(if $(YES),--yes,)
+
 .PHONY: cwt-init
 cwt-init: ## Scaffold a new CWT-gated project (NAME=x [DEST=~/dev])
 ifndef NAME

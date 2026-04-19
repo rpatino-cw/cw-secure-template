@@ -30,6 +30,7 @@ AGENTS.md
 .cwt/tasks.py
 .cwt/graph.py
 .cwt/cwt.html
+.cwt/cli.sh
 .cwt/framework-paths.txt
 .cwt/tasks/
 .cwt/tests/
@@ -68,6 +69,7 @@ scripts/add-config.sh
 scripts/new-project.sh
 scripts/init-project.sh
 scripts/detect-framework.sh
+scripts/install-cwt-cli.sh
 scripts/git-hooks/pre-commit
 scripts/git-hooks/post-checkout
 scripts/git-hooks/pre-push

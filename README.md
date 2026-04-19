@@ -158,22 +158,29 @@ Layered on top of the guards: **CWT** is a plan-approval gate that sits between 
 **Quick start:**
 
 ```bash
-# Scaffold a fresh CWT-gated project
-make cwt-init NAME=my-app DEST=~/dev
+# One-time: install the global `cwt` command
+git clone https://github.com/rpatino-cw/cw-secure-template ~/dev/cw-secure-template
+cd ~/dev/cw-secure-template
+make cwt-install
+# → prompts: add global `cwt` command to your shell? [Y/n]
+# → writes ~/.cwt-cli.sh and adds one source line to ~/.zshrc (or ~/.bashrc)
 
+source ~/.zshrc    # or open a new terminal
+
+# From ANY directory, forever:
+cwt init my-app              # → ~/dev/my-app (scaffolded, CWT-gated)
 cd ~/dev/my-app
-
-# Boot the dashboard (ephemeral port written to .cwt/port)
-python3 .cwt/server.py
-# → http://127.0.0.1:54388/
+python3 .cwt/server.py       # boot dashboard at the port it prints
 
 # In Claude Code, plan before you edit:
 #   /cwt-plan add /metrics endpoint to routes/
 # Then approve in the dashboard. Claude can now write.
 
-# Pull framework updates later
-make cwt-upgrade
+cwt upgrade                  # pull framework updates (run from inside a fork)
+cwt help                     # see all subcommands
 ```
+
+**Why the installer?** You clone `cw-secure-template` once. The `cwt` command knows where that template lives (via `$CWT_TEMPLATE_DIR`) and dispatches to it. No more `cd ~/dev/cw-secure-template && make cwt-init …` — just `cwt init` from wherever you are. And when the template upgrades, your `cwt` command auto-updates because it re-sources the template's `.cwt/cli.sh` on every shell startup.
 
 **CWT commands (wrap existing scripts with a consistent surface):**
 
