@@ -139,8 +139,17 @@ echo -e "  Latest upstream version:   ${BOLD}${LATEST}${NC}"
 # if the file is missing, unparseable, or has no section content.
 
 load_framework_paths_from_manifest() {
-  local manifest=".cwt/framework-paths.txt"
-  [ -f "$manifest" ] || return 1
+  # Prefer upstream's version (so old forks pick up new entries on first upgrade).
+  # Fall back to local disk if upstream doesn't have one.
+  local manifest_content
+  manifest_content="$(git show "${LATEST}:.cwt/framework-paths.txt" 2>/dev/null || true)"
+  local source_label="upstream"
+  if [ -z "$manifest_content" ]; then
+    local manifest=".cwt/framework-paths.txt"
+    [ -f "$manifest" ] || return 1
+    manifest_content="$(cat "$manifest")"
+    source_label="local"
+  fi
 
   local section=""
   local -a parsed_replace=()
@@ -148,9 +157,7 @@ load_framework_paths_from_manifest() {
   local line trimmed
 
   while IFS= read -r line || [ -n "$line" ]; do
-    # Strip trailing comment
     trimmed="${line%%#*}"
-    # Trim whitespace
     trimmed="$(echo "$trimmed" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
     [ -z "$trimmed" ] && continue
     if [[ "$trimmed" == "[replace]" ]]; then section="replace"; continue; fi
@@ -162,30 +169,31 @@ load_framework_paths_from_manifest() {
         # Directory — enumerate at LATEST version
         local f
         while IFS= read -r f; do
-          [ -n "$f" ] && parsed_replace+=("${trimmed}${f}")
-        done < <(git ls-tree --name-only -r "${LATEST}" "$trimmed" 2>/dev/null | sed "s|^${trimmed}||")
+          [ -n "$f" ] && parsed_replace+=("$f")
+        done < <(git ls-tree --name-only -r "${LATEST}" "$trimmed" 2>/dev/null)
       else
         parsed_replace+=("$trimmed")
       fi
     elif [ "$section" = "merge" ]; then
       parsed_merge+=("$trimmed")
     fi
-  done < "$manifest"
+  done <<< "$manifest_content"
 
-  # Require at least one entry in each to consider the parse successful
   if [ "${#parsed_replace[@]}" -eq 0 ] && [ "${#parsed_merge[@]}" -eq 0 ]; then
     return 1
   fi
 
   REPLACE_FILES=("${parsed_replace[@]}")
   MERGE_FILES=("${parsed_merge[@]}")
+  MANIFEST_SOURCE_LABEL="$source_label"
   return 0
 }
 
+MANIFEST_SOURCE_LABEL=""
 if load_framework_paths_from_manifest; then
-  echo -e "  File list source:          ${DIM}.cwt/framework-paths.txt${NC}"
+  echo -e "  File list source:          ${DIM}framework-paths.txt (${MANIFEST_SOURCE_LABEL})${NC}"
 else
-  echo -e "  File list source:          ${DIM}upgrade.sh (fallback)${NC}"
+  echo -e "  File list source:          ${DIM}upgrade.sh (hardcoded fallback)${NC}"
 fi
 
 # ── Idempotent check ──
