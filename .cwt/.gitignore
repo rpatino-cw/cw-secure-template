@@ -1,0 +1,10 @@
+# Runtime — never commit
+port
+server.log
+manifest-approved.json
+
+# Plan queue — local to each fork, never shared upstream
+queue/pending/*.json
+queue/approved/*.json
+queue/rejected/*.json
+!queue/**/.gitkeep

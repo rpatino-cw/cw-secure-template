@@ -141,7 +141,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Edit|Write",
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
@@ -154,6 +154,12 @@
             "command": "bash scripts/activity-log.sh",
             "timeout": 3000,
             "statusMessage": "Logging activity..."
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/PreToolUse/cwt-gate.sh",
+            "timeout": 3000,
+            "statusMessage": "Checking CWT plan gate..."
           }
         ]
       },
@@ -179,6 +185,18 @@
             "command": "cd /Users/rpatino/dev/cw-secure-template && make repo-lint 2>/dev/null || true",
             "timeout": 10,
             "statusMessage": "Running repo lint..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/SessionStart/cwt-boot.sh",
+            "timeout": 5000,
+            "statusMessage": "Booting CWT server..."
           }
         ]
       }

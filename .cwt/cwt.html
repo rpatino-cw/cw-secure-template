@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CWT Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #12151a;
+    --panel-2: #171b22;
+    --line: #232833;
+    --fg: #e6e9ef;
+    --dim: #8a93a6;
+    --amber: #f5a524;
+    --amber-soft: rgba(245, 165, 36, .12);
+    --green: #34d399;
+    --green-soft: rgba(52, 211, 153, .12);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, .12);
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+  body { padding: 32px 40px 80px; max-width: 1100px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  h1 .accent { color: var(--amber); }
+  .sub { color: var(--dim); font-size: 13px; margin-top: 4px; }
+  .stats { display: flex; gap: 16px; font-size: 12px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); padding: 8px 14px; border-radius: 8px; display: flex; flex-direction: column; gap: 2px; min-width: 70px; }
+  .stat-v { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+  .stat-l { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .stat.pending .stat-v { color: var(--amber); }
+  .stat.approved .stat-v { color: var(--green); }
+  .stat.rejected .stat-v { color: var(--red); }
+  .tabs { display: flex; gap: 2px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .tab { background: transparent; color: var(--dim); border: none; padding: 10px 16px; font-size: 13px; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--fg); border-bottom-color: var(--amber); }
+  .tab:hover { color: var(--fg); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; margin-bottom: 14px; }
+  .card.pending { border-left: 3px solid var(--amber); }
+  .card.approved { border-left: 3px solid var(--green); }
+  .card.rejected { border-left: 3px solid var(--red); opacity: .7; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 12px; }
+  .plan-id { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+  .plan-summary { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .pill { font-size: 11px; padding: 3px 10px; border-radius: 99px; background: var(--panel-2); color: var(--dim); border: 1px solid var(--line); font-weight: 500; letter-spacing: .02em; text-transform: uppercase; }
+  .pill.pending { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+  .pill.approved { background: var(--green-soft); color: var(--green); border-color: transparent; }
+  .pill.rejected { background: var(--red-soft); color: var(--red); border-color: transparent; }
+  .targets { margin: 14px 0; padding: 0; list-style: none; }
+  .target { background: var(--panel-2); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; font-size: 13px; }
+  .target-path { font-family: var(--mono); color: var(--fg); font-weight: 600; }
+  .target-op { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 1px 6px; border-radius: 4px; background: var(--line); color: var(--dim); margin-right: 8px; text-transform: uppercase; }
+  .target-op.create { background: var(--green-soft); color: var(--green); }
+  .target-op.edit { background: var(--amber-soft); color: var(--amber); }
+  .target-op.delete { background: var(--red-soft); color: var(--red); }
+  .target-why { color: var(--dim); font-size: 12px; margin-top: 4px; font-style: italic; }
+  .actions { display: flex; gap: 8px; margin-top: 14px; }
+  .btn { background: transparent; border: 1px solid var(--line); color: var(--fg); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .btn.approve { border-color: var(--green); color: var(--green); }
+  .btn.approve:hover { background: var(--green); color: #000; }
+  .btn.reject { border-color: var(--red); color: var(--red); }
+  .btn.reject:hover { background: var(--red); color: #000; }
+  .empty { color: var(--dim); text-align: center; padding: 48px 20px; font-size: 14px; }
+  .empty code { background: var(--panel); padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+  .manifest-box { background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; margin-top: 24px; font-family: var(--mono); font-size: 12px; }
+  .manifest-box h3 { margin: 0 0 8px; font-size: 12px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-weight: 500; }
+  .manifest-box pre { margin: 0; white-space: pre-wrap; word-break: break-word; color: var(--fg); }
+  .refresh { position: fixed; bottom: 20px; right: 20px; background: var(--amber); color: #000; border: none; padding: 10px 16px; border-radius: 99px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; box-shadow: 0 8px 24px rgba(245, 165, 36, .3); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>CWT <span class="accent">Dashboard</span></h1>
+    <div class="sub">Plan-gated Claude edits. Approve or reject pending plans below.</div>
+  </div>
+  <div class="stats">
+    <div class="stat pending"><span class="stat-v" id="ct-pending">0</span><span class="stat-l">Pending</span></div>
+    <div class="stat approved"><span class="stat-v" id="ct-approved">0</span><span class="stat-l">Approved</span></div>
+    <div class="stat rejected"><span class="stat-v" id="ct-rejected">0</span><span class="stat-l">Rejected</span></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-filter="pending">Pending</button>
+  <button class="tab" data-filter="approved">Approved</button>
+  <button class="tab" data-filter="rejected">Rejected</button>
+  <button class="tab" data-filter="all">All</button>
+</div>
+
+<div id="plans"></div>
+
+<div class="manifest-box">
+  <h3>Current approved manifest (what the hook enforces)</h3>
+  <pre id="manifest">loading…</pre>
+</div>
+
+<button class="refresh" onclick="refresh()">↻ Refresh</button>
+
+<script>
+let PLANS = [];
+let FILTER = "pending";
+
+async function refresh() {
+  const [plansRes, manifestRes] = await Promise.all([
+    fetch("/api/plans").then(r => r.json()),
+    fetch("/api/manifest").then(r => r.json())
+  ]);
+  PLANS = plansRes.plans || [];
+  document.getElementById("ct-pending").textContent = PLANS.filter(p => p._status === "pending").length;
+  document.getElementById("ct-approved").textContent = PLANS.filter(p => p._status === "approved").length;
+  document.getElementById("ct-rejected").textContent = PLANS.filter(p => p._status === "rejected").length;
+  document.getElementById("manifest").textContent = JSON.stringify(manifestRes, null, 2);
+  render();
+}
+
+function render() {
+  const list = FILTER === "all" ? PLANS : PLANS.filter(p => p._status === FILTER);
+  const el = document.getElementById("plans");
+  if (!list.length) {
+    el.innerHTML = `<div class="empty">No ${FILTER} plans.<br><br>Drop a plan JSON into <code>.cwt/queue/pending/</code> to see it here.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(p => `
+    <div class="card ${p._status}">
+      <div class="card-head">
+        <div>
+          <div class="plan-summary">${escape(p.summary || p.id || "(no summary)")}</div>
+          <div class="plan-id">${escape(p.id || "?")} · ${escape(p._path || "")}</div>
+        </div>
+        <span class="pill ${p._status}">${p._status}</span>
+      </div>
+      ${p.prompt ? `<div style="color:var(--dim); font-size:13px; margin-bottom:10px;">"${escape(p.prompt)}"</div>` : ""}
+      <ul class="targets">
+        ${(p.targets || []).map(t => `
+          <li class="target">
+            <div><span class="target-op ${t.op || 'edit'}">${t.op || 'edit'}</span><span class="target-path">${escape(t.file || '?')}</span></div>
+            ${t.justification ? `<div class="target-why">${escape(t.justification)}</div>` : ""}
+          </li>
+        `).join("")}
+      </ul>
+      ${p._status === "pending" ? `
+        <div class="actions">
+          <button class="btn approve" onclick="act('${p.id}', 'approve')">✓ Approve</button>
+          <button class="btn reject" onclick="act('${p.id}', 'reject')">✗ Reject</button>
+        </div>
+      ` : ""}
+    </div>
+  `).join("");
+}
+
+function escape(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+async function act(id, action) {
+  const res = await fetch(`/api/plans/${id}/${action}`, { method: "POST" });
+  if (res.ok) refresh();
+  else alert(`Failed: ${(await res.json()).error || "unknown"}`);
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    FILTER = t.dataset.filter;
+    render();
+  });
+});
+
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>
