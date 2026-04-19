@@ -134,6 +134,60 @@ fi
 
 echo -e "  Latest upstream version:   ${BOLD}${LATEST}${NC}"
 
+# ── Load framework paths from .cwt/framework-paths.txt (canonical) ──
+# Falls back to the hardcoded REPLACE_FILES/MERGE_FILES arrays above
+# if the file is missing, unparseable, or has no section content.
+
+load_framework_paths_from_manifest() {
+  local manifest=".cwt/framework-paths.txt"
+  [ -f "$manifest" ] || return 1
+
+  local section=""
+  local -a parsed_replace=()
+  local -a parsed_merge=()
+  local line trimmed
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    # Strip trailing comment
+    trimmed="${line%%#*}"
+    # Trim whitespace
+    trimmed="$(echo "$trimmed" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+    [ -z "$trimmed" ] && continue
+    if [[ "$trimmed" == "[replace]" ]]; then section="replace"; continue; fi
+    if [[ "$trimmed" == "[merge]" ]];   then section="merge";   continue; fi
+    [ -z "$section" ] && continue
+
+    if [ "$section" = "replace" ]; then
+      if [[ "$trimmed" == */ ]]; then
+        # Directory — enumerate at LATEST version
+        local f
+        while IFS= read -r f; do
+          [ -n "$f" ] && parsed_replace+=("${trimmed}${f}")
+        done < <(git ls-tree --name-only -r "${LATEST}" "$trimmed" 2>/dev/null | sed "s|^${trimmed}||")
+      else
+        parsed_replace+=("$trimmed")
+      fi
+    elif [ "$section" = "merge" ]; then
+      parsed_merge+=("$trimmed")
+    fi
+  done < "$manifest"
+
+  # Require at least one entry in each to consider the parse successful
+  if [ "${#parsed_replace[@]}" -eq 0 ] && [ "${#parsed_merge[@]}" -eq 0 ]; then
+    return 1
+  fi
+
+  REPLACE_FILES=("${parsed_replace[@]}")
+  MERGE_FILES=("${parsed_merge[@]}")
+  return 0
+}
+
+if load_framework_paths_from_manifest; then
+  echo -e "  File list source:          ${DIM}.cwt/framework-paths.txt${NC}"
+else
+  echo -e "  File list source:          ${DIM}upgrade.sh (fallback)${NC}"
+fi
+
 # ── Idempotent check ──
 
 if [ "$CURRENT" = "$LATEST" ]; then

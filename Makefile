@@ -339,6 +339,36 @@ endif
 		$(if $(INCLUDE_NODE),--include-node,) \
 		$(if $(FORCE),--force,)
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CWT-namespaced aliases (Phase 4)
+# Consistent command surface over the existing scratch/integrate/upgrade scripts.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.PHONY: cwt-init
+cwt-init: ## Scaffold a new CWT-gated project (NAME=x [DEST=~/dev])
+ifndef NAME
+	@echo ""
+	@echo "  Usage: make cwt-init NAME=my-app [DEST=~/dev]"
+	@echo ""
+	@exit 1
+endif
+	@bash scripts/new-project.sh "$(NAME)" $(if $(DEST),"$(DEST)",)
+
+.PHONY: cwt-integrate
+cwt-integrate: ## Wire CWT into an existing project (TARGET=/path/to/app)
+	@$(MAKE) --no-print-directory integrate TARGET="$(TARGET)" \
+		$(if $(SCOPE),SCOPE=$(SCOPE),) \
+		$(if $(INCLUDE_NODE),INCLUDE_NODE=$(INCLUDE_NODE),) \
+		$(if $(FORCE),FORCE=$(FORCE),)
+
+.PHONY: cwt-upgrade
+cwt-upgrade: ## Pull latest CWT framework updates from upstream (alias for `upgrade`)
+	@$(MAKE) --no-print-directory upgrade $(if $(YES),YES=$(YES),)
+
+.PHONY: cwt-detect
+cwt-detect: ## Print detected stack (python|go|node|rust|empty) for TARGET (default: .)
+	@bash scripts/detect-framework.sh "$(if $(TARGET),$(TARGET),.)"
+
 .PHONY: init
 init:
 	@bash scripts/init-project.sh
