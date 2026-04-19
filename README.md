@@ -132,6 +132,74 @@ These aren't hypothetical. The guard tests verify all of them (`make test-guards
 
 ---
 
+## Plan gate — CWT
+
+Layered on top of the guards: **CWT** is a plan-approval gate that sits between Claude Code and your filesystem. Every edit Claude proposes must first be drafted as a plan, reviewed in a local dashboard, and approved before Claude can write.
+
+```
+┌───────────────┐   plan JSON    ┌──────────────┐   approved?   ┌───────────────┐
+│ /cwt-plan     │ ─────────────► │  dashboard   │ ────────────► │  PreToolUse   │
+│ (drafts only) │                │  (you review)│               │  hook enforces│
+└───────────────┘                └──────────────┘               └───────────────┘
+                                        │
+                                        ▼
+                                 architecture rater
+                                 (scores each target
+                                  against .claude/rules/)
+```
+
+**What it gives you:**
+
+- **Plan approval before any edit.** `/cwt-plan <feature>` drafts a JSON plan (targets, ops, justifications). The PreToolUse hook blocks Edit/Write on anything not in an approved plan's manifest.
+- **Architecture conformance score.** Each plan target is scored 0–100 against the rule globs in `.claude/rules/*.md`. Low scores surface plans that would violate layering or skip citations.
+- **Task DAG + import graph.** Approving a plan lights up affected files in the Graph tab and auto-advances any task linked via `plan_id`.
+- **Framework upgrades preserve your code.** `make cwt-upgrade` pulls the latest framework tag and three-way-merges files you've customized (`CLAUDE.md`, `Makefile`, `.gitignore`) — user code in `src/`, `python/`, `go/`, `frontend/` is never touched.
+
+**Quick start:**
+
+```bash
+# Scaffold a fresh CWT-gated project
+make cwt-init NAME=my-app DEST=~/dev
+
+cd ~/dev/my-app
+
+# Boot the dashboard (ephemeral port written to .cwt/port)
+python3 .cwt/server.py
+# → http://127.0.0.1:54388/
+
+# In Claude Code, plan before you edit:
+#   /cwt-plan add /metrics endpoint to routes/
+# Then approve in the dashboard. Claude can now write.
+
+# Pull framework updates later
+make cwt-upgrade
+```
+
+**CWT commands (wrap existing scripts with a consistent surface):**
+
+| Command | What it does |
+|---------|--------------|
+| `make cwt-init NAME=x` | Scaffold a new CWT-gated project from this template |
+| `make cwt-integrate TARGET=/path` | Wire CWT into an existing app |
+| `make cwt-upgrade` | Pull latest framework tag, merge customizations |
+| `make cwt-detect [TARGET=.]` | Print detected stack (python/go/node/rust/empty) |
+| `make cwt-team` | Print the task DAG, topologically sorted |
+| `make cwt-graph` | Regenerate and print internal import graph stats |
+
+**Dashboard tabs:**
+
+| Tab | Shows |
+|-----|-------|
+| Pending / Approved / Rejected / All | Plan queue with approve/reject buttons |
+| Tasks | Task DAG, auto-status from linked plans, dep arrows |
+| Graph | Internal Python imports, plan-targeted files highlighted |
+
+**Where the code lives:** everything CWT-specific is in `.cwt/` — `server.py` (stdlib HTTP), `cwt.html` (dashboard), `rater.py` (conformance scorer), `tasks.py` (DAG), `graph.py` (import parser). The PreToolUse hook lives at `.claude/hooks/PreToolUse/cwt-gate.sh`. Framework-owned paths are declared in `.cwt/framework-paths.txt`.
+
+See [`.cwt/tests/README.md`](.cwt/tests/README.md) for the visual test harness — a Playwright script that renders the dashboard with mocked fixtures and screenshots every tab.
+
+---
+
 ## 60-second start
 
 ```bash
