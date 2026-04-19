@@ -45,15 +45,35 @@ cwt() {
       # Auto-cd into new project (only possible because cwt is a shell function)
       if [ -d "$project_dir" ]; then
         cd "$project_dir" || return 1
+        # Auto-boot the dashboard + open browser
+        echo ""
+        echo "  booting dashboard..."
+        nohup python3 .cwt/server.py > .cwt/server.log 2>&1 &
+        disown 2>/dev/null || true
+        local tries=0
+        while [ ! -f .cwt/port ] && [ $tries -lt 30 ]; do
+          sleep 0.1
+          tries=$((tries + 1))
+        done
+        local url=""
+        if [ -f .cwt/port ]; then
+          url="http://127.0.0.1:$(cat .cwt/port)/"
+          _cwt_open_browser "$url"
+        fi
         echo ""
         echo "────────────────────────────────────────────────────────────"
         echo "  You are now in: $project_dir"
+        if [ -n "$url" ]; then
+          echo "  Dashboard:      $url (browser opening…)"
+        else
+          echo "  Dashboard:      failed to boot — see .cwt/server.log"
+        fi
         echo "────────────────────────────────────────────────────────────"
         echo ""
         echo "  Next:"
-        echo "    cwt up            boot the dashboard in the background"
-        echo "    claude            start Claude Code here"
-        echo "    cwt help          see all subcommands"
+        echo "    claude                       start Claude Code here"
+        echo "    /cwt-plan <feature>          draft a plan (inside Claude)"
+        echo "    cwt down                     stop the dashboard"
         echo ""
       fi
       ;;
