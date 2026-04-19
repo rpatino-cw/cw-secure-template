@@ -1,8 +1,0 @@
-{
-  "plan_id": "P-DEMO-001",
-  "summary": "Demo manifest — only .cwt-build/SPIKE_NOTES.md may be edited",
-  "files": [
-    ".cwt-build/SPIKE_NOTES.md"
-  ],
-  "approved_at": "2026-04-19T00:00:00Z"
-}
