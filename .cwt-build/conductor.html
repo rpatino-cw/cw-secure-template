@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CWT Build Conductor</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #12151a;
+    --panel-2: #171b22;
+    --line: #232833;
+    --fg: #e6e9ef;
+    --dim: #8a93a6;
+    --amber: #f5a524;
+    --amber-soft: rgba(245, 165, 36, .12);
+    --green: #34d399;
+    --red: #f87171;
+    --radius: 14px;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; }
+  body { padding: 32px 40px 80px; max-width: 1100px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  h1 .accent { color: var(--amber); }
+  .sub { color: var(--dim); font-size: 13px; margin-top: 4px; }
+  .bar-wrap { width: 260px; }
+  .bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .bar { height: 6px; background: var(--panel); border-radius: 99px; overflow: hidden; }
+  .bar > div { height: 100%; background: linear-gradient(90deg, var(--amber), #fbbf24); transition: width .4s cubic-bezier(.16,1,.3,1); }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    transition: border-color .2s, background .2s;
+  }
+  .card.current { border-color: var(--amber); background: linear-gradient(180deg, var(--amber-soft), transparent 50%), var(--panel); }
+  .card.locked { opacity: .55; }
+  .card.done { border-color: rgba(52, 211, 153, .35); }
+  .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 12px; }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .card-title .n { color: var(--dim); font-weight: 500; font-family: var(--mono); font-size: 13px; margin-right: 8px; }
+  .pill { font-size: 11px; padding: 3px 10px; border-radius: 99px; background: var(--panel-2); color: var(--dim); border: 1px solid var(--line); font-weight: 500; letter-spacing: .02em; text-transform: uppercase; }
+  .pill.current { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+  .pill.done { background: rgba(52, 211, 153, .12); color: var(--green); border-color: transparent; }
+  .card-meta { color: var(--dim); font-size: 12px; margin-bottom: 14px; }
+  .tasks { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .task { display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; color: var(--fg); user-select: none; }
+  .task input { appearance: none; width: 16px; height: 16px; border: 1.5px solid var(--line); border-radius: 4px; background: var(--panel-2); cursor: pointer; position: relative; flex-shrink: 0; transition: all .15s; }
+  .task input:checked { background: var(--amber); border-color: var(--amber); }
+  .task input:checked::after { content: "✓"; position: absolute; top: -3px; left: 1px; color: #000; font-size: 13px; font-weight: 700; }
+  .task input:checked + span { color: var(--dim); text-decoration: line-through; text-decoration-color: rgba(138, 147, 166, .4); }
+  .cmd {
+    font-family: var(--mono); font-size: 12px;
+    background: #000; color: #e6e9ef;
+    padding: 12px 14px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; border: 1px solid var(--line);
+  }
+  .cmd code { white-space: pre-wrap; word-break: break-word; flex: 1; }
+  .copy { background: var(--panel-2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all .15s; flex-shrink: 0; }
+  .copy:hover { background: var(--amber); color: #000; border-color: var(--amber); }
+  .copy.copied { background: var(--green); color: #000; border-color: var(--green); }
+  .advance { margin-top: 12px; background: transparent; color: var(--amber); border: 1px solid var(--amber); border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+  .advance:hover { background: var(--amber); color: #000; }
+  .advance:disabled { opacity: .3; cursor: not-allowed; }
+  .advance.done-btn { color: var(--green); border-color: var(--green); }
+  .advance.done-btn:hover { background: var(--green); color: #000; }
+  details { margin-top: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 22px; }
+  details summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--fg); user-select: none; }
+  details[open] summary { margin-bottom: 12px; }
+  .log-entry { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry .date { color: var(--dim); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+  .log-add { display: flex; gap: 8px; margin-top: 12px; }
+  .log-add input { flex: 1; background: #000; color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: 13px; font-family: inherit; }
+  .log-add input:focus { outline: none; border-color: var(--amber); }
+  .log-add button { background: var(--amber); color: #000; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .risks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 8px; }
+  .risk { background: var(--panel-2); border-left: 3px solid var(--red); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 12px; }
+  .risk b { color: var(--red); display: block; margin-bottom: 3px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .reset { position: fixed; bottom: 20px; right: 20px; background: transparent; color: var(--dim); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 11px; cursor: pointer; font-family: inherit; }
+  .reset:hover { color: var(--red); border-color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>CWT Build <span class="accent">Conductor</span></h1>
+    <div class="sub">6 phases. Steered, not autopilot. Check off tasks as you ship them.</div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar-label"><span id="progress-label">0 of 6 phases</span><span id="progress-pct">0%</span></div>
+    <div class="bar"><div id="progress-bar" style="width: 0%"></div></div>
+  </div>
+</header>
+
+<div class="grid" id="phases"></div>
+
+<details>
+  <summary>Decision Log</summary>
+  <div id="log-list"></div>
+  <div class="log-add">
+    <input id="log-input" placeholder="e.g., Chose Path C (build on rooms system) over forking claude-code-webui" />
+    <button onclick="addLog()">Add</button>
+  </div>
+</details>
+
+<details>
+  <summary>Risk Register</summary>
+  <div class="risks">
+    <div class="risk"><b>Approval friction</b>Every typo-fix requires GUI click → users disable. Auto-approve trivial edits with undo.</div>
+    <div class="risk"><b>Plan-manifest drift</b>Claude edits beyond approved targets. Block out-of-manifest writes via PreToolUse.</div>
+    <div class="risk"><b>AI slop theater</b>Rating feels arbitrary → feature dies. Ship rule-based v1; cut if not calibrated.</div>
+    <div class="risk"><b>Two-UI cognitive load</b>User app + cwt.html both on localhost. Keep cwt secondary — pinned tab, not fullscreen.</div>
+    <div class="risk"><b>Scope creep into Cursor</b>This starts competing with IDEs. Stay scoped: template + dashboard + gate.</div>
+    <div class="risk"><b>Port conflicts</b>localhost:7878 may be taken. Use ephemeral port, write actual port to .cwt/port.</div>
+  </div>
+</details>
+
+<button class="reset" onclick="resetState()">Reset state</button>
+
+<script>
+const PHASES = [
+  {
+    id: 0,
+    title: "Spike — can PreToolUse block writes?",
+    meta: "1 day · viability test · MUST PASS before anything else",
+    tasks: [
+      "Write test PreToolUse hook that blocks Edit on a specific file",
+      "Verify hook can return structured denial to Claude",
+      "Verify user sees useful feedback when blocked",
+      "Write 1-page SPIKE_REPORT.md: viable / not viable / caveats"
+    ],
+    cmd: 'claude "Build a minimal PreToolUse hook at ~/dev/cw-secure-template/.claude/hooks/PreToolUse/cwt-gate.sh that blocks Edit tool calls on any file matching ~/dev/cw-secure-template/.cwt/test-blocked.txt. Return structured JSON denial with a clear message. Then write SPIKE_REPORT.md documenting: did it work, edge cases, anything surprising."'
+  },
+  {
+    id: 1,
+    title: "MVP Gateway",
+    meta: "1 week · dashboard + plan queue + approval gate",
+    tasks: [
+      "cwt.html served locally (ephemeral port, written to .cwt/port)",
+      "FastAPI server with /plans endpoint (list, approve, reject)",
+      "SessionStart hook boots server + opens browser",
+      "/cwt-plan slash command writes plan to .cwt/queue/pending/",
+      "PreToolUse hook blocks Edit unless target is in latest approved manifest",
+      "Approve/Reject buttons in GUI move files between queue dirs"
+    ],
+    cmd: 'claude "Execute Phase 1 of CWT build. Spec in ~/PRPs/cwt-gui-gate.md (create if missing). Build incrementally, run after each task, checkpoint with me before moving on. Worktree at ~/dev/cw-secure-template-cwt/."'
+  },
+  {
+    id: 2,
+    title: "Justifications + Ratings v1",
+    meta: "1 week · per-file why + rule-based scores",
+    tasks: [
+      "Plan JSON schema adds targets[].justification",
+      "Prompt tuning: Claude justifies every file touched",
+      "Rule-based rating engine (AST analysis + linters)",
+      "Architecture score: conforms to .claude/rules/*.md layering?",
+      "Clean-code score: ruff/golangci-lint passes on proposed diff",
+      "AI slop score: comment density, generic var names, useless abstraction"
+    ],
+    cmd: 'claude "Execute Phase 2 of CWT build. Ratings must be rule-based only in v1 — no secondary LLM call. Show rationale per score, not just numbers."'
+  },
+  {
+    id: 3,
+    title: "Architecture Visualization",
+    meta: "2 weeks · AST graph + animated flow",
+    tasks: [
+      "AST parser (Python ast, Go go/parser) → graph JSON",
+      "react-flow rendering of route→service→repo→model graph",
+      "Room-coloring from rooms.json",
+      "Pending plan highlights affected nodes",
+      "Stroke-dashoffset animation for new code flow"
+    ],
+    cmd: 'claude "Execute Phase 3. Use react-flow (not d3) for graph. Parse codebase AST on server, push JSON to GUI. Animations: CSS only, no JS animation libs."'
+  },
+  {
+    id: 4,
+    title: "Setup Wizard",
+    meta: "1 week · scratch + integrate flows",
+    tasks: [
+      "Scratch mode: framework picker → .stack + rooms layout",
+      "Integrate mode: detect framework from package.json / pyproject.toml / go.mod",
+      "Propose rule set, confirm room mapping",
+      "Write .cwt/config.json",
+      "make setup target (idempotent)"
+    ],
+    cmd: 'claude "Execute Phase 4. Framework detection must be robust — test against 3 real repos before declaring done."'
+  },
+  {
+    id: 5,
+    title: "Agent Teams merge",
+    meta: "1 week · DAG + frontmatter + rooms",
+    tasks: [
+      "rooms/tasks.json schema with dependency DAG",
+      "YAML frontmatter on inbox messages (to, from, type, refs)",
+      "Lead/coordinator role for cross-room tasks",
+      "Heartbeats: rooms/{room}/heartbeat.json via Stop hook",
+      "make team target — spawn all rooms in iTerm splits",
+      "Status lifecycle subdirs: inbox/ in-progress/ done/"
+    ],
+    cmd: 'claude "Execute Phase 5. Merge Agent Teams concepts into cw-secure-template rooms system. Keep markdown inbox bodies — only add YAML frontmatter on top."'
+  }
+];
+
+const KEY = "cwt-conductor-v1";
+let state = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return {
+    phases: PHASES.map(p => ({ id: p.id, done: false, tasks: p.tasks.map(() => false) })),
+    log: [
+      { date: "2026-04-19", text: "Chose Path C: build on rooms system, not fork claude-code-webui" },
+      { date: "2026-04-19", text: "AI slop rating: ship rule-based v1; cut if not calibrated honestly" },
+      { date: "2026-04-19", text: "Delegation depth cap: 1 phase between human checkpoints" }
+    ]
+  };
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+
+function currentPhaseIdx() {
+  for (let i = 0; i < PHASES.length; i++) if (!state.phases[i].done) return i;
+  return PHASES.length;
+}
+
+function render() {
+  const cur = currentPhaseIdx();
+  const done = state.phases.filter(p => p.done).length;
+  document.getElementById("progress-label").textContent = `${done} of ${PHASES.length} phases`;
+  document.getElementById("progress-pct").textContent = `${Math.round(done / PHASES.length * 100)}%`;
+  document.getElementById("progress-bar").style.width = `${done / PHASES.length * 100}%`;
+
+  const container = document.getElementById("phases");
+  container.innerHTML = "";
+
+  PHASES.forEach((p, i) => {
+    const st = state.phases[i];
+    const locked = i > cur;
+    const isCurrent = i === cur;
+    const card = document.createElement("div");
+    card.className = "card" + (st.done ? " done" : isCurrent ? " current" : locked ? " locked" : "");
+
+    const tasksDone = st.tasks.filter(Boolean).length;
+    const allTasksDone = tasksDone === p.tasks.length;
+    const pillText = st.done ? "done" : isCurrent ? "current" : locked ? "locked" : "ready";
+    const pillClass = st.done ? "done" : isCurrent ? "current" : "";
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="card-title"><span class="n">Phase ${p.id}</span>${p.title}</div>
+        <span class="pill ${pillClass}">${pillText}</span>
+      </div>
+      <div class="card-meta">${p.meta} · ${tasksDone}/${p.tasks.length} tasks</div>
+      <div class="tasks">
+        ${p.tasks.map((t, ti) => `
+          <label class="task">
+            <input type="checkbox" ${st.tasks[ti] ? "checked" : ""} ${locked ? "disabled" : ""} onchange="toggleTask(${i}, ${ti})" />
+            <span>${t}</span>
+          </label>
+        `).join("")}
+      </div>
+      <div class="cmd">
+        <code>${p.cmd}</code>
+        <button class="copy" onclick="copyCmd(this, ${i})">copy</button>
+      </div>
+      ${locked ? "" : `<button class="advance ${st.done ? 'done-btn' : ''}" ${!allTasksDone && !st.done ? 'disabled' : ''} onclick="togglePhase(${i})">${st.done ? '↶ reopen phase' : '✓ mark phase complete'}</button>`}
+    `;
+    container.appendChild(card);
+  });
+
+  const logList = document.getElementById("log-list");
+  logList.innerHTML = state.log.map(e => `<div class="log-entry"><span class="date">${e.date}</span><span>${escape(e.text)}</span></div>`).join("") || '<div class="sub">No decisions logged yet.</div>';
+}
+
+function escape(s) { return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+function toggleTask(pi, ti) { state.phases[pi].tasks[ti] = !state.phases[pi].tasks[ti]; save(); render(); }
+function togglePhase(pi) { state.phases[pi].done = !state.phases[pi].done; save(); render(); }
+function copyCmd(btn, pi) {
+  navigator.clipboard.writeText(PHASES[pi].cmd);
+  btn.textContent = "copied ✓";
+  btn.classList.add("copied");
+  setTimeout(() => { btn.textContent = "copy"; btn.classList.remove("copied"); }, 1400);
+}
+function addLog() {
+  const inp = document.getElementById("log-input");
+  const text = inp.value.trim();
+  if (!text) return;
+  const date = new Date().toISOString().slice(0, 10);
+  state.log.unshift({ date, text });
+  inp.value = "";
+  save(); render();
+}
+function resetState() {
+  if (!confirm("Reset all progress and decisions?")) return;
+  localStorage.removeItem(KEY);
+  state = load();
+  render();
+}
+
+document.getElementById("log-input")?.addEventListener("keydown", e => { if (e.key === "Enter") addLog(); });
+
+render();
+</script>
+</body>
+</html>
