@@ -83,6 +83,42 @@ def rebuild_manifest():
     return manifest
 
 
+def _launch_claude():
+    """Open a new terminal tab running `claude` in the project directory.
+
+    Returns dict with {ok, method, cmd} on success, {ok:false, error, cmd} on failure.
+    The `cmd` field is always returned so the frontend can fall back to
+    copy-to-clipboard when spawn fails (non-macOS, osascript denied, etc.).
+    """
+    import subprocess
+    import shutil
+    import sys as _sys
+    project = str(ROOT.parent)
+    cmd_str = f"cd {project} && claude"
+    # macOS via osascript -> Terminal.app
+    if _sys.platform == "darwin" and shutil.which("osascript"):
+        script = f'tell application "Terminal" to do script "{cmd_str}"'
+        try:
+            r = subprocess.run(["osascript", "-e", script], capture_output=True, timeout=5)
+            if r.returncode == 0:
+                # Activate Terminal so the new window comes forward
+                subprocess.run(["osascript", "-e", 'tell application "Terminal" to activate'],
+                               capture_output=True, timeout=2)
+                return {"ok": True, "method": "osascript", "cmd": cmd_str}
+            return {"ok": False, "error": r.stderr.decode(errors="replace")[:200], "cmd": cmd_str}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "cmd": cmd_str}
+    # Linux — try common terminal emulators
+    for term in ("x-terminal-emulator", "gnome-terminal", "konsole", "xterm"):
+        if shutil.which(term):
+            try:
+                subprocess.Popen([term, "-e", "bash", "-c", f"{cmd_str}; exec bash"])
+                return {"ok": True, "method": term, "cmd": cmd_str}
+            except Exception as e:
+                return {"ok": False, "error": str(e), "cmd": cmd_str}
+    return {"ok": False, "error": "no terminal emulator available", "cmd": cmd_str}
+
+
 def move_plan(plan_id, from_status, to_status):
     src = QUEUE / from_status / f"{plan_id}.json"
     if not src.exists():
@@ -160,6 +196,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         url = urlparse(self.path)
         parts = url.path.strip("/").split("/")
+        # /api/launch-claude — spawn Claude Code in a new terminal tab
+        if url.path == "/api/launch-claude":
+            return self._send_json(200, _launch_claude())
         # /api/plans/{id}/approve | /api/plans/{id}/reject
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "plans":
             plan_id, action = parts[2], parts[3]

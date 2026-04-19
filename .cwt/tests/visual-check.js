@@ -191,6 +191,7 @@ async function main() {
       window.fetch = (url) => {
         const u = String(url);
         if (/\/api\/plans\/[^/]+\/(approve|reject)$/.test(u)) return Promise.resolve(json({ ok: true }));
+        if (/\/api\/launch-claude$/.test(u)) return Promise.resolve(json({ ok: true, method: "osascript", cmd: "cd /tmp/test && claude" }));
         if (/\/api\/plans$/.test(u) || u.includes("/api/plans?")) return Promise.resolve(json({ plans }));
         if (/\/api\/manifest$/.test(u)) return Promise.resolve(json(manifest));
         if (/\/api\/tasks$/.test(u)) return Promise.resolve(json(tasks));
@@ -261,6 +262,11 @@ async function main() {
   if (graphSummary.files < 1) fail.push("expected >=1 graph file entry");
   if (graphSummary.imports < 1) fail.push("expected >=1 import edge");
   if (graphSummary.planHighlighted < 1) fail.push("expected >=1 plan-highlighted graph file");
+
+  // Header: Start Claude button present
+  const launchBtn = await page.evaluate(() => document.querySelectorAll(".launch-claude").length);
+  if (launchBtn < 1) fail.push("expected Start Claude button in header");
+  console.log("  launch-claude buttons:", launchBtn);
 
   // Tasks tab: plan badges
   await page.click(`.tab[data-filter="tasks"]`);

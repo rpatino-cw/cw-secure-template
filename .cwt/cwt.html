@@ -110,6 +110,13 @@
   .graph-imports li { list-style: "→ "; }
   .panel-stats { display: flex; gap: 18px; margin-bottom: 14px; color: var(--dim); font-size: 12px; }
   .panel-stats .v { color: var(--fg); font-family: var(--mono); font-weight: 600; }
+  .launch-claude { background: var(--amber); color: #000; border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: .02em; transition: transform .1s, box-shadow .15s; }
+  .launch-claude:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245, 165, 36, .25); }
+  .launch-claude:active { transform: translateY(0); }
+  .toast { position: fixed; bottom: 80px; right: 20px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 18px; font-size: 13px; color: var(--fg); box-shadow: 0 8px 32px rgba(0,0,0,.4); opacity: 0; transform: translateY(10px); transition: opacity .2s, transform .2s; pointer-events: none; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { border-color: var(--red); }
+  .toast.ok { border-color: var(--green); }
 </style>
 </head>
 <body>
@@ -123,8 +130,10 @@
     <div class="stat pending"><span class="stat-v" id="ct-pending">0</span><span class="stat-l">Pending</span></div>
     <div class="stat approved"><span class="stat-v" id="ct-approved">0</span><span class="stat-l">Approved</span></div>
     <div class="stat rejected"><span class="stat-v" id="ct-rejected">0</span><span class="stat-l">Rejected</span></div>
+    <button class="launch-claude" onclick="launchClaude()" title="Open a new Terminal tab running Claude Code here">▶ Start Claude</button>
   </div>
 </header>
+<div id="toast" class="toast"></div>
 
 <div class="tabs">
   <button class="tab active" data-filter="pending">Pending</button>
@@ -335,6 +344,30 @@ async function act(id, action) {
   const res = await fetch(`/api/plans/${id}/${action}`, { method: "POST" });
   if (res.ok) refresh();
   else alert(`Failed: ${(await res.json()).error || "unknown"}`);
+}
+
+function showToast(msg, kind = "ok", ms = 3000) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = `toast show ${kind}`;
+  setTimeout(() => { t.className = "toast"; }, ms);
+}
+
+async function launchClaude() {
+  try {
+    const res = await fetch("/api/launch-claude", { method: "POST" });
+    const data = await res.json();
+    if (data.ok) {
+      showToast(`Opening Claude Code in a new terminal (${data.method})…`, "ok");
+    } else if (data.cmd && navigator.clipboard) {
+      await navigator.clipboard.writeText(data.cmd);
+      showToast(`Couldn't spawn terminal. Command copied to clipboard — paste it in your terminal.`, "error", 5000);
+    } else {
+      showToast(`Could not launch: ${data.error || "unknown"}`, "error", 5000);
+    }
+  } catch (e) {
+    showToast(`Launch failed: ${e.message}`, "error", 5000);
+  }
 }
 
 function showPanel(filter) {
