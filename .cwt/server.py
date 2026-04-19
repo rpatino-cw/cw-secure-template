@@ -21,6 +21,12 @@ MANIFEST = ROOT / "manifest-approved.json"
 HTML = ROOT / "cwt.html"
 PORT_FILE = ROOT / "port"
 
+sys.path.insert(0, str(ROOT))
+try:
+    from rater import score_plan  # Phase 2 conformance rater
+except Exception:
+    score_plan = None
+
 
 def list_plans():
     """Return all plans across pending/approved/rejected."""
@@ -52,6 +58,12 @@ def rebuild_manifest():
                 fp = t.get("file") if isinstance(t, dict) else t
                 if fp and fp not in files:
                     files.append(fp)
+            if score_plan is not None:
+                try:
+                    data["ratings"] = score_plan(data)
+                    f.write_text(json.dumps(data, indent=2))
+                except Exception as e:
+                    data["ratings"] = {"error": str(e)}
         except Exception:
             continue
     manifest = {
