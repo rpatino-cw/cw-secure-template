@@ -112,6 +112,12 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(200, json.loads(MANIFEST.read_text()))
             except Exception:
                 self._send_json(200, {"files": [], "plan_id": "(none)"})
+        elif url.path == "/api/health":
+            try:
+                port = int(PORT_FILE.read_text().strip())
+            except Exception:
+                port = 0
+            self._send_json(200, {"status": "ok", "port": port})
         else:
             self.send_error(404)
 
