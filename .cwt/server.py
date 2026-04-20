@@ -34,6 +34,10 @@ try:
     from graph import build_graph  # Phase 3 import graph
 except Exception:
     build_graph = None
+try:
+    import gemini as _gemini  # Plain-English plan summaries
+except Exception:
+    _gemini = None
 
 
 def list_plans():
@@ -81,6 +85,42 @@ def rebuild_manifest():
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2))
     return manifest
+
+
+def _find_plan_file(plan_id):
+    """Locate a plan JSON across pending/approved/rejected queues."""
+    if not plan_id or "/" in plan_id or ".." in plan_id:
+        return None
+    for status in ("pending", "approved", "rejected"):
+        f = QUEUE / status / f"{plan_id}.json"
+        if f.exists():
+            return f
+    return None
+
+
+def _explain_plan_cached(plan_id):
+    """Return {ok, text|error, cached}. Caches result in plan JSON under plain_english."""
+    f = _find_plan_file(plan_id)
+    if not f:
+        return {"ok": False, "error": "plan not found"}
+    try:
+        data = json.loads(f.read_text())
+    except Exception as e:
+        return {"ok": False, "error": f"plan unreadable: {e}"}
+    existing = data.get("plain_english")
+    if existing and isinstance(existing, str) and existing.strip():
+        return {"ok": True, "text": existing, "cached": True}
+    if _gemini is None or not _gemini.is_available():
+        return {"ok": False, "error": "gemini unavailable", "setup_hint": "Set GEMINI_API_KEY in ~/.config/keys/global.env"}
+    text = _gemini.explain_plan(data)
+    if not text:
+        return {"ok": False, "error": "gemini returned no text"}
+    data["plain_english"] = text
+    try:
+        f.write_text(json.dumps(data, indent=2))
+    except Exception:
+        pass  # still return the text even if we couldn't cache
+    return {"ok": True, "text": text, "cached": False}
 
 
 def _send_prompt(text):
@@ -238,6 +278,10 @@ class Handler(BaseHTTPRequestHandler):
         # /api/launch-claude — spawn Claude Code in a new terminal tab
         if url.path == "/api/launch-claude":
             return self._send_json(200, _launch_claude())
+        # /api/explain-plan/{id} — plain-English summary via Gemini, cached in plan JSON
+        if url.path.startswith("/api/explain-plan/"):
+            plan_id = url.path[len("/api/explain-plan/"):]
+            return self._send_json(200, _explain_plan_cached(plan_id))
         # /api/send-prompt — spawn Claude Code + auto-type a /cwt-plan line
         if url.path == "/api/send-prompt":
             length = int(self.headers.get("Content-Length", "0") or 0)

@@ -27,11 +27,72 @@ cwt() {
   local sub="${1:-help}"
   shift 2>/dev/null || true
   case "$sub" in
+    new)
+      # Global landing server: scaffold a project from a prose description.
+      # No need to be in any particular directory.
+      local global_dir="$HOME/.cwt-global"
+      mkdir -p "$global_dir"
+      local port_file="$global_dir/port"
+      # If a cwt-new-server is already running and reachable, reuse it
+      if [ -f "$port_file" ] && curl -s -o /dev/null "http://127.0.0.1:$(cat "$port_file")/" 2>/dev/null; then
+        local existing_url="http://127.0.0.1:$(cat "$port_file")/"
+        echo "  cwt new already running → $existing_url"
+        _cwt_open_browser "$existing_url"
+        return 0
+      fi
+      rm -f "$port_file"
+      nohup python3 "$CWT_TEMPLATE_DIR/scripts/cwt-new-server.py" > "$global_dir/server.log" 2>&1 &
+      disown 2>/dev/null || true
+      local tries=0
+      while [ ! -f "$port_file" ] && [ $tries -lt 40 ]; do
+        sleep 0.1
+        tries=$((tries + 1))
+      done
+      if [ ! -f "$port_file" ]; then
+        echo "cwt new: server did not start. Check $global_dir/server.log" >&2
+        return 1
+      fi
+      local url="http://127.0.0.1:$(cat "$port_file")/"
+      echo "  new-project launcher → $url"
+      _cwt_open_browser "$url"
+      ;;
+    config)
+      # `cwt config gemini` — store a Gemini API key for AI features.
+      local sub2="${1:-}"
+      case "$sub2" in
+        gemini|gemini-key)
+          local secrets_dir="$HOME/.cwt-secrets"
+          local key_file="$secrets_dir/gemini-key"
+          mkdir -p "$secrets_dir"
+          chmod 700 "$secrets_dir"
+          echo ""
+          echo "  Gemini powers architecture suggestions + plain-English plan summaries."
+          echo "  Get a free key: https://aistudio.google.com/apikey"
+          echo ""
+          read -rp "  Paste your Gemini API key (input hidden, or blank to cancel): " -s new_key
+          echo ""
+          if [ -z "$new_key" ]; then
+            echo "  Cancelled."
+            return 0
+          fi
+          echo -n "$new_key" > "$key_file"
+          chmod 600 "$key_file"
+          echo "  ✓ saved to $key_file"
+          echo "  Restart any running CWT dashboards to pick it up."
+          ;;
+        ""|*)
+          echo "usage: cwt config gemini"
+          return 1
+          ;;
+      esac
+      ;;
     init)
       if [ -z "${1:-}" ]; then
         echo "usage: cwt init <name> [dest]"
         echo "  example: cwt init my-app         → ~/dev/my-app"
         echo "  example: cwt init my-app ~/code  → ~/code/my-app"
+        echo ""
+        echo "  tip: \`cwt new\` skips the name-pick step and suggests a name for you"
         return 1
       fi
       local name="$1"
@@ -178,10 +239,12 @@ cwt() {
 cwt — CoreWeave Template CLI
 
 Usage:
-  cwt init <name> [dest]    Scaffold a new CWT-gated project (cd's you in)
+  cwt new                   One-command flow: prompt → AI-suggested architecture → scaffold
+  cwt init <name> [dest]    Scaffold a new CWT-gated project with a specific name
   cwt build                 Open the App Maker (Claude Code) here
   cwt up                    Boot dashboard + open in browser
   cwt down                  Stop the dashboard
+  cwt config gemini         Save a Gemini API key (enables AI suggestions + summaries)
   cwt integrate <path>      Wire CWT into an existing project
   cwt upgrade               Pull latest framework (from inside a fork)
   cwt detect [path]         Print detected stack (python/go/node/rust/empty)
