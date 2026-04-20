@@ -411,7 +411,18 @@ async function copyPrompt() {
 async function launchClaude() {
   try {
     const res = await fetch("/api/launch-claude", { method: "POST" });
-    const data = await res.json();
+    if (!res.ok) {
+      // Older server.py doesn't have this endpoint — 404 returns HTML
+      showToast("Your .cwt/server.py is too old. Copy the latest from the template (cp ~/dev/cw-secure-template/.cwt/server.py .cwt/server.py) and restart: cwt down && cwt up", "error", 8000);
+      return;
+    }
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      showToast("Unexpected response from server — try copying a fresh .cwt/server.py from the template.", "error", 6000);
+      return;
+    }
     if (data.ok) {
       showToast(`Opening App Maker in a new terminal (${data.method})…`, "ok");
     } else if (data.cmd && navigator.clipboard) {
