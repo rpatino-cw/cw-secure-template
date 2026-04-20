@@ -331,11 +331,11 @@ function render() {
             <li>You approve or reject it. Approved plans unlock the files the App Maker can write.</li>
           </ol>
           <div class="composer">
-            <div class="composer-label">Quick-write a prompt (pastes into the App Maker)</div>
-            <textarea id="composer-input" placeholder="Describe what you want to build — e.g. 'build a CSV importer that counts rows per user'"></textarea>
+            <div class="composer-label">Describe what you want, hit Send — we'll open the App Maker and feed it the prompt</div>
+            <textarea id="composer-input" placeholder="e.g. 'build a CSV importer that counts rows per user'"></textarea>
             <div class="composer-row">
-              <div class="composer-hint">Button copies <code>/cwt-plan &lt;your text&gt;</code> to your clipboard. Paste it in the App Maker.</div>
-              <button class="composer-btn" onclick="copyPrompt()">Copy to clipboard</button>
+              <div class="composer-hint">Opens a new Terminal window, starts the App Maker, auto-types <code>/cwt-plan &lt;your text&gt;</code> after it boots. No clipboard, no typing.</div>
+              <button class="composer-btn" onclick="sendPrompt()">▶ Send to App Maker</button>
             </div>
           </div>
         </div>`;
@@ -391,7 +391,7 @@ function showToast(msg, kind = "ok", ms = 3000) {
   setTimeout(() => { t.className = "toast"; }, ms);
 }
 
-async function copyPrompt() {
+async function sendPrompt() {
   const ta = document.getElementById("composer-input");
   const text = (ta.value || "").trim();
   if (!text) {
@@ -399,12 +399,28 @@ async function copyPrompt() {
     ta.focus();
     return;
   }
-  const full = `/cwt-plan ${text}`;
   try {
-    await navigator.clipboard.writeText(full);
-    showToast("Copied. Paste it in the App Maker terminal and hit enter.", "ok", 4000);
+    const res = await fetch("/api/send-prompt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) {
+      showToast("Your .cwt/server.py is too old. Copy the latest from the template and restart (cwt down && cwt up).", "error", 8000);
+      return;
+    }
+    const data = await res.json();
+    if (data.ok) {
+      showToast("Opening App Maker and sending the prompt — give it ~5 seconds.", "ok", 5000);
+      ta.value = "";
+    } else if (data.prompt && navigator.clipboard) {
+      await navigator.clipboard.writeText(data.prompt);
+      showToast(`Couldn't auto-send (${data.error || "unknown"}). Prompt copied to clipboard — paste in App Maker.`, "error", 6000);
+    } else {
+      showToast(`Send failed: ${data.error || "unknown"}`, "error", 5000);
+    }
   } catch (e) {
-    showToast("Couldn't access clipboard — copy manually: " + full.slice(0, 60) + "…", "error", 5000);
+    showToast(`Send failed: ${e.message}`, "error", 5000);
   }
 }
 

@@ -83,6 +83,45 @@ def rebuild_manifest():
     return manifest
 
 
+def _send_prompt(text):
+    """Open a new terminal, start `claude`, then feed it a /cwt-plan <text> line.
+
+    macOS: AppleScript `do script` runs `claude`, then after a delay sends the
+    /cwt-plan command as shell input — since claude has taken over the tty,
+    that text becomes claude's stdin. No clipboard, no keystroke simulation.
+
+    Non-macOS: falls back to spawning a terminal with a command that auto-types
+    after a sleep (less reliable; users on Linux may need to paste manually).
+    """
+    import subprocess
+    import shutil
+    import sys as _sys
+    project = str(ROOT.parent)
+    safe_text = str(text or "").replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ").strip()
+    if not safe_text:
+        return {"ok": False, "error": "empty prompt"}
+    cmd_str = f"cd {project} && claude"
+    plan_line = f"/cwt-plan {safe_text}"
+    if _sys.platform == "darwin" and shutil.which("osascript"):
+        # Open new Terminal tab running claude, wait 3s for boot, send the /cwt-plan line
+        script = (
+            'tell application "Terminal"\n'
+            '  activate\n'
+            f'  set newTab to do script "{cmd_str}"\n'
+            '  delay 3\n'
+            f'  do script "{plan_line}" in newTab\n'
+            'end tell'
+        )
+        try:
+            r = subprocess.run(["osascript", "-e", script], capture_output=True, timeout=8)
+            if r.returncode == 0:
+                return {"ok": True, "method": "osascript", "prompt": plan_line}
+            return {"ok": False, "error": r.stderr.decode(errors="replace")[:200], "prompt": plan_line}
+        except Exception as e:
+            return {"ok": False, "error": str(e), "prompt": plan_line}
+    return {"ok": False, "error": "auto-send only supported on macOS right now", "prompt": plan_line}
+
+
 def _launch_claude():
     """Open a new terminal tab running `claude` in the project directory.
 
@@ -199,6 +238,16 @@ class Handler(BaseHTTPRequestHandler):
         # /api/launch-claude — spawn Claude Code in a new terminal tab
         if url.path == "/api/launch-claude":
             return self._send_json(200, _launch_claude())
+        # /api/send-prompt — spawn Claude Code + auto-type a /cwt-plan line
+        if url.path == "/api/send-prompt":
+            length = int(self.headers.get("Content-Length", "0") or 0)
+            body = self.rfile.read(length) if length > 0 else b"{}"
+            try:
+                payload = json.loads(body.decode() or "{}")
+            except Exception:
+                payload = {}
+            text = payload.get("text", "")
+            return self._send_json(200, _send_prompt(text))
         # /api/plans/{id}/approve | /api/plans/{id}/reject
         if len(parts) == 4 and parts[0] == "api" and parts[1] == "plans":
             plan_id, action = parts[2], parts[3]
