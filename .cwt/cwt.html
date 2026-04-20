@@ -133,6 +133,19 @@
   .composer-btn { background: var(--amber); color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .composer-btn:hover { filter: brightness(1.08); }
   .info-icon { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--line); color: var(--dim); text-align: center; font-size: 9px; line-height: 12px; cursor: help; margin-left: 4px; font-weight: 600; }
+  /* Simple-mode hides the technical chrome when there are no plans yet */
+  body.simple-mode .stats,
+  body.simple-mode .tabs,
+  body.simple-mode .manifest-box,
+  body.simple-mode .sub { display: none; }
+  body.simple-mode .onboard ol { display: none; }
+  body.simple-mode .onboard .composer { border-top: none; padding-top: 0; margin-top: 0; }
+  body.simple-mode h1 { font-size: 28px; }
+  body.simple-mode .launch-claude { display: none; }
+  body.simple-mode .onboard { padding: 36px 40px; margin-top: 32px; }
+  body.simple-mode .onboard h2 { font-size: 22px; }
+  body.simple-mode .onboard textarea { min-height: 120px; font-size: 15px; padding: 14px 16px; }
+  body.simple-mode .composer-btn { font-size: 14px; padding: 12px 20px; }
 </style>
 </head>
 <body>
@@ -226,6 +239,13 @@ async function refresh() {
   document.getElementById("ct-approved").textContent = PLANS.filter(p => p._status === "approved").length;
   document.getElementById("ct-rejected").textContent = PLANS.filter(p => p._status === "rejected").length;
   document.getElementById("manifest").textContent = JSON.stringify(manifestRes, null, 2);
+  // Simple-mode: strip stats/tabs/manifest until at least one plan exists
+  if (PLANS.length === 0) {
+    document.body.classList.add("simple-mode");
+    FILTER = "pending";
+  } else {
+    document.body.classList.remove("simple-mode");
+  }
   render();
 }
 
@@ -322,20 +342,19 @@ function render() {
     if (FILTER === "pending") {
       el.innerHTML = `
         <div class="onboard">
-          <h2>Let's build something</h2>
-          <div class="lede">No plans waiting yet. Here's how to get one:</div>
+          <h2>What do you want to build?</h2>
+          <div class="lede">Describe it below. We'll draft a plan for you to review before any code gets written.</div>
           <ol>
             <li>Click <strong>▶ Open App Maker</strong> above — a terminal opens, ready to build.</li>
             <li>In that terminal, type what you want. Example: <code>/cwt-plan build a daily Slack activity summary script</code></li>
             <li>The App Maker drafts a plan and stops. Come back here — it'll appear below.</li>
-            <li>You approve or reject it. Approved plans unlock the files the App Maker can write.</li>
+            <li>You approve or reject it.</li>
           </ol>
           <div class="composer">
-            <div class="composer-label">Describe what you want, hit Send — we'll open the App Maker and feed it the prompt</div>
-            <textarea id="composer-input" placeholder="e.g. 'build a CSV importer that counts rows per user'"></textarea>
+            <textarea id="composer-input" placeholder="e.g. 'a tool that reads my Slack export and shows who posted most this week'"></textarea>
             <div class="composer-row">
-              <div class="composer-hint">Opens a new Terminal window, starts the App Maker, auto-types <code>/cwt-plan &lt;your text&gt;</code> after it boots. No clipboard, no typing.</div>
-              <button class="composer-btn" onclick="sendPrompt()">▶ Send to App Maker</button>
+              <div class="composer-hint">You'll see a plan here to review. Nothing gets written until you approve it.</div>
+              <button class="composer-btn" onclick="sendPrompt()">▶ Send</button>
             </div>
           </div>
         </div>`;
