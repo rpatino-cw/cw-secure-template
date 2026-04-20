@@ -224,7 +224,15 @@
 <script>
 let PLANS = [];
 let FILTER = "pending";
+let COMPOSER_VALUE = "";
 const CATCH_ALL = new Set(["collaboration", "routing", "rooms", "branching"]);
+
+// Keep the composer value in a module var so it survives any DOM wipe.
+// Delegated listener attached once on DOMContentLoaded.
+function _syncComposer(e) {
+  if (e.target && e.target.id === "composer-input") COMPOSER_VALUE = e.target.value;
+}
+document.addEventListener("input", _syncComposer);
 
 function scoreClass(score) {
   if (score === null || score === undefined) return "exempt";
@@ -377,8 +385,11 @@ function render() {
   const el = document.getElementById("plans");
   if (!list.length) {
     if (FILTER === "pending") {
-      // Don't re-render if the composer is already mounted — would wipe what
-      // the user is typing every 5-second refresh tick.
+      // Never touch the container if the user is typing into the composer.
+      if (document.activeElement && document.activeElement.id === "composer-input") {
+        return;
+      }
+      // If the composer already exists in the DOM and nothing's changed, skip.
       if (document.getElementById("composer-input")) {
         return;
       }
@@ -393,7 +404,7 @@ function render() {
             <li>You approve or reject it.</li>
           </ol>
           <div class="composer">
-            <textarea id="composer-input" placeholder="e.g. 'a tool that reads my Slack export and shows who posted most this week'"></textarea>
+            <textarea id="composer-input" placeholder="e.g. 'a tool that reads my Slack export and shows who posted most this week'">${escape(COMPOSER_VALUE)}</textarea>
             <div class="composer-row">
               <div class="composer-hint">You'll see a plan here to review. Nothing gets written until you approve it.</div>
               <button class="composer-btn" onclick="sendPrompt()">▶ Send</button>
@@ -474,6 +485,7 @@ async function sendPrompt() {
     if (data.ok) {
       showToast("Opening App Maker and sending the prompt — give it ~5 seconds.", "ok", 5000);
       ta.value = "";
+      COMPOSER_VALUE = "";
     } else if (data.prompt && navigator.clipboard) {
       await navigator.clipboard.writeText(data.prompt);
       showToast(`Couldn't auto-send (${data.error || "unknown"}). Prompt copied to clipboard — paste in App Maker.`, "error", 6000);
