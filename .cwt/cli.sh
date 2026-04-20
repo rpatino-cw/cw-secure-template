@@ -57,21 +57,29 @@ cwt() {
       _cwt_open_browser "$url"
       ;;
     wizard)
-      # Serve docs/ on an ephemeral port and open the setup wizard in the browser.
-      # file:// doesn't work — wizard.js uses ES modules and browsers block
-      # cross-origin module loads from the file: scheme.
-      local docs_dir="$CWT_TEMPLATE_DIR/docs"
-      if [ ! -f "$docs_dir/setup.html" ]; then
-        echo "cwt wizard: setup.html not found in $docs_dir" >&2
-        return 1
+      # Start the cwt-new-server (which now serves /setup.html + /api/suggest-wizard
+      # for Gemini recommendations) and open the wizard. Same server that powers
+      # `cwt new` — reused so the wizard can call Gemini on the same origin.
+      local global_dir="$HOME/.cwt-global"
+      mkdir -p "$global_dir"
+      local port_file="$global_dir/port"
+      if [ ! -f "$port_file" ] || ! curl -s -o /dev/null "http://127.0.0.1:$(cat "$port_file")/" 2>/dev/null; then
+        rm -f "$port_file"
+        nohup python3 "$CWT_TEMPLATE_DIR/scripts/cwt-new-server.py" > "$global_dir/server.log" 2>&1 &
+        disown 2>/dev/null || true
+        local tries=0
+        while [ ! -f "$port_file" ] && [ $tries -lt 40 ]; do
+          sleep 0.1
+          tries=$((tries + 1))
+        done
+        if [ ! -f "$port_file" ]; then
+          echo "cwt wizard: server did not start. Check $global_dir/server.log" >&2
+          return 1
+        fi
       fi
-      local port
-      port=$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")
-      local url="http://127.0.0.1:$port/setup.html"
+      local url="http://127.0.0.1:$(cat "$port_file")/setup.html"
       echo "  Wizard: $url"
-      echo "  (Ctrl-C here to stop the server)"
       _cwt_open_browser "$url"
-      (cd "$docs_dir" && exec python3 -m http.server "$port" --bind 127.0.0.1 >/dev/null 2>&1)
       ;;
     config)
       # `cwt config gemini` — store a Gemini API key for AI features.

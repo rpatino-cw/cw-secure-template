@@ -149,6 +149,54 @@ def suggest_architectures(description):
     return out or None
 
 
+def suggest_wizard_selections(description):
+    """Recommend wizard selections for a described project.
+
+    Returns {archetype, stack, database, api_shape, why, custom_suggestion?}
+    or None if Gemini is unavailable or the response can't be parsed.
+
+    Keys are the wizard's canonical identifiers (e.g. 'backend-api', 'python').
+    If Gemini thinks no existing option fits, it returns 'custom' for that field
+    and fills in custom_suggestion: {field, label, why}.
+    """
+    if not description or not description.strip():
+        return None
+    system = (
+        "You recommend wizard selections for a project scaffold. "
+        "Respond ONLY with a JSON object (no markdown, no commentary). Keys:\n"
+        '  "archetype": one of ["backend-api", "fullstack", "frontend", "cli", "data", "bare"]\n'
+        '  "stack": one of ["python", "go", "node"]\n'
+        '  "database": one of ["postgres", "sqlite", "none", "redis", "mongo"]\n'
+        '  "api_shape": one of ["rest", "graphql", "grpc", "none"]\n'
+        '  "why": one sentence explaining the overall recommendation\n'
+        "Map the user's description to the closest existing option — do not invent new values. "
+        "If the idea is a CLI tool, api_shape must be 'none'. If stateless, database must be 'none'. "
+        "If the idea genuinely doesn't fit any existing stack, set stack to the closest and add the "
+        "phrase 'consider custom:' at the start of why (e.g. 'consider custom: Rust would fit better')."
+    )
+    text = generate(description, system=system, max_tokens=400)
+    if not text:
+        return None
+    text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.MULTILINE)
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(data, dict):
+        return None
+    valid = {
+        "archetype": {"backend-api", "fullstack", "frontend", "cli", "data", "bare"},
+        "stack": {"python", "go", "node"},
+        "database": {"postgres", "sqlite", "none", "redis", "mongo"},
+        "api_shape": {"rest", "graphql", "grpc", "none"},
+    }
+    out = {"why": str(data.get("why", "")).strip()[:240]}
+    for key, allowed in valid.items():
+        val = str(data.get(key, "")).strip().lower()
+        out[key] = val if val in allowed else None
+    return out
+
+
 def explain_plan(plan_data):
     """Summarize a plan's JSON for a non-developer. Returns text or None."""
     if not isinstance(plan_data, dict):
