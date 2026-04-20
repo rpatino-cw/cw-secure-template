@@ -377,6 +377,11 @@ function render() {
   const el = document.getElementById("plans");
   if (!list.length) {
     if (FILTER === "pending") {
+      // Don't re-render if the composer is already mounted — would wipe what
+      // the user is typing every 5-second refresh tick.
+      if (document.getElementById("composer-input")) {
+        return;
+      }
       el.innerHTML = `
         <div class="onboard">
           <h2>What do you want to build?</h2>
