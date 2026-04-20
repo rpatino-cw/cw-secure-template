@@ -93,6 +93,22 @@ main {
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .step h2 { font-size: 32px; font-weight: 800; line-height: 1.15; margin-bottom: 8px; }
 .step .lede { font-size: 17px; color: var(--text-secondary); margin-bottom: 32px; max-width: 580px; }
+/* Describe-screen (pre-wizard AI recommendation step) */
+.describe-screen { display: block; animation: fadeIn var(--duration) var(--ease-out); }
+.describe-screen.hidden { display: none; }
+.describe-screen h2 { font-size: 32px; font-weight: 800; line-height: 1.15; margin-bottom: 8px; }
+.describe-screen .lede { font-size: 17px; color: var(--text-secondary); margin-bottom: 32px; max-width: 580px; }
+.describe-screen textarea { width: 100%; padding: 14px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); color: var(--text-primary); font-family: inherit; font-size: 15px; resize: vertical; min-height: 100px; box-sizing: border-box; }
+.describe-screen textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 20%, transparent); }
+.describe-actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; }
+.btn-link { background: transparent; border: none; color: var(--text-secondary); font: inherit; font-size: 14px; cursor: pointer; padding: 8px 12px; text-decoration: underline dotted; text-underline-offset: 3px; }
+.btn-link:hover { color: var(--text-primary); }
+.describe-status { margin-top: 16px; padding: 12px 14px; border-radius: 8px; background: var(--bg-elevated); color: var(--text-secondary); font-size: 14px; }
+.describe-status.error { background: color-mix(in oklch, red 12%, var(--bg-elevated)); color: var(--text-primary); }
+/* Recommendation star badge */
+.rec-star { display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; border-radius: 99px; background: color-mix(in oklch, var(--accent) 16%, transparent); color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: .04em; margin-left: 8px; vertical-align: middle; text-transform: uppercase; }
+.rec-star::before { content: "★"; font-size: 12px; }
+[data-archetype].recommended, [data-lang].recommended, [data-db].recommended, [data-api].recommended { box-shadow: 0 0 0 2px var(--accent); }
 
 .field { margin-bottom: 20px; }
 .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -393,8 +409,22 @@ main {
 <!-- Main -->
 <main>
 
+  <!-- Step 0: AI-assisted describe (not a numbered step; skippable) -->
+  <section class="describe-screen" id="describe-screen">
+    <h2>Tell us what you're building.</h2>
+    <p class="lede">One or two sentences. We'll suggest which options fit best in the next steps — you still pick manually. Optional: skip to go straight to the picker.</p>
+    <div class="field">
+      <textarea id="describe-input" rows="4" placeholder="e.g. 'a FastAPI backend for uploading CSVs and showing daily summaries, single-user for now, may grow to a team tool'"></textarea>
+    </div>
+    <div class="describe-actions">
+      <button class="btn-primary" id="describe-go">Get recommendations →</button>
+      <button class="btn-link" id="describe-skip">Skip — pick manually</button>
+    </div>
+    <div class="describe-status" id="describe-status" style="display:none;"></div>
+  </section>
+
   <!-- Step 1: Basics -->
-  <section class="step active" data-step="1">
+  <section class="step" data-step="1">
     <h2>Start a new secure project.</h2>
     <p class="lede">Seven steps. Every answer shapes the scaffold you download — from folder layout to CI gates to which guards stay strict. You can't skip the security questions.</p>
     <div class="field">

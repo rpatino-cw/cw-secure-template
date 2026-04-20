@@ -47,6 +47,24 @@ except Exception:
 LANDING_HTML = TEMPLATE_ROOT / ".cwt" / "new-landing.html"
 NEW_PROJECT_SCRIPT = TEMPLATE_ROOT / "scripts" / "new-project.sh"
 DEFAULT_DEST = Path.home() / "dev"
+DOCS_DIR = TEMPLATE_ROOT / "docs"
+
+STATIC_MIME = {
+    ".html": "text/html; charset=utf-8",
+    ".js":   "application/javascript; charset=utf-8",
+    ".mjs":  "application/javascript; charset=utf-8",
+    ".css":  "text/css; charset=utf-8",
+    ".json": "application/json; charset=utf-8",
+    ".svg":  "image/svg+xml",
+    ".png":  "image/png",
+    ".jpg":  "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif":  "image/gif",
+    ".woff": "font/woff",
+    ".woff2":"font/woff2",
+    ".ttf":  "font/ttf",
+    ".ico":  "image/x-icon",
+}
 
 
 # ── helpers ──
@@ -186,6 +204,23 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, html, "text/html; charset=utf-8")
             except Exception as e:
                 return self._send(500, {"error": f"landing page missing: {e}"})
+        # Serve wizard files from docs/ — reject any .. or absolute paths.
+        if url.path.startswith("/setup") or url.path.startswith("/docs/"):
+            rel = url.path.lstrip("/")
+            if rel.startswith("docs/"):
+                rel = rel[len("docs/"):]
+            target = (DOCS_DIR / rel).resolve()
+            try:
+                target.relative_to(DOCS_DIR.resolve())
+            except ValueError:
+                return self._send(403, {"error": "forbidden"})
+            if target.exists() and target.is_file():
+                mime = STATIC_MIME.get(target.suffix.lower(), "application/octet-stream")
+                try:
+                    return self._send(200, target.read_bytes(), mime)
+                except Exception as e:
+                    return self._send(500, {"error": f"read failed: {e}"})
+            return self._send(404, {"error": f"not found: {rel}"})
         return self._send(404, {"error": "not found"})
 
     def do_POST(self):
@@ -196,6 +231,16 @@ class Handler(BaseHTTPRequestHandler):
             payload = json.loads(raw.decode() or "{}")
         except Exception:
             payload = {}
+
+        if url.path == "/api/suggest-wizard":
+            desc = (payload.get("description") or "").strip()
+            if not desc:
+                return self._send(400, {"error": "description required"})
+            if _gemini and _gemini.is_available():
+                rec = _gemini.suggest_wizard_selections(desc)
+                if rec:
+                    return self._send(200, {"ok": True, "recommendations": rec, "source": "gemini"})
+            return self._send(200, {"ok": False, "error": "ai unavailable", "setup_hint": "Set GEMINI_API_KEY to enable"})
 
         if url.path == "/api/suggest":
             desc = (payload.get("description") or "").strip()

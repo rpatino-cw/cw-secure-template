@@ -859,6 +859,130 @@ function escapeHtml(s) {
 }
 
 // ============================================================
+// Describe screen — AI-assisted recommendations (pre-step)
+// ============================================================
+state.describe = { text: '', recommendations: null };
+
+function enterStep1FromDescribe() {
+  const screen = document.getElementById('describe-screen');
+  if (screen) screen.classList.add('hidden');
+  state.currentStep = 1;
+  const s1 = document.querySelector('.step[data-step="1"]');
+  if (s1) s1.classList.add('active');
+  renderStepNav();
+  applyRecommendationHighlights();
+}
+
+async function submitDescribe() {
+  const ta = document.getElementById('describe-input');
+  const status = document.getElementById('describe-status');
+  const goBtn = document.getElementById('describe-go');
+  const skipBtn = document.getElementById('describe-skip');
+  const text = (ta.value || '').trim();
+  if (!text) {
+    status.style.display = 'block';
+    status.className = 'describe-status error';
+    status.textContent = 'Type a sentence or two first — or click "Skip — pick manually".';
+    ta.focus();
+    return;
+  }
+  state.describe.text = text;
+  if (state.answers.project && !state.answers.project.description) {
+    state.answers.project.description = text;
+  }
+  goBtn.disabled = true;
+  skipBtn.disabled = true;
+  status.style.display = 'block';
+  status.className = 'describe-status';
+  status.textContent = 'Asking for recommendations…';
+  try {
+    const res = await fetch('/api/suggest-wizard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: text }),
+    });
+    const data = await res.json();
+    if (data.ok && data.recommendations) {
+      state.describe.recommendations = data.recommendations;
+      enterStep1FromDescribe();
+      return;
+    }
+    status.className = 'describe-status error';
+    status.textContent = (data.setup_hint
+      ? `AI unavailable. ${data.setup_hint}. Proceeding without stars.`
+      : 'AI unavailable. Proceeding without stars.');
+    setTimeout(enterStep1FromDescribe, 900);
+  } catch (e) {
+    status.className = 'describe-status error';
+    status.textContent = 'Could not reach AI. Proceeding without stars.';
+    setTimeout(enterStep1FromDescribe, 900);
+  }
+}
+
+function skipDescribe() {
+  enterStep1FromDescribe();
+}
+
+// Apply .recommended + ★ badge to options matching recommendations.
+// Called after each re-render (renderLanguages, renderArchetypes, etc.)
+// because those functions replace innerHTML and wipe our decorations.
+function applyRecommendationHighlights() {
+  const r = state.describe.recommendations;
+  if (!r) return;
+  // Map wizard recommendation keys to the DOM attributes already in the rendered wizard
+  const targets = [
+    { want: r.archetype, host: '#arch-grid',     attr: 'data-arch' },
+    { want: r.stack,     host: null,             attr: 'data-lang' }, // language grid has no id; scope by attr
+    { want: r.database,  host: null,             attr: 'data-db'  },
+    { want: r.api_shape, host: '#api-grid',      attr: 'data-val' },
+  ];
+  for (const t of targets) {
+    if (!t.want) continue;
+    const scope = t.host ? document.querySelector(t.host) : document;
+    if (!scope) continue;
+    scope.querySelectorAll(`[${t.attr}]`).forEach(el => {
+      const v = el.getAttribute(t.attr);
+      if (v && v.toLowerCase() === t.want.toLowerCase()) {
+        el.classList.add('recommended');
+        if (!el.querySelector('.rec-star')) {
+          const star = document.createElement('span');
+          star.className = 'rec-star';
+          star.textContent = 'AI pick';
+          star.title = r.why || 'Recommended for your description';
+          const title = el.querySelector('h3, h4, .title, strong, label') || el;
+          title.appendChild(star);
+        }
+      }
+    });
+  }
+}
+
+// Re-apply stars on every major re-render so they survive innerHTML wipes.
+// MutationObserver on the main area catches future renders cheaply.
+(function observeForHighlights() {
+  if (!('MutationObserver' in window)) return;
+  let pending = false;
+  const obs = new MutationObserver(() => {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(() => {
+      pending = false;
+      applyRecommendationHighlights();
+    });
+  });
+  const main = document.querySelector('main');
+  if (main) obs.observe(main, { childList: true, subtree: true });
+})();
+
+// Wire describe buttons once DOM is parsed
+(function wireDescribe() {
+  const go = document.getElementById('describe-go');
+  const skip = document.getElementById('describe-skip');
+  if (go) go.addEventListener('click', submitDescribe);
+  if (skip) skip.addEventListener('click', skipDescribe);
+})();
+
+// ============================================================
 // Boot
 // ============================================================
 renderStepNav();
