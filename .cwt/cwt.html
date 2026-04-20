@@ -130,7 +130,7 @@
     <div class="stat pending"><span class="stat-v" id="ct-pending">0</span><span class="stat-l">Pending</span></div>
     <div class="stat approved"><span class="stat-v" id="ct-approved">0</span><span class="stat-l">Approved</span></div>
     <div class="stat rejected"><span class="stat-v" id="ct-rejected">0</span><span class="stat-l">Rejected</span></div>
-    <button class="launch-claude" onclick="launchClaude()" title="Open a new Terminal tab running Claude Code here">▶ Start Claude</button>
+    <button class="launch-claude" onclick="launchClaude()" title="Open the App Maker (a new terminal tab in this project, ready to build)">▶ Open App Maker</button>
   </div>
 </header>
 <div id="toast" class="toast"></div>
@@ -358,12 +358,12 @@ async function launchClaude() {
     const res = await fetch("/api/launch-claude", { method: "POST" });
     const data = await res.json();
     if (data.ok) {
-      showToast(`Opening Claude Code in a new terminal (${data.method})…`, "ok");
+      showToast(`Opening App Maker in a new terminal (${data.method})…`, "ok");
     } else if (data.cmd && navigator.clipboard) {
       await navigator.clipboard.writeText(data.cmd);
       showToast(`Couldn't spawn terminal. Command copied to clipboard — paste it in your terminal.`, "error", 5000);
     } else {
-      showToast(`Could not launch: ${data.error || "unknown"}`, "error", 5000);
+      showToast(`Could not open App Maker: ${data.error || "unknown"}`, "error", 5000);
     }
   } catch (e) {
     showToast(`Launch failed: ${e.message}`, "error", 5000);

@@ -71,11 +71,19 @@ cwt() {
         echo "────────────────────────────────────────────────────────────"
         echo ""
         echo "  Next:"
-        echo "    claude                       start Claude Code here"
-        echo "    /cwt-plan <feature>          draft a plan (inside Claude)"
+        echo "    cwt build                    open the App Maker here"
+        echo "    /cwt-plan <feature>          draft a plan (inside App Maker)"
         echo "    cwt down                     stop the dashboard"
         echo ""
       fi
+      ;;
+    build|maker|app)
+      if ! command -v claude >/dev/null 2>&1; then
+        echo "cwt build: claude CLI not found in PATH." >&2
+        echo "  install Claude Code first: https://claude.ai/code" >&2
+        return 1
+      fi
+      command claude "$@"
       ;;
     up)
       if [ ! -f .cwt/server.py ]; then
@@ -171,6 +179,7 @@ cwt — CoreWeave Template CLI
 
 Usage:
   cwt init <name> [dest]    Scaffold a new CWT-gated project (cd's you in)
+  cwt build                 Open the App Maker (Claude Code) here
   cwt up                    Boot dashboard + open in browser
   cwt down                  Stop the dashboard
   cwt integrate <path>      Wire CWT into an existing project
