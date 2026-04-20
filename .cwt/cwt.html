@@ -117,6 +117,22 @@
   .toast.show { opacity: 1; transform: translateY(0); }
   .toast.error { border-color: var(--red); }
   .toast.ok { border-color: var(--green); }
+  .onboard { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px 32px; margin: 24px 0; }
+  .onboard h2 { margin: 0 0 4px; font-size: 18px; font-weight: 600; color: var(--fg); letter-spacing: -.01em; }
+  .onboard .lede { color: var(--dim); font-size: 13px; margin-bottom: 22px; }
+  .onboard ol { margin: 0; padding: 0 0 0 20px; color: var(--fg); font-size: 14px; line-height: 1.8; }
+  .onboard ol li::marker { color: var(--amber); font-weight: 700; }
+  .onboard ol li { margin-bottom: 6px; }
+  .onboard code { background: var(--panel-2); padding: 2px 8px; border-radius: 4px; font-size: 12px; font-family: var(--mono); color: var(--fg); }
+  .composer { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--line); }
+  .composer-label { color: var(--dim); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .06em; }
+  .composer textarea { width: 100%; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; color: var(--fg); font-family: inherit; font-size: 13px; resize: vertical; min-height: 60px; box-sizing: border-box; }
+  .composer textarea:focus { outline: none; border-color: var(--amber); }
+  .composer-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+  .composer-hint { color: var(--dim); font-size: 11px; flex: 1; }
+  .composer-btn { background: var(--amber); color: #000; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .composer-btn:hover { filter: brightness(1.08); }
+  .info-icon { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--line); color: var(--dim); text-align: center; font-size: 9px; line-height: 12px; cursor: help; margin-left: 4px; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -124,7 +140,7 @@
 <header>
   <div>
     <h1>CWT <span class="accent">Dashboard</span></h1>
-    <div class="sub">Plan-gated Claude edits. Approve or reject pending plans below.</div>
+    <div class="sub">Review what the App Maker wants to build — approve what's safe, reject what's wrong.</div>
   </div>
   <div class="stats">
     <div class="stat pending"><span class="stat-v" id="ct-pending">0</span><span class="stat-l">Pending</span></div>
@@ -170,8 +186,8 @@ function scoreClass(score) {
 function overallScoreHtml(ratings) {
   if (!ratings) return "";
   const s = ratings.overall;
-  if (s === null || s === undefined) return `<span class="score exempt" title="All targets are CWT tooling, exempt from app rules">exempt</span>`;
-  return `<span class="score ${scoreClass(s)}" title="Conformance score: ${s}/100">${s}</span>`;
+  if (s === null || s === undefined) return `<span class="score exempt" title="All targets are CWT tooling, exempt from app architecture rules">exempt</span>`;
+  return `<span class="score ${scoreClass(s)}" title="Architecture score (0-100). Higher = more rules cited in the plan's justifications. Low scores mean the plan may skip layers or skip citations.">${s}</span>`;
 }
 
 function targetRatingHtml(tr) {
@@ -185,8 +201,8 @@ function targetRatingHtml(tr) {
     const cited = (tr.cited || []).filter(r => !CATCH_ALL.has(r));
     const missing = applicable.filter(r => !cited.includes(r));
     const parts = [];
-    if (cited.length) parts.push(`<span class="cited">cites: ${cited.join(", ")}</span>`);
-    if (missing.length) parts.push(`<span class="uncited">missing: ${missing.join(", ")}</span>`);
+    if (cited.length) parts.push(`<span class="cited" title="Rules this plan's justification references — shown as evidence the plan respects them">cites: ${cited.join(", ")}</span>`);
+    if (missing.length) parts.push(`<span class="uncited" title="Rules that apply to this file but the plan didn't cite — may indicate skipped checks">missing: ${missing.join(", ")}</span>`);
     if (!applicable.length) parts.push(`<span>no specific rules apply</span>`);
     ruleHtml = `<span class="rule-list">${parts.join(" · ")}</span>`;
   }
@@ -303,7 +319,29 @@ function render() {
   const list = FILTER === "all" ? PLANS : PLANS.filter(p => p._status === FILTER);
   const el = document.getElementById("plans");
   if (!list.length) {
-    el.innerHTML = `<div class="empty">No ${FILTER} plans.<br><br>Drop a plan JSON into <code>.cwt/queue/pending/</code> to see it here.</div>`;
+    if (FILTER === "pending") {
+      el.innerHTML = `
+        <div class="onboard">
+          <h2>Let's build something</h2>
+          <div class="lede">No plans waiting yet. Here's how to get one:</div>
+          <ol>
+            <li>Click <strong>▶ Open App Maker</strong> above — a terminal opens, ready to build.</li>
+            <li>In that terminal, type what you want. Example: <code>/cwt-plan build a daily Slack activity summary script</code></li>
+            <li>The App Maker drafts a plan and stops. Come back here — it'll appear below.</li>
+            <li>You approve or reject it. Approved plans unlock the files the App Maker can write.</li>
+          </ol>
+          <div class="composer">
+            <div class="composer-label">Quick-write a prompt (pastes into the App Maker)</div>
+            <textarea id="composer-input" placeholder="Describe what you want to build — e.g. 'build a CSV importer that counts rows per user'"></textarea>
+            <div class="composer-row">
+              <div class="composer-hint">Button copies <code>/cwt-plan &lt;your text&gt;</code> to your clipboard. Paste it in the App Maker.</div>
+              <button class="composer-btn" onclick="copyPrompt()">Copy to clipboard</button>
+            </div>
+          </div>
+        </div>`;
+    } else {
+      el.innerHTML = `<div class="empty">No ${FILTER} plans yet.</div>`;
+    }
     return;
   }
   el.innerHTML = list.map(p => `
@@ -351,6 +389,23 @@ function showToast(msg, kind = "ok", ms = 3000) {
   t.textContent = msg;
   t.className = `toast show ${kind}`;
   setTimeout(() => { t.className = "toast"; }, ms);
+}
+
+async function copyPrompt() {
+  const ta = document.getElementById("composer-input");
+  const text = (ta.value || "").trim();
+  if (!text) {
+    showToast("Type what you want to build first", "error", 3000);
+    ta.focus();
+    return;
+  }
+  const full = `/cwt-plan ${text}`;
+  try {
+    await navigator.clipboard.writeText(full);
+    showToast("Copied. Paste it in the App Maker terminal and hit enter.", "ok", 4000);
+  } catch (e) {
+    showToast("Couldn't access clipboard — copy manually: " + full.slice(0, 60) + "…", "error", 5000);
+  }
 }
 
 async function launchClaude() {
