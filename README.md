@@ -161,23 +161,37 @@ Layered on top of the guards: **CWT** is a plan-approval gate that sits between 
 # One-time: install the global `cwt` command
 git clone https://github.com/rpatino-cw/cw-secure-template ~/dev/cw-secure-template
 cd ~/dev/cw-secure-template
-make cwt-install
-# → prompts: add global `cwt` command to your shell? [Y/n]
-# → writes ~/.cwt-cli.sh and adds one source line to ~/.zshrc (or ~/.bashrc)
+make cwt-install          # prompts, then adds `cwt` to your shell
+source ~/.zshrc           # or open a new terminal
 
-source ~/.zshrc    # or open a new terminal
+# Optional: enable AI features (architecture suggestions + plain-English plans)
+cwt config gemini         # paste a free key from https://aistudio.google.com/apikey
+```
 
-# From ANY directory, forever:
-cwt init my-app              # → ~/dev/my-app (scaffolded, CWT-gated)
-cd ~/dev/my-app
-python3 .cwt/server.py       # boot dashboard at the port it prints
+**Then, from anywhere:**
 
-# In Claude Code, plan before you edit:
-#   /cwt-plan add /metrics endpoint to routes/
-# Then approve in the dashboard. Claude can now write.
+```bash
+cwt new                   # opens a browser landing page
+# → you describe what you want to build
+# → Gemini suggests 3 ways to architect it (CLI tool / FastAPI web app / etc.)
+# → you pick one, CWT scaffolds the project + opens the App Maker + drafts the first plan
+# → dashboard opens with the plan waiting for approval
+```
 
-cwt upgrade                  # pull framework updates (run from inside a fork)
-cwt help                     # see all subcommands
+**Once you're in a project:**
+
+```bash
+cwt up                    # boot dashboard + open browser (if not running)
+cwt build                 # open the App Maker (Claude Code) in the current project
+cwt upgrade               # pull framework updates
+cwt down                  # stop the dashboard
+cwt help                  # see everything
+```
+
+**Manual flow** (if you don't want Gemini choosing a name):
+
+```bash
+cwt init my-app           # scaffolds ~/dev/my-app with the exact name you give it
 ```
 
 **Why the installer?** You clone `cw-secure-template` once. The `cwt` command knows where that template lives (via `$CWT_TEMPLATE_DIR`) and dispatches to it. No more `cd ~/dev/cw-secure-template && make cwt-init …` — just `cwt init` from wherever you are. And when the template upgrades, your `cwt` command auto-updates because it re-sources the template's `.cwt/cli.sh` on every shell startup.

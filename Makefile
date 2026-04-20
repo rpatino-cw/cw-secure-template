@@ -348,6 +348,10 @@ endif
 cwt-install: ## One-time: add global `cwt` command to your shell (YES=1 to auto-confirm)
 	@bash scripts/install-cwt-cli.sh $(if $(YES),--yes,)
 
+.PHONY: cwt-new
+cwt-new: ## Launch the prompt→architecture→scaffold landing page
+	@python3 scripts/cwt-new-server.py --open
+
 .PHONY: cwt-init
 cwt-init: ## Scaffold a new CWT-gated project (NAME=x [DEST=~/dev])
 ifndef NAME

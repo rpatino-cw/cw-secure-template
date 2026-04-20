@@ -44,6 +44,7 @@ const FIXTURES = {
       _path: ".cwt/queue/pending/P-demo-good.json",
       summary: "Add /users endpoint with service + model",
       prompt: "add user creation endpoint",
+      plain_english: "This adds a new way for your app to create user accounts. When someone sends a signup request, the app will validate it, hash the password for safety, and save a new user in the database. Nothing else changes about how the rest of the app behaves.",
       targets: [
         {
           file: "routes/users.py",
@@ -192,6 +193,7 @@ async function main() {
         const u = String(url);
         if (/\/api\/plans\/[^/]+\/(approve|reject)$/.test(u)) return Promise.resolve(json({ ok: true }));
         if (/\/api\/launch-claude$/.test(u)) return Promise.resolve(json({ ok: true, method: "osascript", cmd: "cd /tmp/test && claude" }));
+        if (/\/api\/explain-plan\//.test(u)) return Promise.resolve(json({ ok: true, text: "AI-generated plain-English summary for this plan.", cached: false }));
         if (/\/api\/plans$/.test(u) || u.includes("/api/plans?")) return Promise.resolve(json({ plans }));
         if (/\/api\/manifest$/.test(u)) return Promise.resolve(json(manifest));
         if (/\/api\/tasks$/.test(u)) return Promise.resolve(json(tasks));
@@ -256,6 +258,17 @@ async function main() {
   if (plansSummary.exempt < 1) fail.push("expected >=1 exempt pill");
   if (plansSummary.citesBadges < 1) fail.push("expected >=1 cites list");
   if (plansSummary.missingBadges < 1) fail.push("expected >=1 missing list");
+
+  // Plain-English summary + collapsible tech details
+  const planSummary = await page.evaluate(() => ({
+    plainSummaries: document.querySelectorAll(".plain-summary").length,
+    detailsToggles: document.querySelectorAll(".details-toggle").length,
+    techDetailsCollapsed: document.querySelectorAll(".tech-details:not(.open)").length,
+  }));
+  console.log("  plain+details:", planSummary);
+  if (planSummary.plainSummaries < 1) fail.push("expected >=1 plain-summary section");
+  if (planSummary.detailsToggles < 1) fail.push("expected >=1 Show technical details toggle");
+  if (planSummary.techDetailsCollapsed < 1) fail.push("expected tech-details collapsed by default");
   if (tasksSummary.taskRows !== 4) fail.push(`expected 4 task rows, got ${tasksSummary.taskRows}`);
   if (tasksSummary.doneStatus < 1) fail.push("expected >=1 done status");
   if (tasksSummary.blockedStatus < 1) fail.push("expected >=1 blocked status");
