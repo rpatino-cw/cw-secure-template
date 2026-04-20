@@ -18,8 +18,11 @@ PY_EXISTS := $(wildcard python/pyproject.toml)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 .PHONY: wizard
-wizard: ## Open the visual setup wizard in your browser (recommended starting point)
-	@open docs/setup.html 2>/dev/null || xdg-open docs/setup.html 2>/dev/null || echo "Open docs/setup.html in your browser, or use the hosted version: https://rpatino-cw.github.io/cw-secure-template/setup.html"
+wizard: ## Open the visual setup wizard in your browser (served via HTTP so ES modules load)
+	@PORT=$$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()"); \
+		echo "  Wizard: http://127.0.0.1:$$PORT/setup.html"; \
+		(open "http://127.0.0.1:$$PORT/setup.html" 2>/dev/null || xdg-open "http://127.0.0.1:$$PORT/setup.html" 2>/dev/null) &; \
+		cd docs && exec python3 -m http.server $$PORT --bind 127.0.0.1 >/dev/null 2>&1
 
 .PHONY: new
 new: ## Start a new app from a blueprint

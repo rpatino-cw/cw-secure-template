@@ -56,6 +56,23 @@ cwt() {
       echo "  new-project launcher → $url"
       _cwt_open_browser "$url"
       ;;
+    wizard)
+      # Serve docs/ on an ephemeral port and open the setup wizard in the browser.
+      # file:// doesn't work — wizard.js uses ES modules and browsers block
+      # cross-origin module loads from the file: scheme.
+      local docs_dir="$CWT_TEMPLATE_DIR/docs"
+      if [ ! -f "$docs_dir/setup.html" ]; then
+        echo "cwt wizard: setup.html not found in $docs_dir" >&2
+        return 1
+      fi
+      local port
+      port=$(python3 -c "import socket; s=socket.socket(); s.bind(('127.0.0.1',0)); print(s.getsockname()[1]); s.close()")
+      local url="http://127.0.0.1:$port/setup.html"
+      echo "  Wizard: $url"
+      echo "  (Ctrl-C here to stop the server)"
+      _cwt_open_browser "$url"
+      (cd "$docs_dir" && exec python3 -m http.server "$port" --bind 127.0.0.1 >/dev/null 2>&1)
+      ;;
     config)
       # `cwt config gemini` — store a Gemini API key for AI features.
       local sub2="${1:-}"
@@ -241,6 +258,7 @@ cwt — CoreWeave Template CLI
 Usage:
   cwt new                   One-command flow: prompt → AI-suggested architecture → scaffold
   cwt init <name> [dest]    Scaffold a new CWT-gated project with a specific name
+  cwt wizard                Open the original blueprint wizard (stack picker + folder tree)
   cwt build                 Open the App Maker (Claude Code) here
   cwt up                    Boot dashboard + open in browser
   cwt down                  Stop the dashboard
